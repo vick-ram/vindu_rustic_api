@@ -1,0 +1,52 @@
+package org.example.data.repo
+
+import org.example.data.db.entities.UserEntity
+import org.example.data.db.tables.UserTable
+import org.example.domain.models.TokenResponse
+import org.example.domain.models.User
+import org.example.domain.repo.UserRepository
+import org.example.plugins.AuthenticationException
+import org.example.plugins.NotFoundException
+import org.example.utils.HashPassword
+import org.example.utils.blacklistToken
+import org.example.utils.makeJwtToken
+import org.example.utils.suspendTransaction
+
+class UserRepositoryImpl : CrudRepositoryImpl<UserEntity, User>(UserEntity), UserRepository {
+    override fun UserEntity.toDomain(): User = toDomain()
+
+    override fun User.toEntity(entity: UserEntity) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun login(
+        email: String,
+        password: String,
+        issuer: String,
+        audience: String,
+        secret: String
+    ): TokenResponse = suspendTransaction {
+        val user = UserEntity.find { UserTable.email eq email }
+            .firstOrNull() ?: throw NotFoundException("User with email $email not found")
+
+        if (!HashPassword.verifyPassword(password, user.password)) {
+            throw AuthenticationException("Invalid email or password")
+        }
+
+        val token = makeJwtToken(
+            issuer = issuer,
+            audience = audience,
+            secret = secret,
+            email = email,
+            userId = user.id.value
+        )
+
+        TokenResponse(type = "Bearer", token = token!!)
+
+    }
+
+    override suspend fun logout(token: String): Boolean {
+        blacklistToken(token = token)
+        return true
+    }
+}

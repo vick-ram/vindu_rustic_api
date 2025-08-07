@@ -1,0 +1,26 @@
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+.social-icon {
+    font-size: 1.5rem;
+    color: #3a7bd5;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.social-icon:hover {
+    transform: scale(1.2);
+    color: #00d2ff;
+}
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+}
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #dee2e6;
+}

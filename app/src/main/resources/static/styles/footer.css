@@ -1,0 +1,77 @@
+.footer {
+    background-color: #1f1f2e;
+    color: #f1f1f1;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+    border-top: 4px solid #0d6efd;
+}
+
+.footer h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.footer p,
+.footer a {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer a:hover {
+    color: #ffffff;
+}
+
+.footer .social-icons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.footer .social-icons a {
+    font-size: 1.2rem;
+    color: #cccccc;
+}
+
+.footer .social-icons a:hover {
+    color: #0d6efd;
+}
+
+.footer .newsletter input {
+    padding: 0.6rem;
+    width: 100%;
+    border: none;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    outline: none;
+}
+
+.footer .newsletter button {
+    background-color: #0d6efd;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    color: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.footer .newsletter button:hover {
+    background-color: #0056d2;
+}
+
+.footer-bottom {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: #aaa;
+    border-top: 1px solid #333;
+    padding-top: 1.5rem;
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/all.min.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/admin.css}">
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar on the left -->
+    <aside th:replace="~{admin/fragments/sidebar :: sidebar}" class="mb-5"></aside>
+
+    <!-- Main panel -->
+    <div id="page-content-wrapper" class="flex-grow-1">
+        <!-- AppBar at the top -->
+        <header th:replace="~{admin/fragments/appbar :: appbar}"></header>
+
+        <!-- Main content section from the child template -->
+        <main class="container-fluid px-4 flex-grow-1">
+            <div layout:fragment="content"></div>
+        </main>
+
+        <!-- Footer at the bottom -->
+        <footer th:replace="~{admin/fragments/footer :: footer}" class="mt-auto"></footer>
+
+    </div>
+</div>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/chartjs/chart.umd.js}"></script>
+<!--<script th:src="@{/resources/js/sidebar.js}"></script>-->
+<script th:src="@{/resources/js/admin.js}"></script>
+</body>
+</html>

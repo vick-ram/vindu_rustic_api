@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sign Up</title>
+</head>
+<body>
+<div th:fragment="content">
+    <form th:action="@{/auth/signup}" method="post" class="auth-form">
+        <!-- Error message -->
+        <div th:if="${error}" class="form-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}">Registration error</span>
+        </div>
+
+        <!-- Name field -->
+        <div class="form-group">
+            <label for="name" class="form-label">Full Name</label>
+            <input id="name" name="name" type="text" required
+                   class="form-input"
+                   placeholder="John Doe">
+        </div>
+
+        <!-- Email field -->
+        <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" name="email" type="email" required
+                   class="form-input"
+                   placeholder="your@email.com">
+        </div>
+
+        <!-- Password field -->
+        <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" name="password" type="password" required
+                   class="form-input"
+                   placeholder="••••••••">
+            <p class="text-xs text-light">At least 8 characters with a number and symbol</p>
+        </div>
+
+        <!-- Confirm Password field -->
+        <div class="form-group">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" required
+                   class="form-input"
+                   placeholder="••••••••">
+        </div>
+
+        <!-- Terms and conditions -->
+        <div class="checkbox-group">
+            <input id="terms" name="terms" type="checkbox" required class="checkbox-input">
+            <label for="terms" class="form-label">
+                I agree to the <a href="#" class="auth-link">Terms</a> and <a href="#" class="auth-link">Privacy Policy</a>
+            </label>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" class="btn btn-primary">Sign up</button>
+    </form>
+</div>
+</body>
+</html>

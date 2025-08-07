@@ -1,0 +1,74 @@
+.appbar {
+    background-color: #ffffff;
+    color: #1f1f2e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    height: 64px;
+    border-bottom: 1px solid #eaeaea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-family: 'Poppins', sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.appbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-button {
+    font-size: 1.5rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: inherit;
+}
+
+.appbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.icon-button {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.3s ease;
+}
+
+.icon-button:hover {
+    color: #0d6efd;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    transition: border-color 0.3s;
+}
+.avatar:hover {
+    border-color: #0d6efd;
+}
+
+/* Optional: Dark Mode support */
+body.dark-mode .appbar {
+    background-color: #1e1e2e;
+    color: #f1f1f1;
+    border-bottom-color: #333;
+}
+body.dark-mode .icon-button {
+    color: #ccc;
+}
+body.dark-mode .icon-button:hover {
+    color: #fff;
+}

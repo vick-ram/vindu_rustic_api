@@ -1,0 +1,62 @@
+.layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+    "sidebar appbar"
+    "sidebar content";
+    height: 100vh;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    height: 100%;
+    background-color: var(--sidebar-bg);
+    overflow-y: auto;
+}
+
+.main-area {
+    display: flex;
+    flex-direction: column;
+    grid-area: appbar / content;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.appbar {
+    grid-area: appbar;
+    flex-shrink: 0;
+}
+
+.main-content {
+    grid-area: content;
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+/* Responsive Collapse */
+@media (max-width: 768px) {
+    .layout {
+        grid-template-columns: 0 1fr;
+    }
+
+    .sidebar {
+        position: absolute;
+        left: -250px;
+        top: 0;
+        height: 100%;
+        width: 250px;
+        z-index: 1001;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar-open .sidebar {
+        left: 0;
+    }
+
+    .sidebar-open .layout {
+        grid-template-columns: 250px 1fr;
+    }
+}
