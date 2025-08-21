@@ -2,6 +2,7 @@ package org.example.data.repo
 
 import org.example.data.db.entities.UserEntity
 import org.example.data.db.tables.UserTable
+import org.example.data.mappers.UserMapper
 import org.example.domain.models.TokenResponse
 import org.example.domain.models.User
 import org.example.domain.repo.UserRepository
@@ -13,10 +14,10 @@ import org.example.utils.makeJwtToken
 import org.example.utils.suspendTransaction
 
 class UserRepositoryImpl : CrudRepositoryImpl<UserEntity, User>(UserEntity), UserRepository {
-    override fun UserEntity.toDomain(): User = toDomain()
+    override fun UserEntity.toDomain(): User = UserMapper.toModel(this)
 
     override fun User.toEntity(entity: UserEntity) {
-        TODO("Not yet implemented")
+        UserMapper.toEntity(this, entity)
     }
 
     override suspend fun login(
@@ -42,7 +43,6 @@ class UserRepositoryImpl : CrudRepositoryImpl<UserEntity, User>(UserEntity), Use
         )
 
         TokenResponse(type = "Bearer", token = token!!)
-
     }
 
     override suspend fun logout(token: String): Boolean {

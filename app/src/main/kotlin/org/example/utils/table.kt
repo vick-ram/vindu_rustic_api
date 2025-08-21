@@ -1,8 +1,6 @@
 package org.example.utils
 
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
@@ -12,16 +10,6 @@ import org.jetbrains.exposed.v1.dao.EntityClass
 import org.jetbrains.exposed.v1.dao.EntityHook
 import org.jetbrains.exposed.v1.dao.toEntity
 import org.jetbrains.exposed.v1.datetime.datetime
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
-
-@OptIn(ExperimentalTime::class)
-val now: Instant = Clock.System.now()
-
-@OptIn(ExperimentalTime::class)
-fun currentUtc(): LocalDateTime = now.toLocalDateTime(TimeZone.currentSystemDefault())
-
 
 abstract class CustomTable(
     name: String = "",
@@ -33,9 +21,9 @@ abstract class CustomTable(
 
     override val id: Column<EntityID<String>> = randomUUID.entityId()
     val createdAt = datetime("created_at")
-        .clientDefault { currentUtc() }
+        .clientDefault { LocalDateTime.currentUtc() }
     val updatedAt = datetime("updated_at")
-        .clientDefault { currentUtc() }
+        .clientDefault { LocalDateTime.currentUtc() }
 }
 
 abstract class CustomEntity(
@@ -52,7 +40,7 @@ abstract class CustomEntityClass<E: CustomEntity>(table: CustomTable) : EntityCl
             if (action.changeType == EntityChangeType.Updated) {
                 try {
                     action.toEntity(this)?.apply {
-                        updatedAt = currentUtc()
+                        updatedAt = LocalDateTime.currentUtc()
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -60,7 +48,7 @@ abstract class CustomEntityClass<E: CustomEntity>(table: CustomTable) : EntityCl
                 }
             } else if (action.changeType == EntityChangeType.Created) {
                 action.toEntity(this)?.apply {
-                    createdAt = currentUtc()
+                    createdAt = LocalDateTime.currentUtc()
                 }
             }
         }

@@ -26,6 +26,7 @@ repositories {
 dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
+    implementation(kotlin("stdlib"))
     //Ktor Server
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
@@ -42,6 +43,7 @@ dependencies {
 
     //Ktor client
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
 
     //Exposed
@@ -61,6 +63,7 @@ dependencies {
 
     //Logging
     implementation(libs.logback.classic)
+    implementation(libs.ktor.server.call.logging)
 
     //Database
     implementation(libs.hikariCp)
@@ -83,14 +86,12 @@ dependencies {
     implementation(libs.koin.logger)
 
     // Swagger documentation
+    implementation(libs.ktor.server.openapi)
     implementation(libs.ktor.swagger.ui)
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.3")
 
     // Test
     runtimeOnly(libs.kotest.runner)
     testImplementation(libs.kotest.assertion)
-
-    implementation(kotlin("stdlib"))
 }
 
 testing {
@@ -116,3 +117,4 @@ application {
 }
 
 tasks.withType<Test>().configureEach { useJUnitPlatform() }
+

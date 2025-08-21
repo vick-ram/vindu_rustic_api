@@ -21,3 +21,29 @@ database:
   user: $DB_USER
   password: $DB_PASSWORD
   poolSize: 10
+  connectionTimeout: 30000
+  idleTimeout: 600000
+  maxLifetime: 1800000
+  minimumIdle: 5
+  leakDetectionThreshold: 60000
+  cachePrepStmts: true
+  prepStmtCacheSize: 250
+  prepStmtCacheSqlLimit: 2048
+  useServerPrepStmts: true
+
+pesapal:
+  baseUrl: $PESAPAL_BASE_URL
+  consumerKey: $PESAPAL_CONSUMER_KEY
+  consumerSecret: $PESAPAL_CONSUMER_SECRET
+
+google:
+  clientID: $GOOGLE_CLIENT_ID
+  clientSecret: $GOOGLE_CLIENT_SECRET
+
+smtp:
+  fromEmail: $SMTP_FROM_EMAIL
+  host: $SMTP_HOST
+  port: $SMTP_PORT
+  username: $SMTP_USERNAME
+
+

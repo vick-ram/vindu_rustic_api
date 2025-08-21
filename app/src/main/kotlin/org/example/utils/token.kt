@@ -3,8 +3,6 @@ package org.example.utils
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.server.auth.Principal
-import io.ktor.server.auth.jwt.JWTPayloadHolder
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import java.util.Date
 import java.util.UUID
@@ -71,4 +69,4 @@ data class CustomJwtPrincipal(
     val jti: String,
     val expiresAt: Date,
     val name: String = userId
-): Principal
+)

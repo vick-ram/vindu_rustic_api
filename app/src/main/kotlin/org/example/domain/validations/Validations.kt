@@ -6,8 +6,13 @@ object Validations {
     private val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
 
     fun validateEmail(email: String): String {
-        if (email.isBlank()) throw ValidationException("Email cannot be blank")
-        if (!email.matches(emailRegex)) throw ValidationException("Invalid email format")
+        val emailErrors = mutableListOf<String>()
+
+        if (email.isBlank()) emailErrors.add("Email cannot be blank")
+        if (!email.matches(emailRegex)) emailErrors.add("Invalid email format")
+
+        if (emailErrors.isNotEmpty()) throw ValidationException(emailErrors)
+
         return email.trim()
     }
 

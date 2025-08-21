@@ -40,9 +40,8 @@ class ProductEntity(id: EntityID<String>) : CustomEntity(id, ProductTable) {
     var canonicalUrl by ProductTable.canonicalUrl
     var keywords by ProductTable.keywords
 
-    val category by CategoryEntity referencedOn ProductTable.category
-    val media by MediaEntity referrersOn MediaTable.id
-
+    var category by CategoryEntity referencedOn ProductTable.category
+    val media by MediaEntity referrersOn MediaTable.product
 }
 
 class MediaEntity(id: EntityID<String>) : CustomEntity(id, MediaTable) {
@@ -53,7 +52,6 @@ class MediaEntity(id: EntityID<String>) : CustomEntity(id, MediaTable) {
     var altText by MediaTable.altText
     var isPrimary by MediaTable.isPrimary
     var displayOrder by MediaTable.displayOrder
-    var productId by MediaTable.product
 
     val product by ProductEntity referencedOn MediaTable.product
 }
@@ -84,17 +82,18 @@ class SpecialOfferEntity(id: EntityID<String>) : CustomEntity(id, SpecialOfferTa
     var startDate by SpecialOfferTable.startDate
     var endDate by SpecialOfferTable.endDate
     var isActive by SpecialOfferTable.isActive
+
+    val products by ProductEntity referrersOn ProductTable
 }
 
 class ProductReviewEntity(id: EntityID<String>) : CustomEntity(id, ProductReviewTable) {
     companion object : CustomEntityClass<ProductReviewEntity>(ProductReviewTable)
 
-    var productId by ProductReviewTable.product
-    var userId by ProductReviewTable.user
     var rating by ProductReviewTable.rating
     var title by ProductReviewTable.title
     var content by ProductReviewTable.content
     var isApproved by ProductReviewTable.isApproved
 
+    val user by UserEntity referencedOn ProductReviewTable.user
     val product by ProductEntity referencedOn ProductReviewTable.product
 }

@@ -2,8 +2,10 @@ package org.example.data.db.tables
 
 import org.example.domain.models.DiscountAppliedTo
 import org.example.domain.models.DiscountType
+import org.example.domain.models.MediaType
 import org.example.domain.models.OfferType
 import org.example.utils.CustomTable
+import org.example.utils.PGEnum
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.datetime.datetime
@@ -39,11 +41,15 @@ object ProductTable : CustomTable("products") {
 
 object MediaTable : CustomTable("media") {
     val url = varchar("url", 255)
-    val type = varchar("type", 50) // Assuming MediaType is stored as a string
+    val type = customEnumeration(
+        name = "type",
+        sql = "MediaTypeEnum",
+        fromDb = { value -> MediaType.valueOf(value as String) },
+        toDb = { PGEnum("MediaTypeEnum", it) })
     val altText = varchar("alt_text", 255).nullable()
     val isPrimary = bool("is_primary").default(false)
     val displayOrder = integer("display_order").default(0)
-    val product = reference("product_id", ProductTable, ReferenceOption.CASCADE)
+    val product = reference("product", ProductTable, ReferenceOption.CASCADE)
 }
 
 object DiscountTable : CustomTable("discounts") {
@@ -64,7 +70,11 @@ object DiscountTable : CustomTable("discounts") {
 object SpecialOfferTable : CustomTable("special_offers") {
     val name = varchar("name", 255)
     val description = text("description")
-    val type = enumerationByName("type", 50, OfferType::class)
+    val type = customEnumeration(
+        name = "type",
+        sql = "OfferTypeEnum",
+        fromDb = { value -> OfferType.valueOf(value as String) },
+        toDb = { PGEnum("OfferTypeEnum", it) })
     val startDate = datetime("start_date")
     val endDate = datetime("end_date")
     val isActive = bool("is_active")

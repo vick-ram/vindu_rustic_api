@@ -26,7 +26,7 @@ data class CartItem(
 
 data class Order(
     val id: String,
-    val user: User,
+    val userId: String,
     val orderNumber: String,
     val items: List<OrderItem>,
     val status: OrderStatus,
@@ -42,8 +42,8 @@ data class Order(
 
 data class OrderItem(
     val id: String,
-    val order: Order,
-    val product: Product,
+    val orderId: String,
+    val productId: String,
     val quantity: Int,
     val unitPrice: BigDecimal,
     val totalPrice: BigDecimal

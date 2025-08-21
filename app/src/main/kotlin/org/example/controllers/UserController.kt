@@ -1,6 +1,9 @@
 package org.example.controllers
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -14,43 +17,42 @@ import io.ktor.util.toMap
 import org.example.domain.models.LoginCredentials
 import org.example.domain.models.User
 import org.example.domain.repo.UserRepository
+import org.example.plugins.AuthenticationException
 import org.example.routes.withPermission
 import org.example.utils.ApiResponse
+import org.example.utils.respondApi
 
 class UserController(
     private val userRepo: UserRepository
 ) {
     fun Route.routes(issuer: String, audience: String, secret: String) {
         route("/users") {
-            withPermission("") {
-                post("/login") {
-                    val credentials = call.receive<LoginCredentials>()
-                    val res = userRepo.login(credentials.email, credentials.password, issuer, audience, secret)
-                    call.respond(
-                        ApiResponse.success(
-                            status = HttpStatusCode.OK,
-                            data = res,
-                            message = "User logged in successfully"
-                        )
-                    )
-                }
+            post("/login") {
+                val credentials = call.receive<LoginCredentials>()
+                val res = userRepo.login(credentials.email, credentials.password, issuer, audience, secret)
+                call.respondApi(
+                    status = HttpStatusCode.OK,
+                    data = res,
+                    message = "User logged in successfully"
+                )
             }
 
-            post("/logout") {
-                val token = call.request.headers["Authorization"]?.removePrefix("Bearer ") ?: return@post call.respond(
-                    HttpStatusCode.Unauthorized
-                )
-                val result = userRepo.logout(token)
-                if (result) {
-                    call.respond(
-                        ApiResponse.success(
+            authenticate("auth-jwt") {
+                post("/logout") {
+                    val token =
+                        call.request.headers["Authorization"]?.removePrefix("Bearer ") ?: throw AuthenticationException(
+                            "No token was passed in headers"
+                        )
+                    val result = userRepo.logout(token)
+                    if (result) {
+                        call.respondApi(
                             status = HttpStatusCode.OK,
                             data = null,
                             message = "User logged out successfully"
                         )
-                    )
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, "Logout failed")
+                    } else {
+                        throw AuthenticationException("Login failed")
+                    }
                 }
             }
             get {
@@ -58,13 +60,13 @@ class UserController(
                 val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
                 val queryParams = call.request.queryParameters.toMap().mapValues { it.value.firstOrNull() ?: "" }
                     .filterKeys { it != "offset" && it != "limit" }
+
                 val users = userRepo.readAll(offset, limit, queryParams)
-                call.respond(
-                    ApiResponse.success(
-                        status = HttpStatusCode.OK,
-                        data = users,
-                        message = "Users fetched successfully"
-                    )
+
+                call.respondApi(
+                    status = HttpStatusCode.OK,
+                    data = users,
+                    message = "Users fetched successfully"
                 )
             }
 
@@ -73,12 +75,10 @@ class UserController(
                 val user = userRepo.read(id)
 
                 if (user != null) {
-                    call.respond(
-                        ApiResponse.success(
-                            status = HttpStatusCode.OK,
-                            data = user,
-                            message = "User read successfully"
-                        )
+                    call.respondApi(
+                        status = HttpStatusCode.OK,
+                        data = user,
+                        message = "User read successfully"
                     )
                 } else {
                     throw NotFoundException("User not found")
@@ -88,12 +88,11 @@ class UserController(
             post {
                 val newUser = call.receive<User>()
                 val created = userRepo.create(newUser)
-                call.respond(
-                    ApiResponse.success(
-                        status = HttpStatusCode.Created,
-                        data = created,
-                        message = "User created successfully"
-                    )
+
+                call.respondApi(
+                    status = HttpStatusCode.Created,
+                    data = created,
+                    message = "User created successfully"
                 )
             }
 
@@ -102,12 +101,10 @@ class UserController(
                 val updatedUser = call.receive<User>()
                 val updated = userRepo.update(id, updatedUser)
                 if (updated != null) {
-                    call.respond(
-                        ApiResponse.success(
-                            status = HttpStatusCode.Accepted,
-                            data = updated,
-                            message = "User updated successfully"
-                        )
+                    call.respondApi(
+                        status = HttpStatusCode.Accepted,
+                        data = updated,
+                        message = "User updated successfully"
                     )
                 }
             }
@@ -116,12 +113,10 @@ class UserController(
                 val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
                 val deleted = userRepo.delete(id)
                 if (deleted) {
-                    call.respond(
-                        ApiResponse.success(
-                            status = HttpStatusCode.NoContent,
-                            data = null,
-                            message = "User deleted successfully"
-                        )
+                    call.respondApi(
+                        status = HttpStatusCode.NoContent,
+                        data = null,
+                        message = "User deleted successfully"
                     )
                 } else {
                     throw NotFoundException("User not found")

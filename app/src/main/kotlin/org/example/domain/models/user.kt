@@ -1,8 +1,9 @@
 package org.example.domain.models
 
+import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
+import org.example.utils.now
 import java.io.Serializable
-import java.time.LocalDateTime
 
 data class TokenResponse(
     val type: String,
@@ -35,16 +36,18 @@ data class CreateUser(
 
 
 data class Role(
+    val id: String,
     val name: String,
     val description: String? = null,
 ) {
     fun validate(): Role {
-        require(name.isNotBlank()) { "Role name cannot be blank." }
+        Validations.validateNonEmpty(name, "Role name cannot be blank.")
         return this
     }
 }
 
 data class Permission(
+    val id: String,
     val name: String,
     val description: String? = null,
 ) {
@@ -63,4 +66,5 @@ data class User(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : Serializable
+
 

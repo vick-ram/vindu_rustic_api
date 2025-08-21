@@ -2,6 +2,7 @@ package org.example.plugins
 
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticResources
+import io.ktor.server.plugins.openapi.openAPI
 import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -14,22 +15,19 @@ fun Application.configureRouting(issuer: String, audience: String, secret: Strin
         route("/api/v1") {
             userRoutes(issuer, audience, secret)
         }
-    }
 
-    /*Frontend routing*/
-    routing {
+        /*Frontend routing*/
         frontend()
-    }
 
-    /*Static files*/
-    routing {
+        /*Static files*/
         staticResources("/resources", "static")
         staticResources("META-INF/resources/webjars", "webjars")
-    }
 
-    /*Swagger documentation*/
-    routing {
-        swaggerUI(path = "docs", swaggerFile = "openapi/documentation.yaml")
+        /*Swagger documentation*/
+        swaggerUI(path = "docs", swaggerFile = "openapi/documentation.yaml") {
+            version = "4.15.5"
+        }
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
     }
-
 }
+

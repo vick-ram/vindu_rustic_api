@@ -6,7 +6,7 @@ import org.example.domain.models.Cart
 import org.example.domain.models.CartItem
 import org.example.domain.repo.EntityMapper
 
-object CartMapper: EntityMapper<CartEntity, Cart, String> {
+object CartMapper : EntityMapper<CartEntity, Cart, String> {
     override fun toModel(entity: CartEntity): Cart {
         return Cart(
             id = entity.id.value,
@@ -24,16 +24,23 @@ object CartMapper: EntityMapper<CartEntity, Cart, String> {
         model: Cart,
         entity: CartEntity
     ): CartEntity {
-        entity.user = UserMapper.toEntity(model.user)
+        val userEntity = entity.user
+        val userModel = model.user
+        val userMapper = UserMapper.toEntity(userModel, userEntity)
+
+        val entityDiscount = entity.discount
+        val modelDiscount = model.discount
+
+        entity.user = userMapper
         entity.totalQuantity = model.totalQuantity
         entity.totalPrice = model.totalPrice
-        entity.discount = model.discount?.let { DiscountMapper.toEntity(it, entity.discount) }
+        entity.discount = modelDiscount?.let { mod -> DiscountMapper.toEntity(mod, entityDiscount!!) }
 
         return entity
     }
 }
 
-object CartItemMapper: EntityMapper<CartItemEntity, CartItem, String> {
+object CartItemMapper : EntityMapper<CartItemEntity, CartItem, String> {
     override fun toModel(entity: CartItemEntity): CartItem {
         return CartItem(
             id = entity.id.value,
@@ -50,7 +57,7 @@ object CartItemMapper: EntityMapper<CartItemEntity, CartItem, String> {
         model: CartItem,
         entity: CartItemEntity
     ): CartItemEntity {
-        entity.cart = CartEntity.new(model.cartId)
+//        entity.cart = CartEntity.new(model.cartId)
         entity.product = ProductMapper.toEntity(model.product, entity.product)
         entity.quantity = model.quantity
         entity.unitPrice = model.unitPrice

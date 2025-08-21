@@ -26,8 +26,14 @@ object OrderItemMapper: EntityMapper<OrderItemEntity, OrderItem, String> {
         model: OrderItem,
         entity: OrderItemEntity
     ): OrderItemEntity {
-//        entity.order = model.orderId.let { OrderEntity.new(it) }
-//        entity.product = model.productId.let { ProductEntity.new(it) }
+        val orderEntity = entity.order
+        val orderModel = OrderMapper.toModel(orderEntity)
+
+        val productEntity = entity.product
+        val productModel = ProductMapper.toModel(productEntity)
+
+        entity.order = OrderMapper.toEntity(orderModel, orderEntity)
+        entity.product = ProductMapper.toEntity(productModel, productEntity)
         entity.quantity = model.quantity
         entity.unitPrice = model.unitPrice
         entity.totalPrice = model.totalPrice

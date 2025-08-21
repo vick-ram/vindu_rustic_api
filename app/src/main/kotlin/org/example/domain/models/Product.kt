@@ -83,7 +83,7 @@ data class SpecialOffer(
     val name: String,
     val description: String,
     val type: OfferType,
-    val products: List<Product>,
+    val products: List<Product> = emptyList(),
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val isActive: Boolean = false,
@@ -111,7 +111,6 @@ data class ProductReview(
     val rating: Int, // 1-5
     val title: String,
     val content: String,
-    val isApproved: Boolean = false,
-    val createdAt: LocalDateTime
+    val isApproved: Boolean = false
 )
 
