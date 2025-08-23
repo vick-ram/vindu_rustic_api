@@ -1,6 +1,10 @@
 package org.example.domain.models
 
 import kotlinx.datetime.LocalDateTime
+import org.example.domain.validations.Validations
+import org.example.plugins.ValidationException
+import org.example.utils.now
+import java.io.Serializable
 import java.math.BigDecimal
 
 data class Product(
@@ -14,10 +18,22 @@ data class Product(
     val category: Category,
     val stock: StockInfo,
     val media: List<Media> = emptyList(),
-    val seoData: SeoData,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime,
-)
+    val dimension: Dimension?,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+) : Serializable {
+    fun validate(): Product {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Product name") },
+            { Validations.validateMaxLength(description, 500, "Product description") },
+            { Validations.validateMaxLength(shortDescription, 120, "Short description") },
+            { if (basePrice < BigDecimal.ZERO) throw ValidationException("Price cannot be negative") },
+            { if (stock.available < 0) throw ValidationException("Stock cannot be negative") },
+            { dimension?.validate() }
+        )
+        return this
+    }
+}
 
 data class StockInfo(
     val available: Int,
@@ -25,6 +41,24 @@ data class StockInfo(
 )
 
 enum class DimensionUnit { CM, INCH }
+
+data class Dimension(
+    val id: String,
+    val width: Int,
+    val height: Int,
+    val depth: Int,
+    val unit: String //DimensionUnit
+) {
+    fun validate(): Dimension {
+        Validations.validateAll(
+            { Validations.validateGreaterThan(width, 0, "Width")},
+            { Validations.validateGreaterThan(height, 0, "Height")},
+            { Validations.validateGreaterThan(depth, 0, "Depth")},
+            { Validations.validateEnum<DimensionUnit>(unit, "Dimension unit")}
+        )
+        return this
+    }
+}
 
 data class Media(
     val id: String,
@@ -43,26 +77,54 @@ data class Category(
     val slug: String,
     val description: String? = null,
     val imageUrl: String? = null,
-    val isActive: Boolean = false,
     val displayOrder: Int = 0,
-
-    )
+) : Serializable {
+    fun validate(): Category {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Category name") },
+            { Validations.validateNonEmpty(slug, "Category slug") },
+        )
+        return this
+    }
+}
 
 data class Discount(
     val id: String,
     val name: String,
     val description: String? = null,
-    val type: DiscountType,
+    val type: String, //DiscountType
     val value: BigDecimal,
     val code: String? = null,
-    val appliedTo: DiscountAppliedTo,
+    val appliedTo: String, //DiscountAppliedTo
     val minimumOrderAmount: BigDecimal? = null,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val maxUses: Int? = null,
     val currentUses: Int = 0,
     val isActive: Boolean = false,
-)
+) : Serializable {
+    fun validate(): Discount {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Discount name") },
+            { Validations.validateEnum<DiscountType>(type, "Discount type") },
+            { Validations.validateNonEmpty(value.toString(), "Discount value") },
+            { Validations.validateEnum<DiscountAppliedTo>(appliedTo, "Discount applied to") },
+            {
+                Validations.validateMinLength(
+                    minimumOrderAmount?.toPlainString() ?: "",
+                    minimumOrderAmount?.toInt() ?: 0,
+                    "Minimum order amount"
+                )
+            },
+            { Validations.validateDateTime(dateTimeStr = startDate.toString(), fieldName = "Start Date") },
+            { Validations.validateFutureDateTime(startDate, "Start Date") },
+            { Validations.validateDateTime(dateTimeStr = endDate.toString(), fieldName = "End Date") },
+            { Validations.validateFutureDateTime(endDate, "End Date") },
+
+            )
+        return this
+    }
+}
 
 enum class DiscountType {
     PERCENTAGE_OFF, // 10% off
@@ -82,12 +144,25 @@ data class SpecialOffer(
     val id: String,
     val name: String,
     val description: String,
-    val type: OfferType,
+    val type: String, // OfferType
     val products: List<Product> = emptyList(),
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val isActive: Boolean = false,
-)
+) {
+    fun validate(): SpecialOffer {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Name") },
+            { Validations.validateNonEmpty(description, "Description") },
+            { Validations.validateEnum<OfferType>(type, "Offer type") },
+            { Validations.validateDateTime(startDate.toString(), "Start date") },
+            { Validations.validateFutureDateTime(startDate, "Start date") },
+            { Validations.validateDateTime(endDate.toString(), "End date") },
+            { Validations.validateFutureDateTime(endDate, "End date") },
+        )
+        return this
+    }
+}
 
 enum class OfferType {
     FLASH_SALE,
@@ -95,14 +170,6 @@ enum class OfferType {
     GIFT_WITH_PURCHASE,
     LIMITED_TIME_OFFER,
 }
-
-data class SeoData(
-    val metaTitle: String,
-    val metaDescription: String,
-    val slug: String,
-    val canonicalUrl: String? = null,
-    val keywords: List<String> = emptyList(),
-)
 
 data class ProductReview(
     val id: String,
@@ -112,5 +179,17 @@ data class ProductReview(
     val title: String,
     val content: String,
     val isApproved: Boolean = false
-)
+) {
+    fun validate(): ProductReview {
+        Validations.validateAll(
+            { Validations.validateGreaterThan(rating,1, "Rating")},
+            { Validations.validateLessThan(rating, 5, "Rating")},
+            { Validations.validateNonEmpty(title, "Title")},
+            {Validations.validateNonEmpty(content, "Content")},
+            { Validations.validateMinLength(content, 3, "Content")}
+        )
+
+        return this
+    }
+}
 

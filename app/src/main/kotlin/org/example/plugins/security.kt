@@ -12,8 +12,10 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.oauth
 import io.ktor.server.auth.session
 import io.ktor.server.response.respond
+import io.ktor.server.sessions.SessionTransportTransformerEncrypt
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import io.ktor.util.hex
 import org.example.domain.models.CartItem
 import org.example.utils.CustomJwtPrincipal
 import org.example.utils.GsonSessionSerializer
@@ -21,6 +23,7 @@ import org.example.utils.RedisSessionStorage
 import org.example.utils.isTokenBlacklisted
 import org.example.utils.verifyJwt
 import java.util.Date
+import kotlin.random.Random
 
 data class AuthSession(
     val userId: String,
@@ -40,12 +43,14 @@ fun Application.configureSecurity(
     audience: String,
     httpClient: HttpClient,
     clientID: String,
-    clientSecret: String
+    clientSecret: String,
 ) {
     val sessionStorage = RedisSessionStorage()
     val environment = this.developmentMode
     val gson = GsonBuilder().create()
     val redirects = mutableMapOf<String, String>()
+    val secretEncryptionKey = Random.nextBytes(16)
+    val secretSignKey = Random.nextBytes(16)
 
     install(Sessions) {
         cookie<AuthSession>("auth_session", storage = sessionStorage) {
@@ -54,15 +59,16 @@ fun Application.configureSecurity(
             cookie.maxAgeInSeconds = 3600 * 24 * 1 // A day
             cookie.secure = environment
             serializer = GsonSessionSerializer(gson, AuthSession::class.java)
-            transform(SessionTransportTransformerEncrypt())
+            transform(SessionTransportTransformerEncrypt(secretEncryptionKey, secretSignKey))
         }
 
         cookie<CartSession>("cart_session") {
             cookie.extensions["SameSite"] = "lax"
             cookie.path = "/"
+            cookie.secure = environment
             cookie.maxAgeInSeconds = 3600 * 24 * 30 // A week
             serializer = GsonSessionSerializer(gson, CartSession::class.java)
-//            transform(SessionTransportTransformerEncrypt())
+            transform(SessionTransportTransformerEncrypt(secretEncryptionKey, secretSignKey))
         }
     }
     authentication {

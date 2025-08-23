@@ -1,6 +1,7 @@
 package org.example.data.db.entities
 
 import org.example.data.db.tables.CategoryTable
+import org.example.data.db.tables.DimensionTable
 import org.example.data.db.tables.DiscountTable
 import org.example.data.db.tables.MediaTable
 import org.example.data.db.tables.ProductReviewTable
@@ -17,7 +18,6 @@ class CategoryEntity(id: EntityID<String>) : CustomEntity(id, CategoryTable) {
     var slug by CategoryTable.slug
     var description by CategoryTable.description
     var imageUrl by CategoryTable.imageUrl
-    var isActive by CategoryTable.isActive
     var displayOrder by CategoryTable.displayOrder
 }
 
@@ -30,18 +30,22 @@ class ProductEntity(id: EntityID<String>) : CustomEntity(id, ProductTable) {
     var shortDescription by ProductTable.shortDescription
     var basePrice by ProductTable.basePrice
     var viewed by ProductTable.viewed
-    var categoryId by ProductTable.category
     var stockAvailable by ProductTable.stockAvailable
     var stockLowThreshold by ProductTable.stockLowThreshold
 
-    var metaTitle by ProductTable.metaTitle
-    var metaDescription by ProductTable.metaDescription
-    var seoSlug by ProductTable.seoSlug
-    var canonicalUrl by ProductTable.canonicalUrl
-    var keywords by ProductTable.keywords
-
     var category by CategoryEntity referencedOn ProductTable.category
     val media by MediaEntity referrersOn MediaTable.product
+    val dimensions by DimensionEntity referrersOn DimensionTable.product
+}
+
+class DimensionEntity(id: EntityID<String>) : CustomEntity(id, DimensionTable) {
+    companion object: CustomEntityClass<DimensionEntity>(DimensionTable)
+
+    var product by ProductEntity referencedOn DimensionTable.product
+    var width by DimensionTable.width
+    var height by DimensionTable.height
+    var depth by DimensionTable.depth
+    var unit by DimensionTable.unit
 }
 
 class MediaEntity(id: EntityID<String>) : CustomEntity(id, MediaTable) {

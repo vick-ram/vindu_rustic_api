@@ -1,21 +1,22 @@
 package org.example.data.mappers
 
 import org.example.data.db.entities.CategoryEntity
-import org.example.data.db.entities.DiscountEntity
+import org.example.data.db.entities.DimensionEntity
 import org.example.data.db.entities.MediaEntity
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.entities.ProductReviewEntity
 import org.example.data.db.entities.SpecialOfferEntity
 import org.example.domain.models.Category
-import org.example.domain.models.Discount
+import org.example.domain.models.Dimension
+import org.example.domain.models.DimensionUnit
 import org.example.domain.models.Media
-import org.example.domain.models.MediaType
+import org.example.domain.models.OfferType
 import org.example.domain.models.Product
 import org.example.domain.models.ProductReview
-import org.example.domain.models.SeoData
 import org.example.domain.models.SpecialOffer
 import org.example.domain.models.StockInfo
 import org.example.domain.repo.EntityMapper
+import org.example.utils.generateProductSku
 
 object CategoryMapper : EntityMapper<CategoryEntity, Category, String> {
     override fun toModel(entity: CategoryEntity): Category {
@@ -25,7 +26,6 @@ object CategoryMapper : EntityMapper<CategoryEntity, Category, String> {
             slug = entity.slug,
             description = entity.description,
             imageUrl = entity.imageUrl,
-            isActive = entity.isActive,
             displayOrder = entity.displayOrder
         )
     }
@@ -38,7 +38,6 @@ object CategoryMapper : EntityMapper<CategoryEntity, Category, String> {
         entity.slug = model.slug
         entity.description = model.description
         entity.imageUrl = model.imageUrl
-        entity.isActive = model.isActive
         entity.displayOrder = model.displayOrder
         return entity
     }
@@ -59,23 +58,8 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
                 available = entity.stockAvailable,
                 lowStockThreshold = entity.stockLowThreshold
             ),
-            media = entity.media.map {
-                Media(
-                    id = it.id.value,
-                    url = it.url,
-                    type = it.type,
-                    altText = it.altText,
-                    isPrimary = it.isPrimary,
-                    displayOrder = it.displayOrder
-                )
-            },
-            seoData = SeoData(
-                metaTitle = entity.metaTitle,
-                metaDescription = entity.metaDescription,
-                slug = entity.seoSlug,
-                canonicalUrl = entity.canonicalUrl,
-                keywords = entity.keywords
-            ),
+            media = entity.media.map { MediaMapper.toModel(it) },
+            dimension = entity.dimensions.firstOrNull()?.let { DimensionMapper.toModel(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
@@ -90,7 +74,7 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
 
         val categoryMapper = CategoryMapper.toEntity(categoryModel, categoryEntity)
 
-        entity.sku = model.sku
+        entity.sku = generateProductSku(entity.name)
         entity.name = model.name
         entity.description = model.description
         entity.shortDescription = model.shortDescription
@@ -99,11 +83,6 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
         entity.category = categoryMapper
         entity.stockAvailable = model.stock.available
         entity.stockLowThreshold = model.stock.lowStockThreshold
-        entity.metaTitle = model.seoData.metaTitle
-        entity.metaDescription = model.seoData.metaDescription
-        entity.seoSlug = model.seoData.slug
-        entity.canonicalUrl = model.seoData.canonicalUrl
-        entity.keywords = model.seoData.keywords
 
         return entity
     }
@@ -135,45 +114,29 @@ object MediaMapper : EntityMapper<MediaEntity, Media, String> {
     }
 }
 
-//object DiscountMapper : EntityMapper<DiscountEntity, Discount, String> {
-//    override fun toModel(entity: DiscountEntity): Discount {
-//        return Discount(
-//            id = entity.id.value,
-//            name = entity.name,
-//            description = entity.description,
-//            type = entity.type,
-//            value = entity.value,
-//            code = entity.code,
-//            appliedTo = entity.appliedTo,
-//            minimumOrderAmount = entity.minimumOrderAmount,
-//            startDate = entity.startDate,
-//            endDate = entity.endDate,
-//            maxUses = entity.maxUses,
-//            currentUses = entity.currentUses,
-//            isActive = entity.isActive
-//        )
-//    }
-//
-//    override fun toEntity(
-//        model: Discount,
-//        entity: DiscountEntity
-//    ): DiscountEntity {
-//        entity.name = model.name
-//        entity.description = model.description
-//        entity.type = model.type
-//        entity.value = model.value
-//        entity.code = model.code
-//        entity.appliedTo = model.appliedTo
-//        entity.minimumOrderAmount = model.minimumOrderAmount
-//        entity.startDate = model.startDate
-//        entity.endDate = model.endDate
-//        entity.maxUses = model.maxUses
-//        entity.currentUses = model.currentUses
-//        entity.isActive = model.isActive
-//
-//        return entity
-//    }
-//}
+object DimensionMapper: EntityMapper<DimensionEntity, Dimension, String> {
+    override fun toModel(entity: DimensionEntity): Dimension {
+        return Dimension(
+            id = entity.id.value,
+            width = entity.width.toInt(),
+            height = entity.height.toInt(),
+            depth = entity.depth.toInt(),
+            unit = entity.unit.name
+        )
+    }
+
+    override fun toEntity(
+        model: Dimension,
+        entity: DimensionEntity
+    ): DimensionEntity {
+        return entity.apply {
+            this.width = model.width.toBigDecimal()
+            this.height = model.height.toBigDecimal()
+            this.depth = model.depth.toBigDecimal()
+            this.unit = DimensionUnit.valueOf(model.unit)
+        }
+    }
+}
 
 object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, String> {
     override fun toModel(entity: SpecialOfferEntity): SpecialOffer {
@@ -186,7 +149,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
             id = entity.id.value,
             name = entity.name,
             description = entity.description,
-            type = entity.type,
+            type = entity.type.name,
             products = products,
             startDate = entity.startDate,
             endDate = entity.endDate,
@@ -200,7 +163,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
     ): SpecialOfferEntity {
         entity.name = model.name
         entity.description = model.description
-        entity.type = model.type
+        entity.type = OfferType.valueOf(model.type)
         entity.startDate = model.startDate
         entity.endDate = model.endDate
         entity.isActive = model.isActive
@@ -234,3 +197,4 @@ object ProductReviewMapper : EntityMapper<ProductReviewEntity, ProductReview, St
         return entity
     }
 }
+

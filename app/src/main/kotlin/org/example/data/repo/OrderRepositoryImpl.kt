@@ -1,21 +1,25 @@
 package org.example.data.repo
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.OrderEntity
 import org.example.data.db.entities.OrderItemEntity
 import org.example.data.db.tables.CartTable
+import org.example.data.db.tables.OrderTable
 import org.example.data.mappers.OrderMapper
 import org.example.domain.models.Order
 import org.example.domain.models.OrderStatus
 import org.example.domain.repo.OrderRepository
 import org.example.plugins.NotFoundException
+import org.example.utils.now
 import org.example.utils.suspendTransaction
 
-class OrderRepositoryImpl : CrudRepositoryImpl<OrderEntity, Order>(OrderEntity), OrderRepository {
-    override fun OrderEntity.toDomain(): Order = OrderMapper.toModel(this)
+class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepositoryImpl<OrderEntity, Order>(OrderEntity),
+    OrderRepository {
+    override fun OrderEntity.toDomain(): Order = orderMapper.toModel(this)
 
     override fun Order.toEntity(entity: OrderEntity) {
-        OrderMapper.toEntity(this, entity)
+        orderMapper.toEntity(this, entity)
     }
 
     override suspend fun createOrder(userId: String): Order = suspendTransaction {
@@ -41,5 +45,32 @@ class OrderRepositoryImpl : CrudRepositoryImpl<OrderEntity, Order>(OrderEntity),
 
         cart.items.forEach { it.delete() }
         order.toDomain()
+    }
+
+    override suspend fun findByUserId(
+        userId: String,
+        offset: Int,
+        limit: Int
+    ): List<Order> = suspendTransaction {
+        OrderEntity.find { OrderTable.user.eq(userId) }
+            .limit(limit)
+            .offset(offset.toLong())
+            .map { it.toDomain() }
+    }
+
+    override suspend fun findByOrderNumber(orderNumber: String): Order? = suspendTransaction {
+        OrderEntity.find { OrderTable.orderNumber.eq(orderNumber) }
+            .firstOrNull()
+            ?.toDomain()
+    }
+
+    override suspend fun updateStatus(
+        orderId: String,
+        status: OrderStatus
+    ): Order? = suspendTransaction {
+        OrderEntity.findByIdAndUpdate(orderId) { order ->
+            order.status = status
+            order.updatedAt = LocalDateTime.now()
+        }?.toDomain()
     }
 }

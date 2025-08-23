@@ -4,10 +4,10 @@ import org.example.data.db.entities.RoleEntity
 import org.example.data.mappers.RoleMapper
 import org.example.domain.models.Role
 
-class RoleRepositoryImpl: CrudRepositoryImpl<RoleEntity, Role>(RoleEntity) {
-    override fun RoleEntity.toDomain(): Role = RoleMapper.toModel(this)
+class RoleRepositoryImpl(private val roleMapper: RoleMapper): CrudRepositoryImpl<RoleEntity, Role>(RoleEntity) {
+    override fun RoleEntity.toDomain(): Role = roleMapper.toModel(this)
 
     override fun Role.toEntity(entity: RoleEntity) {
-        RoleMapper.toEntity(this, entity)
+        roleMapper.toEntity(this, entity)
     }
 }

@@ -1,14 +1,12 @@
-package org.example.data.repo
+package org.example.services
 
 import org.example.domain.models.Cart
 import org.example.domain.repo.CartRepository
-import org.example.domain.validations.Validations
 
 class CartService(private val cartRepo: CartRepository) {
     suspend fun getCart(userId: String): Cart? = cartRepo.getCartByUser(userId)
 
     suspend fun addToCart(userId: String, productId: String, quantity: Int): Cart {
-        Validations.validateGreaterThan(quantity, 0, "Quantity")
         return cartRepo.addItem(userId, productId, quantity)
     }
 
@@ -17,7 +15,6 @@ class CartService(private val cartRepo: CartRepository) {
     }
 
     suspend fun updateCartItem(userId: String, productId: String, quantity: Int): Cart {
-        Validations.validateGreaterThan(quantity, 0, "Quantity")
         return cartRepo.updateItem(userId, productId, quantity)
     }
 

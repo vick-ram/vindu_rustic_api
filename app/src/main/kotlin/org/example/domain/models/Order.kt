@@ -1,6 +1,8 @@
 package org.example.domain.models
 
 import kotlinx.datetime.LocalDateTime
+import org.example.domain.validations.Validations
+import org.example.utils.now
 import java.math.BigDecimal
 
 data class Cart(
@@ -10,8 +12,8 @@ data class Cart(
     val totalQuantity: Int,
     val totalPrice: BigDecimal,
     val discount: Discount? = null,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
 data class CartItem(
@@ -21,7 +23,7 @@ data class CartItem(
     val quantity: Int,
     val unitPrice: BigDecimal,
     val totalPrice: BigDecimal,
-    val addedAt: LocalDateTime
+    val addedAt: LocalDateTime = LocalDateTime.now()
 )
 
 data class Order(
@@ -36,8 +38,8 @@ data class Order(
     val discount: Discount? = null,
     val shippingFee: BigDecimal = BigDecimal.ZERO,
     val notes: String? = null,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
 data class OrderItem(
@@ -66,7 +68,7 @@ data class Payment(
     val method: PaymentMethod,
     val transactionReference: String?,
     val paidAt: LocalDateTime?,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime = LocalDateTime.now()
 )
 
 enum class PaymentMethod {
@@ -82,3 +84,47 @@ data class Address(
     val county: String,
     val postalCode: String
 )
+
+
+data class UpdateOrderStatusRequest(
+    val orderId: String,
+    val status: String
+) {
+    fun validate(): UpdateOrderStatusRequest {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(orderId, "Order Id") },
+            { Validations.validateEnum<OrderStatus>(status, "Order Status") },
+        )
+        return this
+    }
+}
+
+data class CartRequest(
+    val productId: String,
+    val quantity: Int = 1
+) {
+    fun validate(): CartRequest {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(productId, "Product Id") },
+            { Validations.validateNonEmpty(quantity.toString(), "Quantity") },
+            { Validations.validateGreaterThan(quantity, 1, "Quantity") },
+            { Validations.validateLessThan(quantity, 1, "Quantity") }
+        )
+        return this
+    }
+}
+
+data class RemoveFromCart(
+    val productId: String,
+) {
+    fun validate(): RemoveFromCart {
+        Validations.validateNonEmpty(productId, "Product Id")
+        return this
+    }
+}
+
+data class UpdateCartQuantity(
+    val productId: String,
+    val quantity: Int = 1
+)
+

@@ -20,20 +20,6 @@ data class LoginCredentials(
     }
 }
 
-data class CreateUser(
-    val name: String,
-    val email: String,
-    val password: String,
-    val active: Boolean = true,
-) {
-    fun validate(): CreateUser {
-        Validations.validateNonEmpty(name, "Name")
-        Validations.validateEmail(email)
-        Validations.validatePassword(password)
-        return this
-    }
-}
-
 
 data class Role(
     val id: String,
@@ -62,9 +48,20 @@ data class User(
     val name: String,
     val email: String,
     val password: String,
-    val active: Boolean,
+    val active: Boolean = true,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
-) : Serializable
+) : Serializable {
+
+    fun validate(): User {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Name") },
+            { Validations.validateEmail(email) },
+            { Validations.validatePassword(password) }
+        )
+
+        return this
+    }
+}
 
 

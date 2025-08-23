@@ -29,6 +29,8 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
     val issuer = environment.config.property("jwt.issuer").getString()
     val audience = environment.config.property("jwt.audience").getString()
     val realm = environment.config.property("jwt.realm").getString()
+    val clientID = environment.config.property("google.clientID").getString()
+    val clientSecret = environment.config.property("google.clientSecret").getString()
 
     configureStatusPages()
     configureDatabase()
@@ -37,7 +39,15 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
     configureSerialization()
     configureWebjar()
     configureRouteLogging()
-    configureSecurity(realm, secret, issuer, audience)
+    configureSecurity(
+        realm,
+        secret,
+        issuer,
+        audience,
+        httpClient,
+        clientID,
+        clientSecret,
+    )
     configureRouting(issuer, audience, secret)
     configureFrontend()
 

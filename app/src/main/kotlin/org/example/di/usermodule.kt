@@ -7,10 +7,12 @@ import org.example.data.repo.UserRepositoryImpl
 import org.example.domain.models.User
 import org.example.domain.repo.CrudRepository
 import org.example.domain.repo.UserRepository
+import org.example.services.UserService
 import org.example.utils.createCrudCache
 import org.koin.dsl.module
 
 val userModule = module {
+    single { UserMapper }
     single<CrudRepository<User, String>> {
         createCrudCache(
             entityClass = UserEntity,
@@ -19,6 +21,6 @@ val userModule = module {
             toEntity = UserMapper::toEntity
         )
     }
-    single<UserRepository> { UserRepositoryImpl() }
-    single { UserController(get<UserRepository>()) }
+    single<UserRepository> { UserRepositoryImpl(get<UserMapper>()) }
+    single { UserController(get<UserService>()) }
 }

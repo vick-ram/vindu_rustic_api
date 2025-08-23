@@ -9,6 +9,7 @@ import org.example.domain.models.Discount
 import org.example.domain.models.Order
 import org.example.domain.models.OrderItem
 import org.example.domain.repo.EntityMapper
+import org.example.utils.generateOrderNumber
 
 object OrderItemMapper: EntityMapper<OrderItemEntity, OrderItem, String> {
     override fun toModel(entity: OrderItemEntity): OrderItem {
@@ -134,7 +135,7 @@ object OrderMapper: EntityMapper<OrderEntity, Order, String> {
         entity: OrderEntity
     ): OrderEntity {
 //        entity.user = model.userId
-        entity.orderNumber = model.orderNumber
+        entity.orderNumber = generateOrderNumber()
         entity.status = model.status
         entity.paymentStatus = model.paymentStatus
         entity.shippingAddress = AddressMapper.toEntity(model.shippingAddress, entity.shippingAddress)

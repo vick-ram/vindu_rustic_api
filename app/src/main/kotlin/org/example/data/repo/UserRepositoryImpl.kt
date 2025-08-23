@@ -13,11 +13,13 @@ import org.example.utils.blacklistToken
 import org.example.utils.makeJwtToken
 import org.example.utils.suspendTransaction
 
-class UserRepositoryImpl : CrudRepositoryImpl<UserEntity, User>(UserEntity), UserRepository {
-    override fun UserEntity.toDomain(): User = UserMapper.toModel(this)
+class UserRepositoryImpl(private val userMapper: UserMapper) : CrudRepositoryImpl<UserEntity, User>(UserEntity),
+    UserRepository {
+
+    override fun UserEntity.toDomain(): User = userMapper.toModel(this)
 
     override fun User.toEntity(entity: UserEntity) {
-        UserMapper.toEntity(this, entity)
+        userMapper.toEntity(this, entity)
     }
 
     override suspend fun login(

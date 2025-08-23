@@ -6,18 +6,18 @@ import io.ktor.server.plugins.openapi.openAPI
 import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import org.example.routes.frontend
-import org.example.routes.userRoutes
+import org.example.routes.backendRoutes
+import org.example.routes.frontendRoutes
 
 fun Application.configureRouting(issuer: String, audience: String, secret: String) {
     /*Backend routing*/
     routing {
         route("/api/v1") {
-            userRoutes(issuer, audience, secret)
+            backendRoutes(issuer, audience, secret)
         }
 
         /*Frontend routing*/
-        frontend()
+        frontendRoutes()
 
         /*Static files*/
         staticResources("/resources", "static")

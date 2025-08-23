@@ -6,7 +6,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.thymeleaf.ThymeleafContent
 
-fun Route.frontend() {
+fun Route.frontendRoutes() {
     route("/admin") {
         get("/login") {
             call.respond(ThymeleafContent("admin/pages/signin", mapOf()))

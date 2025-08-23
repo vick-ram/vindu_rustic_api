@@ -3,17 +3,21 @@ ktor:
     modules:
       - org.example.AppKt.module
   deployment:
-    port: "$PORT:8080"
+    port: $PORT
     watch:
       - classes
       - resources
   development: true
+session:
+  secretEncryptionKey: $SESSION_SECRET_ENCRYPTION_KEY
+  secretSigninKey: $SESSION_SECRET_SIGN_IN_KEY
 jwt:
   secret: $JWT_SECRET
   domain: $JWT_DOMAIN
   audience: $JWT_AUDIENCE
   realm: $JWT_REALM
   issuer: $JWT_ISSUER
+
 database:
   port: $DB_PORT
   driver: $DB_DRIVER

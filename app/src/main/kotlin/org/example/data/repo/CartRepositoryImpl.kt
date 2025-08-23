@@ -12,11 +12,11 @@ import org.example.domain.repo.CartRepository
 import org.example.utils.suspendTransaction
 import org.jetbrains.exposed.v1.core.and
 
-class CartRepositoryImpl : CrudRepositoryImpl<CartEntity, Cart>(CartEntity), CartRepository {
-    override fun CartEntity.toDomain(): Cart = CartMapper.toModel(this)
+class CartRepositoryImpl(private val cartMapper: CartMapper) : CrudRepositoryImpl<CartEntity, Cart>(CartEntity), CartRepository {
+    override fun CartEntity.toDomain(): Cart = cartMapper.toModel(this)
 
     override fun Cart.toEntity(entity: CartEntity) {
-        CartMapper.toEntity(this, entity)
+        cartMapper.toEntity(this, entity)
     }
 
     override suspend fun getCartByUser(userId: String): Cart? = suspendTransaction {
