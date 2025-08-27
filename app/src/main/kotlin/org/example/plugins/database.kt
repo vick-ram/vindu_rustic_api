@@ -3,8 +3,9 @@ package org.example.plugins
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.log
-import org.example.data.db.DatabaseConfig
-import org.example.data.db.DatabaseFactory
+import org.example.data.db.config.DatabaseConfig
+import org.example.data.db.config.DatabaseFactory
+import org.example.data.db.config.TsVectorManager
 import org.example.data.db.tables.AddressTable
 import org.example.data.db.tables.CartItemTable
 import org.example.data.db.tables.CartTable
@@ -82,15 +83,20 @@ fun Application.configureDatabase() {
                     CartTable,
                     CartItemTable
                 )
-                tables.filter { it.exists() }.forEach { table ->
-                    val statements = SchemaUtils.addMissingColumnsStatements(tables = tables, withLogs = true)
-                    generateMigrationFile(tables = tables)
-                    statements.forEach { exec(it) }
-                }
+
+                // Create tables if they don't exist
+                SchemaUtils.addMissingColumnsStatements(*tables)
+
+                // Generate migration file
+                generateMigrationFile(*tables)
+
+                // Create TSVECTOR triggers and populate data
+                TsVectorManager.createAllTriggers()
+                TsVectorManager.populateExistingData()
             }
         }
 
-        // Initialize migration
+        // Run Flyway migrations (this will handle production)
         configureFlyaway(dbConfig)
     } catch (e: Exception) {
         log.error("Failed to initialize database", e)
@@ -124,7 +130,9 @@ private fun generateMigrationFile(vararg tables: Table) {
     val migrationDir = File(MIGRATION_DIRECTORY).apply { mkdirs() }
 
     // Find the next migration version
-    val nextVersion = migrationDir.listFiles()?.maxOfOrNull { it.name.substring(1, 2).toInt() }?.plus(1) ?: 1
+    val nextVersion = migrationDir.listFiles()
+        ?.mapNotNull { Regex("""V(\d+)__""").find(it.name)?.groupValues?.get(1)?.toIntOrNull() }
+        ?.maxOrNull()?.plus(1) ?: 1
 
     MigrationUtils.generateMigrationScript(
         tables = tables,

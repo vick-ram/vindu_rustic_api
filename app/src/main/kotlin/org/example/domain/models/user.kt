@@ -1,5 +1,6 @@
 package org.example.domain.models
 
+import io.ktor.websocket.WebSocketSession
 import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
 import org.example.utils.now
@@ -63,5 +64,13 @@ data class User(
         return this
     }
 }
+
+data class ChatUser(
+    val userId: String,
+    val sessionId: String,
+    val socket: WebSocketSession,
+    val username: String,
+    val joinTime: Long = System.currentTimeMillis()
+)
 
 

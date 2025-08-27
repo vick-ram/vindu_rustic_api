@@ -38,11 +38,8 @@ abstract class CrudRepositoryImpl<T : CustomEntity, D>(private val entityClass: 
     }
 
     override suspend fun update(id: String, entity: D): D? = suspendTransaction {
-        // Get the entity
         val ent = entityClass.findById(id) ?: return@suspendTransaction null
-        // Update the entity
         entity.toEntity(ent)
-        // Return the domain model
         ent.toDomain()
     }
 

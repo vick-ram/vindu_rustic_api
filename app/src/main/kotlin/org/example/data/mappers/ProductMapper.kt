@@ -39,6 +39,7 @@ object CategoryMapper : EntityMapper<CategoryEntity, Category, String> {
         entity.description = model.description
         entity.imageUrl = model.imageUrl
         entity.displayOrder = model.displayOrder
+        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.slug} ${entity.description}')"
         return entity
     }
 }
@@ -53,7 +54,7 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
             shortDescription = entity.shortDescription,
             basePrice = entity.basePrice,
             viewed = entity.viewed,
-            category = CategoryMapper.toModel(entity.category),
+            categoryId = entity.category.id.value,
             stock = StockInfo(
                 available = entity.stockAvailable,
                 lowStockThreshold = entity.stockLowThreshold
@@ -69,20 +70,15 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
         model: Product,
         entity: ProductEntity
     ): ProductEntity {
-        val categoryEntity = entity.category
-        val categoryModel = model.category
-
-        val categoryMapper = CategoryMapper.toEntity(categoryModel, categoryEntity)
-
         entity.sku = generateProductSku(entity.name)
         entity.name = model.name
         entity.description = model.description
         entity.shortDescription = model.shortDescription
         entity.basePrice = model.basePrice
         entity.viewed = model.viewed
-        entity.category = categoryMapper
         entity.stockAvailable = model.stock.available
         entity.stockLowThreshold = model.stock.lowStockThreshold
+        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description} ${entity.shortDescription}')"
 
         return entity
     }
@@ -114,7 +110,7 @@ object MediaMapper : EntityMapper<MediaEntity, Media, String> {
     }
 }
 
-object DimensionMapper: EntityMapper<DimensionEntity, Dimension, String> {
+object DimensionMapper : EntityMapper<DimensionEntity, Dimension, String> {
     override fun toModel(entity: DimensionEntity): Dimension {
         return Dimension(
             id = entity.id.value,
@@ -167,6 +163,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
         entity.startDate = model.startDate
         entity.endDate = model.endDate
         entity.isActive = model.isActive
+        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description}')"
 
         return entity
     }
@@ -193,6 +190,7 @@ object ProductReviewMapper : EntityMapper<ProductReviewEntity, ProductReview, St
         entity.title = model.title
         entity.content = model.content
         entity.isApproved = model.isApproved
+        entity.tsv = "to_tsvector('english', '${entity.title} ${entity.content}')"
 
         return entity
     }

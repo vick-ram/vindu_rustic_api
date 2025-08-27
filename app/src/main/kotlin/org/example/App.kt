@@ -9,6 +9,7 @@ import org.example.di.configureDI
 import org.example.plugins.appHttpClient
 import org.example.plugins.configureCors
 import org.example.plugins.configureDatabase
+import org.example.plugins.configureFirebase
 import org.example.plugins.configureFrontend
 import org.example.plugins.configureRouteLogging
 import org.example.plugins.configureRouting
@@ -49,6 +50,7 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
         clientSecret,
     )
     configureRouting(issuer, audience, secret)
+    configureFirebase()
     configureFrontend()
 
     val cleanJob = launch {

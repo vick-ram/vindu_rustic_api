@@ -6,6 +6,8 @@ import org.example.data.db.entities.OrderEntity
 import org.example.data.db.entities.OrderItemEntity
 import org.example.domain.models.Address
 import org.example.domain.models.Discount
+import org.example.domain.models.DiscountAppliedTo
+import org.example.domain.models.DiscountType
 import org.example.domain.models.Order
 import org.example.domain.models.OrderItem
 import org.example.domain.repo.EntityMapper
@@ -77,10 +79,10 @@ object DiscountMapper: EntityMapper<DiscountEntity, Discount, String> {
             id = entity.id.value,
             name = entity.name,
             description = entity.description,
-            type = entity.type,
+            type = entity.type.name,
             value = entity.value,
             code = entity.code,
-            appliedTo = entity.appliedTo,
+            appliedTo = entity.appliedTo.name,
             minimumOrderAmount = entity.minimumOrderAmount,
             startDate = entity.startDate,
             endDate = entity.endDate,
@@ -96,10 +98,10 @@ object DiscountMapper: EntityMapper<DiscountEntity, Discount, String> {
     ): DiscountEntity {
         entity.name = model.name
         entity.description = model.description
-        entity.type = model.type
+        entity.type = DiscountType.valueOf(model.type)
         entity.value = model.value
         entity.code = model.code
-        entity.appliedTo = model.appliedTo
+        entity.appliedTo = DiscountAppliedTo.valueOf(model.appliedTo)
         entity.minimumOrderAmount = model.minimumOrderAmount
         entity.startDate = model.startDate
         entity.endDate = model.endDate
@@ -143,6 +145,7 @@ object OrderMapper: EntityMapper<OrderEntity, Order, String> {
         entity.shippingFee = model.shippingFee
         entity.totalAmount = model.totalAmount
         entity.notes = model.notes
+        entity.tsv = "to_tsvector('english', '${entity.orderNumber} ${entity.notes}')"
         entity.createdAt = model.createdAt
         entity.updatedAt = model.updatedAt
 

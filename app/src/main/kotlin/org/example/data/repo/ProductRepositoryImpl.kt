@@ -1,12 +1,14 @@
 package org.example.data.repo
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.tables.ProductTable
 import org.example.data.mappers.ProductMapper
 import org.example.domain.models.Product
 import org.example.domain.repo.ProductRepository
+import org.example.utils.customMatch
+import org.example.utils.now
 import org.example.utils.suspendTransaction
-import org.jetbrains.exposed.v1.core.or
 
 class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepositoryImpl<ProductEntity, Product>(
     ProductEntity
@@ -27,7 +29,7 @@ class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepo
         categoryId: String,
         offset: Int,
         limit: Int
-    ): List<Product> {
+    ): List<Product> = suspendTransaction {
         ProductEntity.find { ProductTable.category.eq(categoryId) }
             .limit(limit)
             .offset(offset.toLong())
@@ -38,10 +40,35 @@ class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepo
         query: String,
         offset: Int,
         limit: Int
-    ): List<Product> {
-        ProductEntity.find { (ProductTable.name.like("%$query%") or (ProductTable.description.like("%$query%"))) }
+    ): List<Product> = suspendTransaction {
+        ProductEntity.find { ProductTable.tsv.customMatch(query) }
             .limit(limit)
             .offset(offset.toLong())
+            .map { it.toDomain() }
+            .sortedByDescending { it.createdAt.coerceAtLeast(it.updatedAt) }
+    }
+
+    override suspend fun updateProductStock(
+        productId: String,
+        available: Int
+    ): Product? = suspendTransaction {
+
+        ProductEntity.findByIdAndUpdate(productId) { update ->
+            update.stockAvailable += available
+            update.updatedAt = LocalDateTime.now()
+        }?.toDomain()
+    }
+
+    override suspend fun markProductViewed(productId: String): Product? = suspendTransaction {
+        ProductEntity.findByIdAndUpdate(productId) { update ->
+            update.viewed = true
+            update.updatedAt = LocalDateTime.now()
+        }?.toDomain()
+    }
+
+    override suspend fun getProductsWithLowStock(): List<Product> = suspendTransaction {
+        ProductEntity.all()
+            .filter { it.stockAvailable <= it.stockLowThreshold }
             .map { it.toDomain() }
     }
 

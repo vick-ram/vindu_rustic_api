@@ -15,6 +15,7 @@ class UserEntity(id: EntityID<String>): CustomEntity(id, UserTable) {
     var email by UserTable.email
     var password by UserTable.password
     var active by UserTable.active
+    var tsv by UserTable.tsv
 
     var role by RoleEntity referencedOn UserTable.role
 

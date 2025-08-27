@@ -19,6 +19,7 @@ class CategoryEntity(id: EntityID<String>) : CustomEntity(id, CategoryTable) {
     var description by CategoryTable.description
     var imageUrl by CategoryTable.imageUrl
     var displayOrder by CategoryTable.displayOrder
+    var tsv by CategoryTable.tsv
 }
 
 class ProductEntity(id: EntityID<String>) : CustomEntity(id, ProductTable) {
@@ -32,6 +33,7 @@ class ProductEntity(id: EntityID<String>) : CustomEntity(id, ProductTable) {
     var viewed by ProductTable.viewed
     var stockAvailable by ProductTable.stockAvailable
     var stockLowThreshold by ProductTable.stockLowThreshold
+    var tsv by ProductTable.tsv
 
     var category by CategoryEntity referencedOn ProductTable.category
     val media by MediaEntity referrersOn MediaTable.product
@@ -75,6 +77,7 @@ class DiscountEntity(id: EntityID<String>) : CustomEntity(id, DiscountTable) {
     var maxUses by DiscountTable.maxUses
     var currentUses by DiscountTable.currentUses
     var isActive by DiscountTable.isActive
+    var tsv by DiscountTable.tsv
 }
 
 class SpecialOfferEntity(id: EntityID<String>) : CustomEntity(id, SpecialOfferTable) {
@@ -86,6 +89,7 @@ class SpecialOfferEntity(id: EntityID<String>) : CustomEntity(id, SpecialOfferTa
     var startDate by SpecialOfferTable.startDate
     var endDate by SpecialOfferTable.endDate
     var isActive by SpecialOfferTable.isActive
+    var tsv by SpecialOfferTable.tsv
 
     val products by ProductEntity referrersOn ProductTable
 }
@@ -97,6 +101,7 @@ class ProductReviewEntity(id: EntityID<String>) : CustomEntity(id, ProductReview
     var title by ProductReviewTable.title
     var content by ProductReviewTable.content
     var isApproved by ProductReviewTable.isApproved
+    var tsv by ProductReviewTable.tsv
 
     val user by UserEntity referencedOn ProductReviewTable.user
     val product by ProductEntity referencedOn ProductReviewTable.product

@@ -15,7 +15,7 @@ data class Product(
     val shortDescription: String,
     val basePrice: BigDecimal,
     val viewed: Boolean,
-    val category: Category,
+    val categoryId: String,
     val stock: StockInfo,
     val media: List<Media> = emptyList(),
     val dimension: Dimension?,

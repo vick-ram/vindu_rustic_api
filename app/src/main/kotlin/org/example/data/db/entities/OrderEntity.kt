@@ -20,6 +20,7 @@ class OrderEntity(id: EntityID<String>): CustomEntity(id, OrderTable) {
     var discount by DiscountEntity optionalReferencedOn OrderTable.discount
     var shippingFee by OrderTable.shippingFee
     var notes by OrderTable.notes
+    var tsv by OrderTable.tsv
 
     val orderItems by OrderItemEntity referrersOn OrderItemTable.order
 }

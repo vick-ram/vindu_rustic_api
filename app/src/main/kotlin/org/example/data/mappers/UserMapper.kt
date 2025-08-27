@@ -28,6 +28,7 @@ object UserMapper: EntityMapper<UserEntity, User, String> {
         entity.email = model.email
         entity.password = HashPassword.hashPassword(model.password)
         entity.active = model.active
+        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"
 
         return entity
     }

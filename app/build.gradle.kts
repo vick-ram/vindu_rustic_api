@@ -80,14 +80,13 @@ dependencies {
 
     //Mail
     implementation(libs.jakarta.mail)
+    implementation(libs.firebase.admin)
 
     //DI
     implementation(libs.koin.ktor)
     implementation(libs.koin.logger)
 
-    // Swagger documentation
-    implementation(libs.ktor.server.openapi)
-    implementation(libs.ktor.swagger.ui)
+    implementation(libs.skiko)
 
     // Test
     runtimeOnly(libs.kotest.runner)
