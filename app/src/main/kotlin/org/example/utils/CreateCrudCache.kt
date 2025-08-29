@@ -10,17 +10,18 @@ inline fun <reified T: Any, reified E: CustomEntity> createCrudCache(
     storageDir: File = File("app/build/cache"),
     noinline getId: (T) -> String,
     crossinline toDomain: E.() -> T,
-    crossinline toEntity: T.(E) -> Unit
+    crossinline toEntity: T.(E) -> Unit,
+    cacheName: String? = null
 ): CrudRepository<T, String> {
     return CrudCache(
-        delegate = object : CrudRepositoryImpl<E, T>(entityClass) {
+        delegate = object : CrudRepositoryImpl<E, T>(entityClass, T::class) {
             override fun E.toDomain(): T = toDomain()
-
             override fun T.toEntity(entity: E) = toEntity(entity)
         },
         clazz = T::class.java,
         idClazz = String::class.java,
         storageFile = storageDir,
-        getId = getId
+        getId = getId,
+        cacheName = cacheName
     )
 }

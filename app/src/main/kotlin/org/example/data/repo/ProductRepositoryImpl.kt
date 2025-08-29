@@ -11,7 +11,8 @@ import org.example.utils.now
 import org.example.utils.suspendTransaction
 
 class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepositoryImpl<ProductEntity, Product>(
-    ProductEntity
+    ProductEntity,
+    Product::class
 ), ProductRepository {
     override fun ProductEntity.toDomain(): Product {
         return productMapper.toModel(this)

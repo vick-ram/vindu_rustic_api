@@ -1,11 +1,16 @@
 package org.example.data.repo
 
 import org.example.domain.repo.CrudRepository
+import org.example.plugins.NotFoundException
 import org.example.utils.CustomEntity
 import org.example.utils.CustomEntityClass
 import org.example.utils.suspendTransaction
+import kotlin.reflect.KClass
 
-abstract class CrudRepositoryImpl<T : CustomEntity, D>(private val entityClass: CustomEntityClass<T>) :
+abstract class CrudRepositoryImpl<T : CustomEntity, D : Any>(
+    private val entityClass: CustomEntityClass<T>,
+    private val domainClass: KClass<D>
+) :
     CrudRepository<D, String> {
     abstract fun T.toDomain(): D
     abstract fun D.toEntity(entity: T)
@@ -17,7 +22,8 @@ abstract class CrudRepositoryImpl<T : CustomEntity, D>(private val entityClass: 
     }
 
     override suspend fun read(id: String): D? = suspendTransaction {
-        entityClass.findById(id)?.toDomain()
+        val result = entityClass.findById(id) ?: throw NotFoundException("${domainClass.simpleName} not found")
+        return@suspendTransaction result.toDomain()
     }
 
     override suspend fun readAll(
@@ -38,14 +44,14 @@ abstract class CrudRepositoryImpl<T : CustomEntity, D>(private val entityClass: 
     }
 
     override suspend fun update(id: String, entity: D): D? = suspendTransaction {
-        val ent = entityClass.findById(id) ?: return@suspendTransaction null
+        val ent = entityClass.findById(id) ?: throw NotFoundException("${domainClass.simpleName} not found")
         entity.toEntity(ent)
         ent.toDomain()
     }
 
     override suspend fun delete(id: String): Boolean = suspendTransaction {
-        val entity = entityClass.findById(id)
-        entity?.delete()
-        entity != null
+        val entity = entityClass.findById(id) ?: throw NotFoundException("${domainClass.simpleName} not found")
+        entity.delete()
+        true
     }
 }

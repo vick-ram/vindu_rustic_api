@@ -26,6 +26,7 @@ class RoleEntity(id: EntityID<String>): CustomEntity(id, RoleTable) {
 
     var name by RoleTable.name
     var description by RoleTable.description
+    var tsv by RoleTable.tsv
 
     val users by UserEntity referrersOn UserTable.role
     var permissions by PermissionEntity via RolePermissionTable

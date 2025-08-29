@@ -22,6 +22,7 @@ locator = "0.50"
 kotest = "6.0.0.M4"
 firebase-admin = "9.5.0"
 skiko = "0.9.22"
+codegen = "1.0.57"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -38,7 +39,6 @@ ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
-ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 
 #Ktor client
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -62,6 +62,7 @@ thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-
 
 #Logging
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 
 #Database
 hikariCp = { module = "com.zaxxer:HikariCP", version.ref = "hikariCp" }
@@ -87,7 +88,7 @@ kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kote
 kotest-assertion = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 
 # Image processing
-skiko = {module = "org.jetbrains.skiko:skiko", version.ref = "skiko"}
+skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

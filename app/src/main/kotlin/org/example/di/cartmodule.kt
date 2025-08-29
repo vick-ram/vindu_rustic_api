@@ -1,5 +1,6 @@
 package org.example.di
 
+import org.example.controllers.CartController
 import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.CartItemEntity
 import org.example.data.mappers.CartItemMapper
@@ -18,12 +19,14 @@ import org.example.utils.createCrudCache
 import org.koin.dsl.module
 
 val cartModule = module {
+    single { CartMapper }
     single<CrudRepository<Cart, String>> {
         createCrudCache(
             entityClass = CartEntity,
             getId = { it.id },
             toDomain = CartMapper::toModel,
-            toEntity = CartMapper::toEntity
+            toEntity = CartMapper::toEntity,
+            cacheName = "cart-cache"
         )
     }
 
@@ -32,9 +35,11 @@ val cartModule = module {
             entityClass = CartItemEntity,
             getId = { it.id },
             toDomain = CartItemMapper::toModel,
-            toEntity = CartItemMapper::toEntity
+            toEntity = CartItemMapper::toEntity,
+            cacheName = "cart-item-cache"
         )
     }
-    single<CartRepository> { CartRepositoryImpl(get<CartMapper>()) }
-    single { CartService(get<CartRepository>()) }
+    single<CartRepository> { CartRepositoryImpl(get()) }
+    single { CartService(get()) }
+    single { CartController(get<CartService>()) }
 }

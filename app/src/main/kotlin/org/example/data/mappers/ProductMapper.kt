@@ -117,7 +117,7 @@ object DimensionMapper : EntityMapper<DimensionEntity, Dimension, String> {
             width = entity.width.toInt(),
             height = entity.height.toInt(),
             depth = entity.depth.toInt(),
-            unit = entity.unit.name
+            unit = entity.unit
         )
     }
 
@@ -129,7 +129,7 @@ object DimensionMapper : EntityMapper<DimensionEntity, Dimension, String> {
             this.width = model.width.toBigDecimal()
             this.height = model.height.toBigDecimal()
             this.depth = model.depth.toBigDecimal()
-            this.unit = DimensionUnit.valueOf(model.unit)
+            this.unit = model.unit
         }
     }
 }
@@ -145,7 +145,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
             id = entity.id.value,
             name = entity.name,
             description = entity.description,
-            type = entity.type.name,
+            type = entity.type,
             products = products,
             startDate = entity.startDate,
             endDate = entity.endDate,
@@ -159,7 +159,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
     ): SpecialOfferEntity {
         entity.name = model.name
         entity.description = model.description
-        entity.type = OfferType.valueOf(model.type)
+        entity.type = model.type
         entity.startDate = model.startDate
         entity.endDate = model.endDate
         entity.isActive = model.isActive

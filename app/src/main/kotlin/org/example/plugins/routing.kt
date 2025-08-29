@@ -1,15 +1,15 @@
 package org.example.plugins
 
-import io.ktor.server.application.Application
-import io.ktor.server.http.content.staticResources
-import io.ktor.server.plugins.openapi.openAPI
-import io.ktor.server.plugins.swagger.swaggerUI
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
 import org.example.routes.backendRoutes
 import org.example.routes.frontendRoutes
 
 fun Application.configureRouting(issuer: String, audience: String, secret: String) {
+    /* Ignore Trailing slashes in routes */
+    install(IgnoreTrailingSlash)
+
     /*Backend routing*/
     routing {
         route("/api/v1") {
@@ -22,12 +22,6 @@ fun Application.configureRouting(issuer: String, audience: String, secret: Strin
         /*Static files*/
         staticResources("/resources", "static")
         staticResources("META-INF/resources/webjars", "webjars")
-
-        /*Swagger documentation*/
-        swaggerUI(path = "docs", swaggerFile = "openapi/documentation.yaml") {
-            version = "4.15.5"
-        }
-        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
     }
 }
 

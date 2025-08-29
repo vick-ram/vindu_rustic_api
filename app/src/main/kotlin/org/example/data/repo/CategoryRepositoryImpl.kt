@@ -7,7 +7,8 @@ import org.example.domain.models.Category
 import org.example.domain.repo.CategoryRepository
 import org.example.utils.suspendTransaction
 
-class CategoryRepositoryImpl(private val categoryMapper: CategoryMapper): CrudRepositoryImpl<CategoryEntity, Category>(CategoryEntity), CategoryRepository {
+class CategoryRepositoryImpl(private val categoryMapper: CategoryMapper) :
+    CrudRepositoryImpl<CategoryEntity, Category>(CategoryEntity, Category::class), CategoryRepository {
     override fun CategoryEntity.toDomain(): Category {
         return categoryMapper.toModel(this)
     }

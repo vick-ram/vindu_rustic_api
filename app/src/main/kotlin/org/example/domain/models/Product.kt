@@ -47,14 +47,14 @@ data class Dimension(
     val width: Int,
     val height: Int,
     val depth: Int,
-    val unit: String //DimensionUnit
+    val unit: DimensionUnit
 ) {
     fun validate(): Dimension {
         Validations.validateAll(
-            { Validations.validateGreaterThan(width, 0, "Width")},
-            { Validations.validateGreaterThan(height, 0, "Height")},
-            { Validations.validateGreaterThan(depth, 0, "Depth")},
-            { Validations.validateEnum<DimensionUnit>(unit, "Dimension unit")}
+            { Validations.validateGreaterThan(width, 0, "Width") },
+            { Validations.validateGreaterThan(height, 0, "Height") },
+            { Validations.validateGreaterThan(depth, 0, "Depth") },
+            { Validations.validateEnum<DimensionUnit>(unit, "Dimension unit") }
         )
         return this
     }
@@ -92,10 +92,10 @@ data class Discount(
     val id: String,
     val name: String,
     val description: String? = null,
-    val type: String, //DiscountType
+    val type: DiscountType,
     val value: BigDecimal,
     val code: String? = null,
-    val appliedTo: String, //DiscountAppliedTo
+    val appliedTo: DiscountAppliedTo,
     val minimumOrderAmount: BigDecimal? = null,
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
@@ -144,7 +144,7 @@ data class SpecialOffer(
     val id: String,
     val name: String,
     val description: String,
-    val type: String, // OfferType
+    val type: OfferType,
     val products: List<Product> = emptyList(),
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
@@ -182,11 +182,11 @@ data class ProductReview(
 ) {
     fun validate(): ProductReview {
         Validations.validateAll(
-            { Validations.validateGreaterThan(rating,1, "Rating")},
-            { Validations.validateLessThan(rating, 5, "Rating")},
-            { Validations.validateNonEmpty(title, "Title")},
-            {Validations.validateNonEmpty(content, "Content")},
-            { Validations.validateMinLength(content, 3, "Content")}
+            { Validations.validateGreaterThan(rating, 1, "Rating") },
+            { Validations.validateLessThan(rating, 5, "Rating") },
+            { Validations.validateNonEmpty(title, "Title") },
+            { Validations.validateNonEmpty(content, "Content") },
+            { Validations.validateMinLength(content, 3, "Content") }
         )
 
         return this

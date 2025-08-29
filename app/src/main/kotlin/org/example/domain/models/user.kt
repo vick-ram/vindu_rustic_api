@@ -50,6 +50,7 @@ data class User(
     val email: String,
     val password: String,
     val active: Boolean = true,
+    val roleId: String,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : Serializable {

@@ -1,29 +1,28 @@
 package org.example.controllers
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.plugins.NotFoundException
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.route
-import io.ktor.util.toMap
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.util.*
+import io.ktor.websocket.*
 import org.example.domain.models.LoginCredentials
 import org.example.domain.models.User
 import org.example.plugins.AuthenticationException
 import org.example.services.UserService
+import org.example.utils.OpenApiGet
+import org.example.utils.WebsocketConnectionManager
+import org.example.utils.openApiGet
 import org.example.utils.respondApi
 
 class UserController(
     private val userService: UserService
 ) {
     fun Route.routes(issuer: String, audience: String, secret: String) {
-        route("/users") {
-            post("/login") {
+        route("/users/") {
+            post("login") {
                 val credentials = call.receive<LoginCredentials>().validate()
                 val res = userService.login(credentials.email, credentials.password, issuer, audience, secret)
                 call.respondApi(
@@ -34,7 +33,7 @@ class UserController(
             }
 
             authenticate("auth-jwt") {
-                post("/logout") {
+                post("logout") {
                     val token =
                         call.request.headers["Authorization"]?.removePrefix("Bearer ") ?: throw AuthenticationException(
                             "No token was passed in headers"
@@ -51,34 +50,23 @@ class UserController(
                     }
                 }
             }
-            get {
-                val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
-                val queryParams = call.request.queryParameters.toMap().mapValues { it.value.firstOrNull() ?: "" }
+            openApiGet<List<User>>("") @OpenApiGet(
+                path = "",
+                summary = "Fetch all users",
+                description = "Retrieves a list of users from database",
+                tags = ["Users"]
+            ) {
+                val offset = request.queryParameters["offset"]?.toIntOrNull() ?: 0
+                val limit = request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val queryParams = request.queryParameters.toMap().mapValues { it.value.firstOrNull() ?: "" }
                     .filterKeys { it != "offset" && it != "limit" }
-
-                val users = userService.getUsers(offset, limit, queryParams)
-
-                call.respondApi(
-                    status = HttpStatusCode.OK,
-                    data = users,
-                    message = "Users fetched successfully"
-                )
+                userService.getUsers(offset, limit, queryParams)
             }
 
-            get("{id}") {
-                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-                val user = userService.getUser(id)
 
-                if (user != null) {
-                    call.respondApi(
-                        status = HttpStatusCode.OK,
-                        data = user,
-                        message = "User read successfully"
-                    )
-                } else {
-                    throw NotFoundException("User not found")
-                }
+            openApiGet<User>("{id}") {
+                val id = parameters["id"] ?: ""
+                userService.getUser(id) as User
             }
 
             post {
@@ -105,6 +93,13 @@ class UserController(
                 }
             }
 
+            openApiGet<List<User>>("search/{query}") {
+                val query = parameters["query"] ?: "the"
+                val offset = request.queryParameters["offset"]?.toIntOrNull() ?: 0
+                val limit = request.queryParameters["limit"]?.toIntOrNull() ?: 50
+                userService.searchUsers(query, offset, limit)
+            }
+
             delete("{id}") {
                 val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
                 val deleted = userService.deleteUser(id)
@@ -118,6 +113,51 @@ class UserController(
                     throw NotFoundException("User not found")
                 }
             }
+
+            // Chat endpoint
+//            authenticate("auth-jwt") {
+//                webSocket("chat") {
+//                    val principal = call.principal<JWTPrincipal>()
+//                    val userId = principal?.subject ?: return@webSocket close()
+//                    val email = principal.getClaim("email", String::class) ?: ""
+//
+//                    val sessionId = connectionManager.addUser(userId, email, this)
+//
+//                    try {
+//                        for (frame in incoming) {
+//                            when (frame) {
+//                                is Frame.Text -> {
+//                                    val message = frame.readText()
+//                                    sendPrivateMessage(connectionManager, sessionId, "", message)
+//                                }
+//
+//                                else -> {}
+//                            }
+//                        }
+//                    } finally {
+//                        connectionManager.removeUser(sessionId)
+//                    }
+//                }
+//            }
         }
+    }
+}
+
+suspend fun sendPrivateMessage(
+    connectionManager: WebsocketConnectionManager,
+    sessionId: String,
+    recipientId: String,
+    message: String
+) {
+    val recipients = connectionManager.getUsersByUserId(recipientId)
+    recipients.forEach { recipient ->
+        recipient.socket.send(
+            Frame.Text(
+                """{
+            "from": "$sessionId",
+            "message": "$message"
+        }""".trimIndent()
+            )
+        )
     }
 }

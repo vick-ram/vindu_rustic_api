@@ -87,26 +87,24 @@ object Validations {
     }
 
     inline fun <reified T : Enum<T>> validateEnum(
-        value: String,
+        value: Enum<T>,
         fieldName: String
-    ): String {
+    ): Enum<T> {
         val errors = mutableListOf<String>()
 
-        if (value.isBlank()) {
+        if (value.name.isBlank()) {
             errors.add("$fieldName cannot be blank")
         } else {
             try {
-                enumValueOf<T>(value.uppercase())
+                enumValueOf<T>(value.name.uppercase())
             } catch (e: IllegalArgumentException) {
                 val validValues = enumValues<T>().joinToString { it.name }
                 errors.add("Invalid $fieldName. Valid values are: $validValues")
             }
         }
-
         if (errors.isNotEmpty()) throw ValidationException(errors)
         return value
     }
-
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     fun validateDate(

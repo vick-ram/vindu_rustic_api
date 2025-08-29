@@ -6,7 +6,6 @@ import com.google.firebase.FirebaseOptions
 import io.ktor.server.application.Application
 import java.io.FileInputStream
 
-
 fun Application.configureFirebase() {
     val serviceAccount = FileInputStream("")
 

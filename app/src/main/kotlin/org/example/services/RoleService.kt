@@ -1,26 +1,30 @@
 package org.example.services
 
 import org.example.domain.models.Role
-import org.example.domain.repo.CrudRepository
+import org.example.domain.repo.RoleRepository
 
-class RoleService(private val crudRepository: CrudRepository<Role, String>) {
+class RoleService(private val roleRepository: RoleRepository) {
     suspend fun createRole(role: Role): Role? {
-        return crudRepository.create(role)
+        return roleRepository.create(role)
     }
 
     suspend fun getRole(id: String): Role? {
-        return crudRepository.read(id)
+        return roleRepository.read(id)
     }
 
     suspend fun getRoles(offset: Int = 0, limit: Int =  10, queryParams: Map<String, String>): List<Role> {
-        return crudRepository.readAll(offset, limit, queryParams)
+        return roleRepository.readAll(offset, limit, queryParams)
     }
     
     suspend fun updateRole(id: String, role: Role): Role? {
-        return crudRepository.update(id, role)
+        return roleRepository.update(id, role)
+    }
+
+    suspend fun searchRole(query: String, offset: Int, limit: Int): List<Role> {
+        return roleRepository.searchRole(query, offset, limit)
     }
 
     suspend fun deleteRole(id: String): Boolean {
-        return crudRepository.delete(id)
+        return roleRepository.delete(id)
     }
 }

@@ -3,7 +3,7 @@ ktor:
     modules:
       - org.example.AppKt.module
   deployment:
-    port: $PORT
+    port: 9000
     watch:
       - classes
       - resources
@@ -34,6 +34,7 @@ database:
   prepStmtCacheSize: 250
   prepStmtCacheSqlLimit: 2048
   useServerPrepStmts: true
+  runMigrations: true
 
 pesapal:
   baseUrl: $PESAPAL_BASE_URL

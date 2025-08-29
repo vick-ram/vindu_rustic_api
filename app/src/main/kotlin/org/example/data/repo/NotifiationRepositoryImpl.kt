@@ -6,7 +6,8 @@ import org.example.domain.models.Notification
 
 class NotificationRepositoryImpl(private val notificationMapper: NotificationMapper) :
     CrudRepositoryImpl<NotificationEntity, Notification>(
-        NotificationEntity
+        NotificationEntity,
+        Notification::class
     ) {
     override fun NotificationEntity.toDomain(): Notification {
         return notificationMapper.toModel(this)

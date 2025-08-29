@@ -16,7 +16,8 @@ object UserMapper: EntityMapper<UserEntity, User, String> {
             name = entity.name,
             email = entity.email,
             password = entity.password,
-            active = entity.active
+            active = entity.active,
+            roleId = entity.role.id.value
         )
     }
 
@@ -27,7 +28,8 @@ object UserMapper: EntityMapper<UserEntity, User, String> {
         entity.name = model.name
         entity.email = model.email
         entity.password = HashPassword.hashPassword(model.password)
-        entity.active = model.active
+        entity.active = true
+        entity.role = RoleEntity[model.roleId]
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"
 
         return entity
@@ -49,6 +51,7 @@ object RoleMapper: EntityMapper<RoleEntity, Role, String> {
     ): RoleEntity {
         entity.name = model.name
         entity.description = model.description
+        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description}')"
 
         return  entity
     }

@@ -79,10 +79,10 @@ object DiscountMapper: EntityMapper<DiscountEntity, Discount, String> {
             id = entity.id.value,
             name = entity.name,
             description = entity.description,
-            type = entity.type.name,
+            type = entity.type,
             value = entity.value,
             code = entity.code,
-            appliedTo = entity.appliedTo.name,
+            appliedTo = entity.appliedTo,
             minimumOrderAmount = entity.minimumOrderAmount,
             startDate = entity.startDate,
             endDate = entity.endDate,
@@ -98,10 +98,10 @@ object DiscountMapper: EntityMapper<DiscountEntity, Discount, String> {
     ): DiscountEntity {
         entity.name = model.name
         entity.description = model.description
-        entity.type = DiscountType.valueOf(model.type)
+        entity.type = model.type
         entity.value = model.value
         entity.code = model.code
-        entity.appliedTo = DiscountAppliedTo.valueOf(model.appliedTo)
+        entity.appliedTo = model.appliedTo
         entity.minimumOrderAmount = model.minimumOrderAmount
         entity.startDate = model.startDate
         entity.endDate = model.endDate

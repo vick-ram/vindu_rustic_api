@@ -1,9 +1,13 @@
+import org.w3c.dom.Element
+import javax.xml.parsers.DocumentBuilderFactory
+
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    kotlin("plugin.serialization").version("2.1.20")
 }
 
 group = "org.example"
@@ -115,5 +119,31 @@ application {
     mainClass = "org.example.AppKt"
 }
 
+fun loadEnvVars(): Map<String, String> {
+    val configFile = file("../.idea/workspace.xml")
+    if (!configFile.exists()) return emptyMap()
+
+    val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(configFile)
+    val envs = doc.getElementsByTagName("env")
+    val result = mutableMapOf<String, String>()
+
+    for (i in 0 until envs.length) {
+        val node = envs.item(i) as Element
+        val name = node.getAttribute("name")
+        val value = node.getAttribute("value")
+        result[name] = value
+    }
+    return result
+}
+
 tasks.withType<Test>().configureEach { useJUnitPlatform() }
+
+tasks.findByName("run")?.let { runTask ->
+    if (runTask is JavaExec) {
+        val envVars = loadEnvVars()
+        envVars.forEach { (key, value) ->
+            runTask.systemProperty(key, value)
+        }
+    }
+}
 

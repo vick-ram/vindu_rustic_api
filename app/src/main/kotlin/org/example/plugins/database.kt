@@ -1,33 +1,14 @@
 package org.example.plugins
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.log
+import io.ktor.server.application.*
 import org.example.data.db.config.DatabaseConfig
 import org.example.data.db.config.DatabaseFactory
 import org.example.data.db.config.TsVectorManager
-import org.example.data.db.tables.AddressTable
-import org.example.data.db.tables.CartItemTable
-import org.example.data.db.tables.CartTable
-import org.example.data.db.tables.CategoryTable
-import org.example.data.db.tables.DiscountTable
-import org.example.data.db.tables.MediaTable
-import org.example.data.db.tables.OrderItemTable
-import org.example.data.db.tables.OrderTable
-import org.example.data.db.tables.PaymentTable
-import org.example.data.db.tables.PermissionTable
-import org.example.data.db.tables.ProductReviewTable
-import org.example.data.db.tables.ProductTable
-import org.example.data.db.tables.RolePermissionTable
-import org.example.data.db.tables.RoleTable
-import org.example.data.db.tables.SpecialOfferProductTable
-import org.example.data.db.tables.SpecialOfferTable
-import org.example.data.db.tables.UserTable
+import org.example.data.db.tables.*
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.exists
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.MigrationUtils
 import java.io.File
@@ -85,19 +66,21 @@ fun Application.configureDatabase() {
                 )
 
                 // Create tables if they don't exist
-                SchemaUtils.addMissingColumnsStatements(*tables)
+                SchemaUtils.create(*tables)
 
                 // Generate migration file
-                generateMigrationFile(*tables)
+                if (environment.config.property("database.runMigrations").getString().toBoolean()) {
+                    generateMigrationFile(*tables)
+                }
 
                 // Create TSVECTOR triggers and populate data
                 TsVectorManager.createAllTriggers()
                 TsVectorManager.populateExistingData()
             }
+        } else {
+            // Run Flyway migrations (this will handle production)
+            configureFlyaway(dbConfig)
         }
-
-        // Run Flyway migrations (this will handle production)
-        configureFlyaway(dbConfig)
     } catch (e: Exception) {
         log.error("Failed to initialize database", e)
         throw e
@@ -110,7 +93,7 @@ fun Application.configureDatabase() {
 }
 
 private fun Application.configureFlyaway(dbConfig: DatabaseConfig) {
-    val dbUrl = "jdbc:postgresql://localhost:${dbConfig.dbPort}/${dbConfig.dbName}"
+    val dbUrl = "jdbc:${dbConfig.driver}://localhost:${dbConfig.dbPort}/${dbConfig.dbName}"
     val flyaway = Flyway.configure()
         .dataSource(dbUrl, dbConfig.user, dbConfig.password)
         .locations("filesystem:$MIGRATION_DIRECTORY")
@@ -139,4 +122,10 @@ private fun generateMigrationFile(vararg tables: Table) {
         scriptDirectory = MIGRATION_DIRECTORY,
         scriptName = "V${nextVersion}__auto_migration.sql"
     )
+
+    // Delete empty migration file
+    val file = File(migrationDir, "V${nextVersion}__auto_migration.sql")
+    if (file.readText().isBlank()) {
+        file.delete()
+    }
 }

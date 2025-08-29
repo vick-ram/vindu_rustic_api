@@ -15,8 +15,9 @@ object UserTable : CustomTable("users") {
 }
 
 object RoleTable : CustomTable("roles") {
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).index()
     val description = varchar("description", 255).nullable()
+    val tsv = tsVector("tsv")
 }
 
 object PermissionTable : CustomTable("permissions") {

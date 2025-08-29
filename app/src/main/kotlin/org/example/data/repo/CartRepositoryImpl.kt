@@ -12,7 +12,7 @@ import org.example.domain.repo.CartRepository
 import org.example.utils.suspendTransaction
 import org.jetbrains.exposed.v1.core.and
 
-class CartRepositoryImpl(private val cartMapper: CartMapper) : CrudRepositoryImpl<CartEntity, Cart>(CartEntity), CartRepository {
+class CartRepositoryImpl(private val cartMapper: CartMapper) : CrudRepositoryImpl<CartEntity, Cart>(CartEntity, Cart::class), CartRepository {
     override fun CartEntity.toDomain(): Cart = cartMapper.toModel(this)
 
     override fun Cart.toEntity(entity: CartEntity) {

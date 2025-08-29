@@ -2,14 +2,22 @@ package org.example.data.db.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.example.domain.models.DiscountAppliedTo
+import org.example.domain.models.DiscountType
+import org.example.domain.models.MediaType
+import org.example.domain.models.OfferType
+import org.example.domain.models.OrderStatus
+import org.example.domain.models.PaymentMethod
+import org.example.domain.models.PaymentStatus
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 object DatabaseFactory {
     lateinit var datasource: HikariDataSource
 
     fun init(config: DatabaseConfig) {
         datasource = hikariDataSource(config)
-        Database.connect(datasource)
+        Database.connect(datasource).apply { createEnums() }
     }
 
     fun close() {
@@ -37,17 +45,10 @@ data class DatabaseConfig(
 
 fun hikariDataSource(config: DatabaseConfig): HikariDataSource {
     val hikariConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:${config.driver}://localhost:${config.dbPort}/${config.dbName}"
-        driverClassName = when(config.driver) {
-            "postgresql" -> "org.postgresql.Driver"
-            else -> throw IllegalArgumentException("Unsupported driver: ${config.driver}")
-        }
-        
-        // Log connection attempts for debugging
-        println("Initializing HikariCP with jdbcUrl: $jdbcUrl")
+        jdbcUrl = "jdbc:postgresql://localhost:${config.dbPort}/${config.dbName}"
+        driverClassName = "org.postgresql.Driver"
         username = config.user
         password = config.password
-        
         // Connection pool settings
         maximumPoolSize = config.poolSize
         minimumIdle = config.minimumIdle
@@ -55,13 +56,12 @@ fun hikariDataSource(config: DatabaseConfig): HikariDataSource {
         idleTimeout = config.idleTimeout
         maxLifetime = config.maxLifetime
         leakDetectionThreshold = config.leakDetectionThreshold
-        
+        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         // Performance optimizations
         addDataSourceProperty("cachePrepStmts", config.cachePrepStmts.toString())
         addDataSourceProperty("prepStmtCacheSize", config.prepStmtCacheSize.toString())
         addDataSourceProperty("prepStmtCacheSqlLimit", config.prepStmtCacheSqlLimit.toString())
         addDataSourceProperty("useServerPrepStmts", config.useServerPrepStmts.toString())
-        
         // Additional optimizations for PostgreSQL
         addDataSourceProperty("useLocalSessionState", "true")
         addDataSourceProperty("rewriteBatchedStatements", "true")
@@ -69,15 +69,39 @@ fun hikariDataSource(config: DatabaseConfig): HikariDataSource {
         addDataSourceProperty("cacheServerConfiguration", "true")
         addDataSourceProperty("elideSetAutoCommits", "true")
         addDataSourceProperty("maintainTimeStats", "false")
-
         // Connection testing
         connectionTestQuery = "SELECT 1"
-        
         // Enable metrics collection
         metricsTrackerFactory = null  // Default metrics tracker
-        
         validate()
     }
-    
+
     return HikariDataSource(hikariConfig)
+}
+
+fun createEnums() {
+    val enums = listOf(
+        Pair("orderstatus", OrderStatus.entries.map { it.name }),
+        Pair("mediatype", MediaType.entries.map { it.name }),
+        Pair("offertype", OfferType.entries.map { it.name }),
+        Pair("discounttype", DiscountType.entries.map { it.name }),
+        Pair("discountappliedto", DiscountAppliedTo.entries.map { it.name }),
+        Pair("paymentstatus", PaymentStatus.entries.map { it.name }),
+        Pair("paymentmethod", PaymentMethod.entries.map { it.name }),
+    )
+    transaction {
+        enums.forEach { (typeName, values) ->
+            val valuesList = values.joinToString(", ") { "'$it'" }
+            exec(
+                """
+                DO $$
+                BEGIN
+                    CREATE TYPE $typeName AS ENUM ($valuesList);
+                EXCEPTION
+                    WHEN duplicate_object THEN null;
+                END $$
+            """.trimIndent()
+            )
+        }
+    }
 }

@@ -9,13 +9,13 @@ import org.example.di.configureDI
 import org.example.plugins.appHttpClient
 import org.example.plugins.configureCors
 import org.example.plugins.configureDatabase
-import org.example.plugins.configureFirebase
 import org.example.plugins.configureFrontend
 import org.example.plugins.configureRouteLogging
 import org.example.plugins.configureRouting
 import org.example.plugins.configureSecurity
 import org.example.plugins.configureSerialization
 import org.example.plugins.configureStatusPages
+import org.example.plugins.configureWebSockets
 import org.example.plugins.configureWebjar
 import org.example.utils.cleanOldCache
 import java.io.File
@@ -49,8 +49,9 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
         clientID,
         clientSecret,
     )
+    configureWebSockets()
     configureRouting(issuer, audience, secret)
-    configureFirebase()
+//    configureFirebase()
     configureFrontend()
 
     val cleanJob = launch {

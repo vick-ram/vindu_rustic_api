@@ -32,6 +32,10 @@ class UserService(private val userRepository: UserRepository) {
         return userRepository.read(id)
     }
 
+    suspend fun searchUsers(query: String, offset: Int, limit: Int): List<User> {
+        return userRepository.searchUsers(query, offset, limit)
+    }
+
     suspend fun deleteUser(id: String): Boolean {
         return userRepository.delete(id)
     }

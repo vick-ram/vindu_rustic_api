@@ -50,9 +50,9 @@ object MediaTable : CustomTable("media") {
     val url = varchar("url", 255)
     val type = customEnumeration(
         name = "type",
-        sql = "MediaTypeEnum",
+        sql = "MediaType",
         fromDb = { value -> MediaType.valueOf(value as String) },
-        toDb = { PGEnum("MediaTypeEnum", it) })
+        toDb = { PGEnum("MediaType", it) })
     val altText = varchar("alt_text", 255).nullable()
     val isPrimary = bool("is_primary").default(false)
     val displayOrder = integer("display_order").default(0)
@@ -88,9 +88,9 @@ object SpecialOfferTable : CustomTable("special_offers") {
     val description = text("description").index()
     val type = customEnumeration(
         name = "type",
-        sql = "OfferTypeEnum",
+        sql = "OfferType",
         fromDb = { value -> OfferType.valueOf(value as String) },
-        toDb = { PGEnum("OfferTypeEnum", it) })
+        toDb = { PGEnum("OfferType", it) })
     val startDate = datetime("start_date")
     val endDate = datetime("end_date")
     val isActive = bool("is_active")

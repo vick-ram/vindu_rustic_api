@@ -10,11 +10,23 @@ import org.example.plugins.AuthenticationException
 import org.example.plugins.NotFoundException
 import org.example.utils.HashPassword
 import org.example.utils.blacklistToken
+import org.example.utils.customMatch
 import org.example.utils.makeJwtToken
 import org.example.utils.suspendTransaction
 
-class UserRepositoryImpl(private val userMapper: UserMapper) : CrudRepositoryImpl<UserEntity, User>(UserEntity),
+class UserRepositoryImpl(private val userMapper: UserMapper) :
+    CrudRepositoryImpl<UserEntity, User>(UserEntity, User::class),
     UserRepository {
+    override suspend fun searchUsers(
+        query: String,
+        offset: Int,
+        limit: Int
+    ): List<User> = suspendTransaction {
+        UserEntity.find { UserTable.tsv.customMatch(query) }
+            .offset(offset.toLong())
+            .limit(limit)
+            .map { it.toDomain() }
+    }
 
     override fun UserEntity.toDomain(): User = userMapper.toModel(this)
 

@@ -88,7 +88,7 @@ data class Address(
 
 data class UpdateOrderStatusRequest(
     val orderId: String,
-    val status: String
+    val status: OrderStatus
 ) {
     fun validate(): UpdateOrderStatusRequest {
         Validations.validateAll(

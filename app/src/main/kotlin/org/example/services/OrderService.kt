@@ -17,8 +17,8 @@ class OrderService(private val orderRepository: OrderRepository) {
         return orderRepository.findByUserId(userId, offset, limit)
     }
 
-    suspend fun updateOrderStatus(orderId: String, status: String): Order? {
-        return orderRepository.updateStatus(orderId, OrderStatus.valueOf(status))
+    suspend fun updateOrderStatus(orderId: String, status: OrderStatus): Order? {
+        return orderRepository.updateStatus(orderId, status)
     }
 
     suspend fun deleteOrder(orderId: String): Boolean {

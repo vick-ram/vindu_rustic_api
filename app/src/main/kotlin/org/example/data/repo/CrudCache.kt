@@ -17,12 +17,13 @@ class CrudCache<T: Any, ID: Any>(
     idClazz: Class<ID>,
     storageFile: File?,
     private val getId: (T) -> ID,
+    cacheName: String? = null
 ): CrudRepository<T, ID> {
     private val uniquePath = cachePath(storageFile)
     private val cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
         .with(CacheManagerPersistenceConfiguration(uniquePath))
         .withCache(
-            "crud-cache",
+            cacheName,
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
                 idClazz,
                 clazz,

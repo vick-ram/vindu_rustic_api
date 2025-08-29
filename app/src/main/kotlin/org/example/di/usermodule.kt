@@ -18,9 +18,11 @@ val userModule = module {
             entityClass = UserEntity,
             getId = { it.id },
             toDomain = UserMapper::toModel,
-            toEntity = UserMapper::toEntity
+            toEntity = UserMapper::toEntity,
+            cacheName = "user-cache"
         )
     }
     single<UserRepository> { UserRepositoryImpl(get<UserMapper>()) }
+    single { UserService(get()) }
     single { UserController(get<UserService>()) }
 }

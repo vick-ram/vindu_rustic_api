@@ -8,7 +8,10 @@ import org.example.domain.models.Media
 import org.example.domain.repo.MediaRepository
 import org.example.utils.suspendTransaction
 
-class MediaRepositoryImpl(private val mediaMapper: MediaMapper) : CrudRepositoryImpl<MediaEntity, Media>(MediaEntity),
+class MediaRepositoryImpl(private val mediaMapper: MediaMapper) : CrudRepositoryImpl<MediaEntity, Media>(
+    MediaEntity,
+    Media::class
+),
     MediaRepository {
     override fun MediaEntity.toDomain(): Media {
         return mediaMapper.toModel(this)

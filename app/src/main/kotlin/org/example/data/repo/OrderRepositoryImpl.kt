@@ -14,7 +14,10 @@ import org.example.plugins.NotFoundException
 import org.example.utils.now
 import org.example.utils.suspendTransaction
 
-class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepositoryImpl<OrderEntity, Order>(OrderEntity),
+class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepositoryImpl<OrderEntity, Order>(
+    OrderEntity,
+    Order::class
+),
     OrderRepository {
     override fun OrderEntity.toDomain(): Order = orderMapper.toModel(this)
 
