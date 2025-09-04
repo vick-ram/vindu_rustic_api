@@ -5,6 +5,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import org.example.routes.backendRoutes
 import org.example.routes.frontendRoutes
+import org.example.routes.serveStaticContent
 
 fun Application.configureRouting(issuer: String, audience: String, secret: String) {
     /* Ignore Trailing slashes in routes */
@@ -20,8 +21,7 @@ fun Application.configureRouting(issuer: String, audience: String, secret: Strin
         frontendRoutes()
 
         /*Static files*/
-        staticResources("/resources", "static")
-        staticResources("META-INF/resources/webjars", "webjars")
+        serveStaticContent()
     }
 }
 

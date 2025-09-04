@@ -25,6 +25,8 @@ class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepository
         orderMapper.toEntity(this, entity)
     }
 
+    override fun getId(domain: Order): String = domain.id
+
     override suspend fun createOrder(userId: String): Order = suspendTransaction {
         val cart = CartEntity.find { CartTable.user.eq(userId) }
             .firstOrNull() ?: throw NotFoundException("Cart not found for user $userId")

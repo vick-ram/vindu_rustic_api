@@ -3,11 +3,12 @@ package org.example.domain.models
 import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
 import org.example.utils.now
+import java.io.Serializable
 import java.math.BigDecimal
 
 data class Cart(
     val id: String,
-    val user: User,
+    val userId: String,
     val items: List<CartItem> = emptyList(),
     val totalQuantity: Int,
     val totalPrice: BigDecimal,
@@ -19,12 +20,14 @@ data class Cart(
 data class CartItem(
     val id: String,
     val cartId: String,
-    val product: Product,
+    val productId: String,
     val quantity: Int,
     val unitPrice: BigDecimal,
-    val totalPrice: BigDecimal,
     val addedAt: LocalDateTime = LocalDateTime.now()
-)
+) {
+    val total: BigDecimal
+        get() = quantity.toBigDecimal() * unitPrice
+}
 
 data class Order(
     val id: String,
@@ -38,9 +41,9 @@ data class Order(
     val discount: Discount? = null,
     val shippingFee: BigDecimal = BigDecimal.ZERO,
     val notes: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+): Serializable
 
 data class OrderItem(
     val id: String,
@@ -61,8 +64,8 @@ enum class PaymentStatus {
 
 data class Payment(
     val id: String,
-    val order: Order,
-    val user: User,
+    val orderId: String,
+    val userId: String,
     val amount: BigDecimal,
     val status: PaymentStatus,
     val method: PaymentMethod,

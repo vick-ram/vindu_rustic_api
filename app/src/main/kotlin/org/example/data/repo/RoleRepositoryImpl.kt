@@ -25,6 +25,8 @@ class RoleRepositoryImpl(private val roleMapper: RoleMapper) :
             .map { it.toDomain() }
     }
 
+    override fun getId(domain: Role): String = domain.id
+
     override fun Role.toEntity(entity: RoleEntity) {
         roleMapper.toEntity(this, entity)
     }

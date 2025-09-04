@@ -3,11 +3,14 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Vindu Rustic</title>
     <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/all.min.css}">
 </head>
-<body>
-<div layout:fragment="content"></div>
+<body data-theme="light">
+    <div layout:fragment="content"></div>
+
+    <script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
+    <script th:src="@{/resources/js/chatbot.js}"></script>
 </body>
 </html>

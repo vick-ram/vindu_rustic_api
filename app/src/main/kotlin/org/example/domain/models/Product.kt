@@ -4,21 +4,23 @@ import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
 import org.example.plugins.ValidationException
 import org.example.utils.now
+import org.example.utils.shortUUID
 import java.io.Serializable
 import java.math.BigDecimal
 
 data class Product(
-    val id: String,
-    val sku: String,
+    val id: String = shortUUID(),
+    val sku: String = "",
     val name: String,
     val description: String,
     val shortDescription: String,
     val basePrice: BigDecimal,
-    val viewed: Boolean,
+    val viewed: Boolean = false,
     val categoryId: String,
     val stock: StockInfo,
     val media: List<Media> = emptyList(),
-    val dimension: Dimension?,
+    val dimensions: List<Dimension>? = null,
+    val isFavorite: Boolean, // Added is favorite
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : Serializable {
@@ -29,7 +31,7 @@ data class Product(
             { Validations.validateMaxLength(shortDescription, 120, "Short description") },
             { if (basePrice < BigDecimal.ZERO) throw ValidationException("Price cannot be negative") },
             { if (stock.available < 0) throw ValidationException("Stock cannot be negative") },
-            { dimension?.validate() }
+            { dimensions?.forEach { it.validate() } }
         )
         return this
     }
@@ -43,7 +45,7 @@ data class StockInfo(
 enum class DimensionUnit { CM, INCH }
 
 data class Dimension(
-    val id: String,
+    val id: String = shortUUID(),
     val width: Int,
     val height: Int,
     val depth: Int,
@@ -61,20 +63,27 @@ data class Dimension(
 }
 
 data class Media(
-    val id: String,
+    val id: String = shortUUID(),
     val url: String,
     val type: MediaType,
     val altText: String? = null,
     val isPrimary: Boolean = false,
     val displayOrder: Int = 0,
-)
+) {
+    fun validate(): Media {
+        Validations.validateAll(
+            { Validations.validateEnum<MediaType>(type, "Media type") }
+        )
+        return this
+    }
+}
 
 enum class MediaType { IMAGE, VIDEO, DOCUMENT }
 
 data class Category(
-    val id: String,
-    val name: String,
-    val slug: String,
+    val id: String = shortUUID(),
+    val name: String = "",
+    val slug: String = "",
     val description: String? = null,
     val imageUrl: String? = null,
     val displayOrder: Int = 0,
@@ -189,6 +198,32 @@ data class ProductReview(
             { Validations.validateMinLength(content, 3, "Content") }
         )
 
+        return this
+    }
+}
+
+data class CreateProductRequest(
+    val name: String = "",
+    val description: String = "",
+    val shortDescription: String = "",
+    val basePrice: BigDecimal = BigDecimal.ZERO,
+    val categoryId: String = "",
+    val availableStock: Int = 0,
+    val lowStockThreshold: Int = 3,
+    val dimensions: List<Dimension>? = null
+) {
+    fun validate(): CreateProductRequest {
+        Validations.validateAll(
+            { Validations.validateNonEmpty(name, "Product name") },
+            { Validations.validateNonEmpty(description, "Product description") },
+            { Validations.validateNonEmpty(shortDescription, "Short description") },
+            { Validations.validateNonEmpty(basePrice.toString(), "Base price") },
+            { Validations.validateNonEmpty(categoryId, "Category ID") },
+            { Validations.validateNonEmpty(availableStock.toString(), "Available stock") },
+            { if (basePrice < BigDecimal.ZERO) throw ValidationException("Price cannot be negative") },
+            { if (availableStock < 0) throw ValidationException("Stock cannot be negative") },
+            { dimensions?.forEach { it.validate() } }
+        )
         return this
     }
 }

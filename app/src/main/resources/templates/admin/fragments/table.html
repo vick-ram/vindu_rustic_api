@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="dataTable(title, columns, rows, emptyText='No data found')" class="t-table-wrap">
+    <div class="t-table-card">
+        <div class="t-table-header">
+            <h3 class="t-title" th:text="${title}">Table Title</h3>
+<!--            Optional slot: extra header actions (filter/search, e.t.c..,)-->
+            <div class="t-actions">
+                <div class="t-search-box">
+                    <span class="t-search-icon">
+                        <i data-feather="search"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="t-search-input" placeholder="Search.." aria-label="Search table">
+                </div>
+                <button class="t-btn">
+                    <span>Filter</span>
+                </button>
+                <div th:insert="~{::headerActions}">Hello</div>
+            </div>
+        </div>
+
+        <div class="t-table-scroller">
+            <table class="t-table" aria-label="Data table">
+                <thead>
+                    <tr>
+                        <th th:each="col : ${columns}" th:text="${col['label']}" th:attr="data-sortable=${col.sortable != null} ? 'true' : 'false', data-key=${col.key}">Header</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:if="${rows == null or #lists.isEmpty(rows)}">
+                        <td class="t-empty" th:colspan="${#lists.size(columns)}" th:text="${emptyText}">No data found</td>
+                    </tr>
+
+                <tr th:each="row, ri : ${rows}">
+                    <td th:each="col : ${columns}" th:text="${row[col['key']]}">Cell</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="t-table-footer">
+            <div class="t-page-info">
+                Showing 1-10 of 100 items
+            </div>
+            <div class="t-pagination">
+                <button class="t-page-btn" disabled>Previous</button>
+                <button class="t-page-btn active">1</button>
+                <button class="t-page-btn">2</button>
+                <button class="t-page-btn">3</button>
+                <button class="t-page-btn">Next</button>
+            </div>
+        </div>
+
+        <th:block th:fragment="headerActions"></th:block>
+    </div>
+</div>
+</body>
+</html>

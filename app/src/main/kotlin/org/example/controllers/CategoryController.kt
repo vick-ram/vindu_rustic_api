@@ -1,7 +1,10 @@
 package org.example.controllers
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
@@ -10,20 +13,59 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.toMap
 import org.example.domain.models.Category
+import org.example.plugins.BadRequestException
 import org.example.services.CategoryService
 import org.example.utils.respondApi
+import org.example.utils.saveMedia
 
 class CategoryController(private val categoryService: CategoryService) {
     fun Route.categoryRoutes() {
-        route("/category/") {
+        route("/categories/") {
             post {
-                val categoryRequest = call.receive<Category>().validate()
-                val newCategory = categoryService.createCategory(categoryRequest)
-                call.respondApi(
-                    status = HttpStatusCode.Created,
-                    data = newCategory,
-                    message = "Category created successfully"
-                )
+                val multipart = call.receiveMultipart()
+                var categoryRequest: Category? = null
+                var imageUrl: String? = null
+
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FormItem -> {
+                            when (part.name) {
+                                "name" -> categoryRequest = (categoryRequest ?: Category()).copy(name = part.value)
+                                "slug" -> categoryRequest =
+                                    categoryRequest?.copy(slug = part.value) ?: Category(slug = part.value)
+
+                                "description" -> categoryRequest = categoryRequest?.copy(description = part.value)
+                                    ?: Category(description = part.value)
+
+                                "displayOrder" -> categoryRequest =
+                                    categoryRequest?.copy(displayOrder = part.value.toInt())
+                                        ?: Category(displayOrder = part.value.toInt())
+                            }
+                        }
+
+                        is PartData.FileItem -> {
+                            if (part.name == "image") {
+                                val fileName = saveMedia("uploads/categories/", part)
+                                val url = "/media/categories/$fileName"
+                                imageUrl = url
+                            }
+                        }
+
+                        else -> {}
+                    }
+                    part.dispose()
+                }
+                val request = categoryRequest ?: throw BadRequestException("Category data is required")
+                try {
+                    val newCategory = categoryService.createCategory(request.copy(imageUrl = imageUrl))
+                    call.respondApi(
+                        status = HttpStatusCode.Created,
+                        data = newCategory,
+                        message = "Category created successfully"
+                    )
+                } catch (e: Exception) {
+                    throw e
+                }
             }
 
             get("{slug}") {

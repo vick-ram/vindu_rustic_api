@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>500</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <style>
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .wrapper-text {
+            line-height: 1.5rem;
+            flex: 1;
+        }
+
+        .wrapper-img {
+            flex: 1;
+        }
+
+        .img {
+            object-fit: contain;
+        }
+        .links {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="wrapper-text">
+        <h3>500 Internal Error</h3>
+        <h2>Whoops! Something went wrong.</h2>
+        <p>Here are some helpful links:</p>
+        <div class="links">
+            <a href="#">Support</a>
+            <a href="#">Search</a>
+        </div>
+    </div>
+
+    <div class="wrapper-img">
+        <img th:src="@{/resources/images/500.svg}" alt="500 image" class="img">
+    </div>
+</div>
+</body>
+</html>

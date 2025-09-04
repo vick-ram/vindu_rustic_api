@@ -7,6 +7,7 @@ import org.example.data.db.entities.CategoryEntity
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.entities.ProductReviewEntity
 import org.example.data.mappers.CategoryMapper
+import org.example.data.mappers.MediaMapper
 import org.example.data.mappers.ProductMapper
 import org.example.data.mappers.ProductReviewMapper
 import org.example.data.repo.CategoryRepositoryImpl
@@ -43,6 +44,7 @@ val productModule = module {
 
 
     single { ProductMapper }
+    single { MediaMapper }
     single<CrudRepository<Product, String>> {
         createCrudCache(
             entityClass = ProductEntity,

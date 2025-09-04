@@ -60,10 +60,9 @@ dependencies {
     implementation(libs.ktor.server.webjars)
     implementation(libs.ktor.server.thymeleaf)
     implementation(libs.thymeleaf.layout.dialect)
-    implementation(libs.font.awesome)
-    implementation(libs.bootstrap)
     implementation(libs.chartjs)
     implementation(libs.webjars.locator.core)
+    implementation(libs.feather)
 
     //Logging
     implementation(libs.logback.classic)
@@ -80,6 +79,7 @@ dependencies {
     implementation(libs.exposed.migration)
 
     //Redis
+    implementation(libs.kotlinx.coroutines.reactive)
     implementation(libs.lattuce.core)
 
     //Mail

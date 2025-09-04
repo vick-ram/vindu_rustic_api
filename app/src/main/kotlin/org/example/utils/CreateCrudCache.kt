@@ -17,6 +17,9 @@ inline fun <reified T: Any, reified E: CustomEntity> createCrudCache(
         delegate = object : CrudRepositoryImpl<E, T>(entityClass, T::class) {
             override fun E.toDomain(): T = toDomain()
             override fun T.toEntity(entity: E) = toEntity(entity)
+            override fun getId(domain: T): String {
+                return getId(domain)
+            }
         },
         clazz = T::class.java,
         idClazz = String::class.java,

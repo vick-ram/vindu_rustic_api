@@ -16,4 +16,6 @@ class NotificationRepositoryImpl(private val notificationMapper: NotificationMap
     override fun Notification.toEntity(entity: NotificationEntity) {
         notificationMapper.toEntity(this, entity)
     }
+
+    override fun getId(domain: Notification): String = domain.id
 }

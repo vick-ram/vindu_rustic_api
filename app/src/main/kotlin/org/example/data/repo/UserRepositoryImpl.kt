@@ -28,11 +28,19 @@ class UserRepositoryImpl(private val userMapper: UserMapper) :
             .map { it.toDomain() }
     }
 
+    override suspend fun findByEmail(email: String): User? = suspendTransaction {
+        UserEntity.find { UserTable.email.eq(email) }
+            .firstOrNull()
+            ?.toDomain()
+    }
+
     override fun UserEntity.toDomain(): User = userMapper.toModel(this)
 
     override fun User.toEntity(entity: UserEntity) {
         userMapper.toEntity(this, entity)
     }
+
+    override fun getId(domain: User): String = domain.id
 
     override suspend fun login(
         email: String,

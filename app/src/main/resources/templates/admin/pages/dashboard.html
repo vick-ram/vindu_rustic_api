@@ -8,109 +8,101 @@
 </head>
 <body>
 <div layout:fragment="content">
+    <div class="content-header">
+        <h2>Welcome to WoodWorks Admin</h2>
+        <p>Manage your wood products and orders from this dashboard.</p>
+    </div>
+
     <div class="row g-4">
         <!-- Orders Card -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Orders</h6>
-                            <h4>152</h4>
-                            <small class="text-success">24 new</small> <small class="text-muted">since last visit</small>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-3">
-                            <i class="fas fa-shopping-cart fa-lg"></i>
-                        </div>
+        <div class="content-grid">
+
+            <div class="card">
+                <div class="d-flex justify-between">
+                    <div>
+                        <h6 class="text-muted">Orders</h6>
+                        <h4>152</h4>
+                        <small class="text-success">24 new</small> <small class="text-muted">since last visit</small>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-sm">
+                        <i data-feather="shopping-cart"></i>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Revenue Card -->
-        <div class="col-md-3 mb-5">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Revenue</h6>
-                            <h4>$2,100</h4>
-                            <small class="text-success">+52%</small> <small class="text-muted">since last week</small>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
-                            <i class="fas fa-dollar-sign fa-lg"></i>
-                        </div>
+            <!-- Revenue Card -->
+            <div class="card">
+                <div class="d-flex justify-between">
+                    <div>
+                        <h6 class="text-gray">Revenue</h6>
+                        <h4>$2,100</h4>
+                        <small class="text-success">+52%</small> <small class="text-muted">since last week</small>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
+                        <i class="fas fa-dollar-sign fa-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Customers Card -->
-        <div class="col-md-3 mt-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Customers</h6>
-                            <h4>28,441</h4>
-                            <small class="text-success">520</small> <small class="text-muted">newly registered</small>
-                        </div>
-                        <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
-                            <i class="fas fa-user-plus fa-lg"></i>
-                        </div>
-                    </div>
+        <div class="card">
+            <div class="d-flex justify-between">
+                <div>
+                    <h6 class="text-muted">Customers</h6>
+                    <h4>28,441</h4>
+                    <small class="text-success">520</small> <small class="text-muted">newly registered</small>
+                </div>
+                <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
+                    <i class="fas fa-user-plus fa-lg"></i>
                 </div>
             </div>
         </div>
 
         <!-- Comments Card -->
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Comments</h6>
-                            <h4>152 <span class="fw-light fs-6">Unread</span></h4>
-                            <small class="text-success">85</small> <small class="text-muted">responded</small>
-                        </div>
-                        <div class="bg-purple bg-opacity-10 text-purple p-3 rounded-3">
-                            <i class="fas fa-comment-dots fa-lg"></i>
-                        </div>
-                    </div>
+        <div class="card">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h6 class="text-muted">Comments</h6>
+                    <h4>152 <span class="fw-light fs-6">Unread</span></h4>
+                    <small class="text-success">85</small> <small class="text-muted">responded</small>
+                </div>
+                <div class="bg-purple bg-opacity-10 text-purple p-3 rounded-3">
+                    <i class="fas fa-comment-dots fa-lg"></i>
                 </div>
             </div>
         </div>
-
-        <!-- Charts Section -->
-        <div class="row">
-            <div class="col-xl-8 col-lg-7">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="salesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-4 col-lg-5">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Traffic Sources</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-pie pt-4 pb-2">
-                            <canvas id="trafficChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Traffic Sources</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

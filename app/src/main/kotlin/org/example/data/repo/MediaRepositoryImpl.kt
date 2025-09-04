@@ -13,6 +13,8 @@ class MediaRepositoryImpl(private val mediaMapper: MediaMapper) : CrudRepository
     Media::class
 ),
     MediaRepository {
+    override fun getId(domain: Media): String = domain.id
+
     override fun MediaEntity.toDomain(): Media {
         return mediaMapper.toModel(this)
     }

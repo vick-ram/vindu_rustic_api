@@ -14,6 +14,8 @@ class ProductReviewRepositoryImpl(private val productReviewMapper: ProductReview
         return productReviewMapper.toModel(this)
     }
 
+    override fun getId(domain: ProductReview): String = domain.id
+
     override fun ProductReview.toEntity(entity: ProductReviewEntity) {
         productReviewMapper.toEntity(this, entity)
     }

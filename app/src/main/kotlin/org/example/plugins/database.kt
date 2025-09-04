@@ -57,6 +57,7 @@ fun Application.configureDatabase() {
                     SpecialOfferTable,
                     SpecialOfferProductTable,
                     ProductReviewTable,
+                    DimensionTable,
                     OrderTable,
                     OrderItemTable,
                     AddressTable,
@@ -70,7 +71,7 @@ fun Application.configureDatabase() {
 
                 // Generate migration file
                 if (environment.config.property("database.runMigrations").getString().toBoolean()) {
-                    generateMigrationFile(*tables)
+                    generateMigrationFile(*tables, withLogs = true)
                 }
 
                 // Create TSVECTOR triggers and populate data
@@ -109,7 +110,7 @@ private fun Application.configureFlyaway(dbConfig: DatabaseConfig) {
 }
 
 @OptIn(ExperimentalDatabaseMigrationApi::class)
-private fun generateMigrationFile(vararg tables: Table) {
+private fun generateMigrationFile(vararg tables: Table, withLogs: Boolean) {
     val migrationDir = File(MIGRATION_DIRECTORY).apply { mkdirs() }
 
     // Find the next migration version
@@ -120,12 +121,13 @@ private fun generateMigrationFile(vararg tables: Table) {
     MigrationUtils.generateMigrationScript(
         tables = tables,
         scriptDirectory = MIGRATION_DIRECTORY,
-        scriptName = "V${nextVersion}__auto_migration.sql"
+        scriptName = "V${nextVersion}__auto_migration.sql",
+        withLogs = withLogs
     )
 
     // Delete empty migration file
     val file = File(migrationDir, "V${nextVersion}__auto_migration.sql")
-    if (file.readText().isBlank()) {
+    if (file.exists() && file.readText().isBlank()) {
         file.delete()
     }
 }

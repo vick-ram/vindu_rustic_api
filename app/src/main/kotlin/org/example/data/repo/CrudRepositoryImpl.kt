@@ -1,6 +1,7 @@
 package org.example.data.repo
 
 import org.example.domain.repo.CrudRepository
+import org.example.plugins.AlreadyExistsException
 import org.example.plugins.NotFoundException
 import org.example.utils.CustomEntity
 import org.example.utils.CustomEntityClass
@@ -14,8 +15,14 @@ abstract class CrudRepositoryImpl<T : CustomEntity, D : Any>(
     CrudRepository<D, String> {
     abstract fun T.toDomain(): D
     abstract fun D.toEntity(entity: T)
+    abstract fun getId(domain: D): String
 
     override suspend fun create(entity: D): D = suspendTransaction {
+        val id = getId(entity)
+        val exists = entityClass.findById(id)
+        if (exists != null) {
+            throw AlreadyExistsException("${domainClass::simpleName} already exists")
+        }
         entityClass.new {
             entity.toEntity(this)
         }.toDomain()

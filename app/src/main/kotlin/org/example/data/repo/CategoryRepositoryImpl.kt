@@ -17,6 +17,8 @@ class CategoryRepositoryImpl(private val categoryMapper: CategoryMapper) :
         categoryMapper.toEntity(this, entity)
     }
 
+    override fun getId(domain: Category): String = domain.id
+
     override suspend fun findBySlug(slug: String): Category? = suspendTransaction {
         CategoryEntity.find { CategoryTable.slug.eq(slug) }.firstOrNull()?.toDomain()
     }

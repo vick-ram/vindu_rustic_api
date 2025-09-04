@@ -17,12 +17,12 @@ object OrderTable : CustomTable("orders") {
         name = "status",
         sql = "OrderStatus",
         fromDb = { value -> OrderStatus.valueOf(value as String) },
-        toDb = { PGEnum("OrderStatus", it) })
+        toDb = { PGEnum("OrderStatus", it) }).index()
     val paymentStatus = customEnumeration(
         name = "payment_status",
         sql = "PaymentStatus",
         fromDb = { value -> PaymentStatus.valueOf(value as String) },
-        toDb = { PGEnum("PaymentStatus", it) })
+        toDb = { PGEnum("PaymentStatus", it) }).index()
     val shippingAddress = reference("shipping_address", AddressTable, ReferenceOption.CASCADE)
     val totalAmount = decimal("total_amount", 10, 2).default(BigDecimal.ZERO)
     val discount = reference("discount", DiscountTable, ReferenceOption.CASCADE).nullable()
@@ -41,34 +41,4 @@ object OrderItemTable : CustomTable("order_items") {
     override val primaryKey = PrimaryKey(order, product) // Composite key
 }
 
-object AddressTable : CustomTable("addresses") {
-    val user = reference("user", UserTable, ReferenceOption.CASCADE)
-    val fullName = varchar("full_name", 100).index()
-    val phone = varchar("phone", 20)
-    val email = varchar("email", 100).nullable()
-    val street = varchar("street", 255).index()
-    val county = varchar("county", 100).index()
-    val region = varchar("region", 100).index()
-    val postalCode = varchar("postal_code", 20).index()
-    val tsv = tsVector("tsv")
-}
-
-object PaymentTable : CustomTable("payments") {
-    val order = reference("order", OrderTable, ReferenceOption.CASCADE).index()
-    val user = reference("user", UserTable, ReferenceOption.CASCADE).index()
-    val amount = decimal("amount", 10, 2)
-    val status = customEnumeration(
-        name = "status",
-        sql = "PaymentStatus",
-        fromDb = { value -> PaymentStatus.valueOf(value as String) },
-        toDb = { PGEnum("PaymentStatus", it) }).index()
-    val method = customEnumeration(
-        name = "method",
-        sql = "PaymentMethod",
-        fromDb = { value -> PaymentMethod.valueOf(value as String) },
-        toDb = { PGEnum("PaymentMethod", it) }).index()
-    val transactionReference = varchar("txn_ref", 100).nullable()
-    val paidAt = datetime("paid_at").nullable()
-    val tsv = tsVector("tsv")
-}
 

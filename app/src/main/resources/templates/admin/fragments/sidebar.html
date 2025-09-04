@@ -1,28 +1,68 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="sidebar" class="light border-right shadow-md" id="sidebar-wrapper" style="box-shadow: 4px 6px 10px #888888;">
-    <div class="sidebar-heading text-white">
-        <i class="fas fa-cog me-2"></i> Admin Panel
+    <div th:fragment="sidebar(currentPage)" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i data-feather="home"></i>
+            </div>
+            <div class="sidebar-title">Vindu Rustic</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div th:class="${currentPage == 'dashboard'} ? 'nav-item active' : 'nav-item'">
+                <div class="nav-icon"><i data-feather="grid"></i></div>
+                <div class="nav-text">Dashboard</div>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">VR</div>
+                <div class="user-info">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-profile">Administrator</div>
+                </div>
+                <div class="user-menu-toggle">
+                    <i data-feather="more-vertical"></i>
+                </div>
+            </div>
+        </div>
+<!--        <div class="list-group list-group-flush flex-grow-1">-->
+<!--            <a th:href="@{/admin/dashboard}" th:class="${currentPage == 'dashboard'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="grid" class="me-2"></i> Dashboard-->
+<!--            </a>-->
+
+<!--            <h6 class="section-title">Configs</h6>-->
+<!--            <a th:href="@{/admin/users}" th:class="${currentPage == 'users'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="users" class="me-2"></i> Users-->
+<!--            </a>-->
+<!--            <a th:href="@{/admin/products}" th:class="${currentPage == 'products'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="shopping-bag" class="me-2"></i> Products-->
+<!--            </a>-->
+<!--            <a th:href="@{/admin/analytics}" th:class="${currentPage == 'analytics'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="bar-chart" class="me-2"></i> Analytics-->
+<!--            </a>-->
+<!--            <a th:href="@{/admin/settings}" th:class="${currentPage == 'settings'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="settings" class="me-2"></i> Settings-->
+<!--            </a>-->
+
+<!--            <h6 class="section-title mt-3">More</h6>-->
+<!--            <a th:href="@{/admin/help}" th:class="${currentPage == 'help'} ? 'list-group-item list-group-item-action active' : 'list-group-item list-group-item-action'">-->
+<!--                <i data-feather="help-circle" class="me-2"></i> <span>Help</span>-->
+<!--            </a>-->
+<!--            <a href="#" class="list-group-item list-group-item-action">-->
+<!--                <i data-feather="log-out" class="me-2"></i> <span>Logout</span>-->
+<!--            </a>-->
+<!--        </div>-->
+
+<!--        <div class="p-3 border-top">-->
+<!--            <div class="form-check form-switch">-->
+<!--                <input class="form-check-input" type="checkbox" id="dark-mode-switch">-->
+<!--                <label class="form-check-label" for="dark-mode-switch">Dark Mode</label>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
-    <div class="list-group list-group-flush">
-        <a href="#" class="list-group-item list-group-item-action text-muted">
-            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-        </a>
-        <h4 class="my-5">Configs</h4>
-        <a href="#" class="list-group-item list-group-item-action text-muted">
-            <i class="fas fa-users me-2"></i> Users
-        </a>
-        <a href="#" class="list-group-item list-group-item-action text-muted">
-            <i class="fas fa-box me-2"></i> Products
-        </a>
-        <a href="#" class="list-group-item list-group-item-action text-muted">
-            <i class="fas fa-chart-bar me-2"></i> Analytics
-        </a>
-        <a href="#" class="list-group-item list-group-item-action text-muted">
-            <i class="fas fa-cog me-2"></i> Settings
-        </a>
-    </div>
-</div>
+
 </body>
 </html>

@@ -2,7 +2,7 @@ package org.example.utils
 
 import kotlinx.datetime.LocalDateTime
 
-fun generateProductSku(categoryName: String): String {
+fun generateProductSku(categoryName: String = "INV"): String {
     val timestamp = LocalDateTime.now().year.toString()
 
     val prefix = categoryName.take(3).uppercase()

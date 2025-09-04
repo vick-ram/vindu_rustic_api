@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <body>
+    <div th:fragment="chatbot" xmlns:th="http://www.w3.org/1999/xhtml">
+        <div class="chatbot-container">
+            <button class="chat-button" onclick="toggleChat()">💬</button>
+
+            <div class="chatbot-window" id="chatWindow">
+                <div class="chatbot-header">
+                    <span>The Rustic Forge Assistant</span>
+                    <button class="chatbot-close" onclick="toggleChat()">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+
+                <div class="chatbot-messages" id="messages"></div>
+
+                <div class="chatbot-input">
+                    <input aria-label="" type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)" />
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>

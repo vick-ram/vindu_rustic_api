@@ -1,5 +1,7 @@
 package org.example.services
 
+import io.ktor.http.content.PartData
+import org.example.domain.models.CreateProductRequest
 import org.example.domain.models.Product
 import org.example.domain.repo.CategoryRepository
 import org.example.domain.repo.ProductRepository
@@ -10,12 +12,13 @@ class ProductService(
     private val categoryRepository: CategoryRepository
 ) {
 
-    suspend fun createProduct(product: Product): Product {
+    suspend fun createProduct(productRequest: CreateProductRequest, mediaFiles: List<PartData.FileItem>?): Product? {
         // Verify category exists
-        val category = categoryRepository.read(product.categoryId)
+        val category = categoryRepository.read(productRequest.categoryId)
             ?: throw NotFoundException("Category not found")
 
-        return productRepository.create(product.copy(categoryId = category.id))
+//        return productRepository.create(product.copy(categoryId = category.id))
+        return productRepository.createProduct(productRequest.copy(categoryId = category.id), mediaFiles)
     }
 
     suspend fun updateStock(productId: String, available: Int): Product? {
@@ -36,6 +39,10 @@ class ProductService(
 
     suspend fun updateProduct(productId: String, product: Product): Product? {
         return productRepository.update(productId, product)
+    }
+
+    suspend fun markFavorite(productId: String): Product? {
+        return productRepository.markProductAsFavorite(productId)
     }
 
     suspend fun deleteProduct(productId: String): Boolean {

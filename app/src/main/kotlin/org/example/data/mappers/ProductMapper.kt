@@ -60,7 +60,8 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
                 lowStockThreshold = entity.stockLowThreshold
             ),
             media = entity.media.map { MediaMapper.toModel(it) },
-            dimension = entity.dimensions.firstOrNull()?.let { DimensionMapper.toModel(it) },
+            dimensions = entity.dimensions.map { DimensionMapper.toModel(it) },
+            isFavorite = entity.isFavorite,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
@@ -70,16 +71,41 @@ object ProductMapper : EntityMapper<ProductEntity, Product, String> {
         model: Product,
         entity: ProductEntity
     ): ProductEntity {
-        entity.sku = generateProductSku(entity.name)
+        val category = CategoryEntity[model.categoryId]
+
+        entity.sku = generateProductSku(category.id.value)
         entity.name = model.name
         entity.description = model.description
         entity.shortDescription = model.shortDescription
         entity.basePrice = model.basePrice
         entity.viewed = model.viewed
+        entity.category = category
         entity.stockAvailable = model.stock.available
         entity.stockLowThreshold = model.stock.lowStockThreshold
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description} ${entity.shortDescription}')"
 
+        // Clear old media files if this is an update
+        entity.media.forEach { it.delete() }
+
+        model.media.forEach { media ->
+            MediaEntity.new {
+                url = media.url
+                type = media.type
+                altText = media.altText
+                isPrimary = media.isPrimary
+                displayOrder = media.displayOrder
+                product = entity
+            }
+        }
+        // Create dimension table if provided
+        model.dimensions?.forEach { dimension ->
+            DimensionEntity.new {
+                width = dimension.width.toBigDecimal()
+                height = dimension.height.toBigDecimal()
+                depth = dimension.depth.toBigDecimal()
+                unit = dimension.unit
+            }
+        }
         return entity
     }
 }

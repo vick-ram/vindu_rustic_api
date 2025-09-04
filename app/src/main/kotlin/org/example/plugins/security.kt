@@ -49,15 +49,16 @@ fun Application.configureSecurity(
     val environment = this.developmentMode
     val gson = GsonBuilder().create()
     val redirects = mutableMapOf<String, String>()
-    val secretEncryptionKey = Random.nextBytes(16)
-    val secretSignKey = Random.nextBytes(16)
+    val secretEncryptionKey = hex("153f6cb438af8a004c4c9c4fa6f5cc00")
+    val secretSignKey = hex("de38a5bdefe18c1d64ce10d8b0610bff")
 
     install(Sessions) {
-        cookie<AuthSession>("auth_session", storage = sessionStorage) {
+        cookie<AuthSession>("auth-session", storage = sessionStorage) {
             cookie.extensions["SameSite"] = "lax"
             cookie.path = "/"
-            cookie.maxAgeInSeconds = 3600 * 24 * 1 // A day
-            cookie.secure = environment
+            cookie.maxAgeInSeconds = 7 * 24 * 60 * 60 // A week
+            cookie.httpOnly = true
+//            cookie.secure = environment
             serializer = GsonSessionSerializer(gson, AuthSession::class.java)
             transform(SessionTransportTransformerEncrypt(secretEncryptionKey, secretSignKey))
         }
@@ -74,13 +75,7 @@ fun Application.configureSecurity(
     authentication {
 //        Session Authentication
         session<AuthSession>("auth-session") {
-            validate { userSession ->
-                if (userSession.userId.isNotBlank() && System.currentTimeMillis() - userSession.lastAccess < 3600_000) {
-                    userSession.copy(lastAccess = System.currentTimeMillis())
-                } else {
-                    null
-                }
-            }
+            validate { it.takeIf { session -> session.userId.isNotBlank() } }
             challenge {
                 call.respond(UnauthorizedResponse())
             }

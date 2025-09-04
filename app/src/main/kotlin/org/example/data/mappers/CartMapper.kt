@@ -1,22 +1,26 @@
 package org.example.data.mappers
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.CartItemEntity
+import org.example.data.db.entities.ProductEntity
+import org.example.data.db.entities.UserEntity
 import org.example.domain.models.Cart
 import org.example.domain.models.CartItem
 import org.example.domain.repo.EntityMapper
+import org.example.utils.now
 
 object CartMapper : EntityMapper<CartEntity, Cart, String> {
     override fun toModel(entity: CartEntity): Cart {
         return Cart(
             id = entity.id.value,
-            user = UserMapper.toModel(entity.user),
+            userId = entity.user.id.value,
             items = entity.items.map { CartItemMapper.toModel(it) },
             totalQuantity = entity.totalQuantity,
             totalPrice = entity.totalPrice,
             discount = entity.discount?.let { DiscountMapper.toModel(it) },
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
         )
     }
 
@@ -24,14 +28,9 @@ object CartMapper : EntityMapper<CartEntity, Cart, String> {
         model: Cart,
         entity: CartEntity
     ): CartEntity {
-        val userEntity = entity.user
-        val userModel = model.user
-        val userMapper = UserMapper.toEntity(userModel, userEntity)
-
         val entityDiscount = entity.discount
         val modelDiscount = model.discount
-
-        entity.user = userMapper
+        entity.user = UserEntity[model.userId]
         entity.totalQuantity = model.totalQuantity
         entity.totalPrice = model.totalPrice
         entity.discount = modelDiscount?.let { mod -> DiscountMapper.toEntity(mod, entityDiscount!!) }
@@ -45,10 +44,9 @@ object CartItemMapper : EntityMapper<CartItemEntity, CartItem, String> {
         return CartItem(
             id = entity.id.value,
             cartId = entity.cart.id.value,
-            product = ProductMapper.toModel(entity.product),
+            productId = entity.product.id.value,
             quantity = entity.quantity,
             unitPrice = entity.unitPrice,
-            totalPrice = entity.totalPrice,
             addedAt = entity.createdAt
         )
     }
@@ -57,11 +55,9 @@ object CartItemMapper : EntityMapper<CartItemEntity, CartItem, String> {
         model: CartItem,
         entity: CartItemEntity
     ): CartItemEntity {
-//        entity.cart = CartEntity.new(model.cartId)
-        entity.product = ProductMapper.toEntity(model.product, entity.product)
+        entity.product = ProductEntity[model.productId]
         entity.quantity = model.quantity
         entity.unitPrice = model.unitPrice
-        entity.totalPrice = model.totalPrice
         entity.createdAt = model.addedAt
 
         return entity

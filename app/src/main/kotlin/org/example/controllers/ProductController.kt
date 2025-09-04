@@ -1,29 +1,66 @@
 package org.example.controllers
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.route
-import io.ktor.util.toMap
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import io.ktor.util.*
+import org.example.domain.models.CreateProductRequest
+import org.example.domain.models.Dimension
 import org.example.domain.models.Product
+import org.example.plugins.BadRequestException
 import org.example.services.ProductService
+import org.example.utils.Json
 import org.example.utils.respondApi
 
 class ProductController(private val productService: ProductService) {
     fun Route.productRoutes() {
         route("/products/") {
             post {
-                val productRequest = call.receive<Product>().validate()
-                val newProduct = productService.createProduct(productRequest)
-                call.respondApi(
-                    status = HttpStatusCode.Created,
-                    data = newProduct,
-                    message = "Product created successfully"
-                )
+                val multipart = call.receiveMultipart()
+                var createRequest: CreateProductRequest? = null
+                val mediaFiles = mutableListOf<PartData.FileItem>()
+
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FormItem -> {
+                            when (part.name) {
+                                "name" -> createRequest = (createRequest ?: CreateProductRequest()).copy(name = part.value)
+                                "description" -> createRequest = createRequest?.copy(description = part.value) ?: CreateProductRequest(description = part.value)
+                                "shortDescription" -> createRequest = createRequest?.copy(shortDescription = part.value) ?: CreateProductRequest(shortDescription = part.value)
+                                "basePrice" -> createRequest = createRequest?.copy(basePrice = part.value.toBigDecimal()) ?: CreateProductRequest(basePrice = part.value.toBigDecimal())
+                                "categoryId" -> createRequest = createRequest?.copy(categoryId = part.value) ?: CreateProductRequest(categoryId = part.value)
+                                "availableStock" -> createRequest = createRequest?.copy(availableStock = part.value.toInt()) ?: CreateProductRequest(availableStock = part.value.toInt())
+                                "lowStockThreshold" -> createRequest = createRequest?.copy(lowStockThreshold = part.value.toInt()) ?: CreateProductRequest(lowStockThreshold = part.value.toInt())
+                                "dimensions" -> {
+                                    val dims = Json.decodeFromString<List<Dimension>>(part.value)
+                                    createRequest = (createRequest ?: CreateProductRequest()).copy(dimensions = dims)
+                                }
+                            }
+                        }
+
+                        is PartData.FileItem -> {
+                            if (part.name == "images") {
+                                mediaFiles.add(part)
+                            }
+                        }
+
+                        else -> {}
+                    }
+                    part.dispose()
+                }
+
+                val request = createRequest ?: throw BadRequestException("Product data is required")
+                try {
+                    val product = productService.createProduct(request, mediaFiles.ifEmpty { null })
+                    call.respondApi(
+                        status = HttpStatusCode.Created,
+                        data = product,
+                        message = "Product created successfully"
+                    )
+                } catch (e: Exception) {
+                    throw e
+                }
             }
 
             put("{id}") {

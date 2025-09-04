@@ -2,6 +2,7 @@ package org.example.data.db.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.example.domain.models.DimensionUnit
 import org.example.domain.models.DiscountAppliedTo
 import org.example.domain.models.DiscountType
 import org.example.domain.models.MediaType
@@ -88,6 +89,7 @@ fun createEnums() {
         Pair("discountappliedto", DiscountAppliedTo.entries.map { it.name }),
         Pair("paymentstatus", PaymentStatus.entries.map { it.name }),
         Pair("paymentmethod", PaymentMethod.entries.map { it.name }),
+        Pair("dimensionunit", DimensionUnit.entries.map { it.name }),
     )
     transaction {
         enums.forEach { (typeName, values) ->

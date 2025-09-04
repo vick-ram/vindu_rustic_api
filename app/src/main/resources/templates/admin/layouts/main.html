@@ -3,27 +3,28 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/all.min.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/sidebar.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/admin.css}">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Dashboard</title>
+    <link rel="stylesheet" th:href="@{/resources/styles/global/index.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/avatar.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/button.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/typography.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/form.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/admin/index.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/admin/table.css}">
 </head>
-<body>
+<body data-theme="light">
 
-<div class="d-flex" id="wrapper">
+<div class="app-container">
     <!-- Sidebar on the left -->
-    <aside th:replace="~{admin/fragments/sidebar :: sidebar}" class="mb-5"></aside>
+    <aside th:replace="~{admin/fragments/sidebar :: sidebar(currentPage=${currentPage})}"></aside>
 
     <!-- Main panel -->
-    <div id="page-content-wrapper" class="flex-grow-1">
+    <div class="main-content">
         <!-- AppBar at the top -->
         <header th:replace="~{admin/fragments/appbar :: appbar}"></header>
 
         <!-- Main content section from the child template -->
-        <main class="container-fluid px-4 flex-grow-1">
-            <div layout:fragment="content"></div>
-        </main>
+        <div layout:fragment="content"></div>
 
         <!-- Footer at the bottom -->
         <footer th:replace="~{admin/fragments/footer :: footer}" class="mt-auto"></footer>
@@ -31,9 +32,12 @@
     </div>
 </div>
 
-<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/webjars/chartjs/chart.umd.js}"></script>
-<!--<script th:src="@{/resources/js/sidebar.js}"></script>-->
-<script th:src="@{/resources/js/admin.js}"></script>
+<script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
+<script th:src="@{/resources/js/global/darkmode.js}"></script>
+<script th:src="@{/resources/js/admin/index.js}"></script>
+<script>
+    feather.replace();
+</script>
 </body>
 </html>

@@ -33,6 +33,7 @@ class ProductEntity(id: EntityID<String>) : CustomEntity(id, ProductTable) {
     var viewed by ProductTable.viewed
     var stockAvailable by ProductTable.stockAvailable
     var stockLowThreshold by ProductTable.stockLowThreshold
+    var isFavorite by ProductTable.isFavorite
     var tsv by ProductTable.tsv
 
     var category by CategoryEntity referencedOn ProductTable.category
@@ -59,7 +60,7 @@ class MediaEntity(id: EntityID<String>) : CustomEntity(id, MediaTable) {
     var isPrimary by MediaTable.isPrimary
     var displayOrder by MediaTable.displayOrder
 
-    val product by ProductEntity referencedOn MediaTable.product
+    var product by ProductEntity referencedOn MediaTable.product
 }
 
 class DiscountEntity(id: EntityID<String>) : CustomEntity(id, DiscountTable) {

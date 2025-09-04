@@ -34,7 +34,7 @@ database:
   prepStmtCacheSize: 250
   prepStmtCacheSqlLimit: 2048
   useServerPrepStmts: true
-  runMigrations: true
+  runMigrations: false
 
 pesapal:
   baseUrl: $PESAPAL_BASE_URL

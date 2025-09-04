@@ -1,5 +1,6 @@
 package org.example.data.mappers
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.AddressEntity
 import org.example.data.db.entities.DiscountEntity
 import org.example.data.db.entities.OrderEntity
@@ -12,6 +13,7 @@ import org.example.domain.models.Order
 import org.example.domain.models.OrderItem
 import org.example.domain.repo.EntityMapper
 import org.example.utils.generateOrderNumber
+import org.example.utils.now
 
 object OrderItemMapper: EntityMapper<OrderItemEntity, OrderItem, String> {
     override fun toModel(entity: OrderItemEntity): OrderItem {
@@ -40,6 +42,8 @@ object OrderItemMapper: EntityMapper<OrderItemEntity, OrderItem, String> {
         entity.quantity = model.quantity
         entity.unitPrice = model.unitPrice
         entity.totalPrice = model.totalPrice
+        entity.createdAt = LocalDateTime.now()
+        entity.updatedAt = LocalDateTime.now()
 
         return entity
     }

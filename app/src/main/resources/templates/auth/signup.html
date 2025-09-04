@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{auth/auth.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign up</title>
+</head>
+<body>
+<div layout:fragment="auth-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <!-- Login Form -->
+                        <form method="post" th:action="@{/signup}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control py-2" id="name" name="name"
+                                       placeholder="Enter your full name" required
+                                       th:value="${formData.name}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control py-2" id="email" name="email"
+                                       placeholder="Enter your email" required
+                                       th:value="${formData.email}">
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control py-2" id="password" name="password"
+                                       placeholder="Enter your password">
+                            </div>
+
+                            <!-- Role Dropdown -->
+                            <div class="mb-3">
+                                <label for="roleId" class="form-label">Select Role</label>
+                                <select class="form-select" id="roleId" name="roleId" required>
+                                    <option value="">Choose a role...</option>
+                                    <option th:each="role : ${roles}"
+                                            th:value="${role.id}"
+                                            th:text="${role.name}"
+                                            th:selected="${formData.roleId == role.id}">
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold">
+                                Sign Up
+                            </button>
+                        </form>
+
+                        <!-- Divider -->
+                        <div class="position-relative my-4">
+                            <hr>
+                            <div class="position-absolute top-50 start-50 translate-middle bg-white px-3">OR</div>
+                        </div>
+
+                        <div class="social-login">
+                            <a href="#" class="social-icon" title="Login with Google">
+                                <i class="fab fa-google"></i>
+                            </a>
+                            <a href="#" class="social-icon" title="Login with Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-icon" title="Login with Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-icon" title="Login with Apple">
+                                <i class="fab fa-apple"></i>
+                            </a>
+                        </div>
+
+                        <!-- Sign Up Link -->
+                        <div class="text-center mt-4">
+                            <p class="text-muted">Already have an account?
+                                <a th:href="@{/signin}" class="text-primary fw-bold text-decoration-none">Login</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .btn-outline-primary {
+        border: 2px solid;
+    }
+    .btn-primary {
+        background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+        border: none;
+    }
+    .text-primary {
+        color: #3a7bd5 !important;
+    }
+</style>
+</body>
+</html>

@@ -31,6 +31,7 @@ object ProductTable : CustomTable("products") {
     val category = reference("category_id", CategoryTable, ReferenceOption.CASCADE)
     val stockAvailable = integer("stock_available")
     val stockLowThreshold = integer("stock_low_threshold").default(3)
+    val isFavorite = bool("is_favorite").default(false)
     val tsv = tsVector("tsv")
 }
 
@@ -66,14 +67,14 @@ object DiscountTable : CustomTable("discounts") {
         name = "type",
         sql = "DiscountType",
         fromDb = { value -> DiscountType.valueOf(value as String) },
-        toDb = { PGEnum("DiscountType", it) })
+        toDb = { PGEnum("DiscountType", it) }).index()
     val value = decimal("value", 12, 2)
     val code = varchar("code", 100).nullable()
     val appliedTo = customEnumeration(
         name = "applied_to",
         sql = "DiscountAppliedTo",
         fromDb = { value -> DiscountAppliedTo.valueOf(value as String) },
-        toDb = { PGEnum("DiscountAppliedTo", it) })
+        toDb = { PGEnum("DiscountAppliedTo", it) }).index()
     val minimumOrderAmount = decimal("minimum_order_amount", 12, 2).nullable()
     val startDate = datetime("start_date")
     val endDate = datetime("end_date")
@@ -90,7 +91,7 @@ object SpecialOfferTable : CustomTable("special_offers") {
         name = "type",
         sql = "OfferType",
         fromDb = { value -> OfferType.valueOf(value as String) },
-        toDb = { PGEnum("OfferType", it) })
+        toDb = { PGEnum("OfferType", it) }).index()
     val startDate = datetime("start_date")
     val endDate = datetime("end_date")
     val isActive = bool("is_active")
