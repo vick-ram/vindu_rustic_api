@@ -1,51 +1,34 @@
 :root{
-    --t-bg: #ffffff;
-    --t-surface: #f7f9fc;
-    --t-border: #e6ecf5;
-    --t-text: #2a3547;
-    --t-muted: #5f6b7a;
+/*    Light*/
+    --t-border-light: #e6ecf5;
+    --t-muted-light: #5f6b7a;
+    --t-row-alt-light: #fbfdff;
+    --t-row-hover-light: #eef5ff;
 
-    --t-accent: #2f80ed;
-    --t-accent-2: #8b5cf6;
-    --t-accent-3: #10b981;
-
-    --t-row-alt: #fbfdff;
-    --t-row-hover: #eef5ff;
-    --t-header-bg: #eef2ff;
-
-    --t-radius: 16px;
-    --t-shadow: 0 6px 24px rgba(26, 35, 126, 0.08);
-
-    --t-success: #10b981;
-    --t-warning: #f59e0b;
-    --t-error: #ef4444;
+/*    Dark*/
+    --t-border-dark: #2d3748;
+    --t-muted-dark: #94a3b8;
+    --t-row-alt-dark: #0f172a;
+    --t-row-hover-dark: #1e293b;
 }
 
-body.dark-mode {
-    --t-bg: #1e293b;
-    --t-surface: #0f172a;
-    --t-border: #2d3748;
-    --t-text: #f1f5f9;
-    --t-muted: #94a3b8;
-    --t-header-bg: #1e293b;
-    --t-row-alt: #0f172a;
-    --t-row-hover: #1e293b;
-
-    --t-accent: #3b82f6;
-    --t-accent-2: #8b5cf6;
-    --t-accent-3: #10b981;
+[data-theme="light"] {
+    --t-border: var(--t-border-light);
+    --t-muted: var(--t-muted-light);
+    --t-row-alt: var(--t-row-alt-light);
+    --t-row-hover: var(--t-row-hover-light);
 }
+
+[data-theme="dark"] {
+    --t-border: var(--t-border-dark);
+    --t-muted: var(--t-muted-dark);
+    --t-row-alt: var(--t-row-alt-dark);
+    --t-row-hover: var(--t-row-hover-dark);
+}
+
 
 .t-table-wrap {
     margin: 1rem, 0;
-}
-
-.t-table-card {
-    background: var(--t-bg);
-    border: 1px solid var(--t-border);
-    border-radius: var(--t-radius);
-    box-shadow: var(--t-shadow);
-    overflow: hidden;
 }
 
 .t-table-header{
@@ -53,7 +36,6 @@ body.dark-mode {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    background: linear-gradient(90deg, var(--t-header-bg), #f8faff);
     border-bottom: 1px solid var(--t-border);
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -63,7 +45,7 @@ body.dark-mode {
     margin: 0;
     font-weight: 700;
     letter-spacing: 0.2px;
-    color: var(--t-text);
+    color: inherit;
 }
 
 .t-actions{
@@ -79,9 +61,9 @@ body.dark-mode {
 .t-search-input {
     padding: 0.5rem 1rem 0.5rem 2.5rem;
     border: 1px solid var(--t-border);
-    border-radius: 6px;
+    border-radius: var(--border-radius);
     background: var(--t-bg);
-    color: var(--t-text);
+    color: inherit;
     font-size: 0.9rem;
 }
 
@@ -109,8 +91,7 @@ body.dark-mode {
 .t-table thead th {
     position: sticky;
     top: 0;
-    background: var(--t-header-bg);
-    color: var(--t-muted);
+    color: inherit;
     text-align: left;
     font-weight: 700;
     padding: 12px 16px;
@@ -144,19 +125,15 @@ body.dark-mode {
 .t-table tbody td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--t-border);
-    color: var(--t-text);
+    color: inherit;
     vertical-align: top;
-}
-
-.t-table tbody tr:nth-child(odd){
-    background: var(--t-row-alt);
 }
 
 .t-table tbody tr:hover{
     background: var(--t-row-hover);
 }
 
-.t-empty{
+.t-empty {
     text-align: center;
     color: var(--t-muted);
     padding: 24px 16px;
@@ -168,7 +145,7 @@ body.dark-mode {
     align-items: center;
     padding: 0.75rem 1.25rem;
     border-top: 1px solid var(--t-border);
-    background: var(--t-surface);
+    background: var(--color-surface);
     flex-wrap: wrap;
     gap: 0.75rem;
 }
@@ -184,7 +161,7 @@ body.dark-mode {
     border: 1px solid var(--t-border);
     border-radius: 6px;
     background: var(--t-bg);
-    color: var(--t-text);
+    color: inherit;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -239,7 +216,7 @@ body.dark-mode {
     border: 1px solid var(--t-border);
     border-radius: 6px;
     background: var(--t-bg);
-    color: var(--t-text);
+    color: inherit;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.9rem;
@@ -251,16 +228,10 @@ body.dark-mode {
 .t-btn:hover {
     background: var(--t-row-hover);
 }
-
-.t-btn-primary {
-    background: var(--t-accent);
-    color: white;
-    border-color: var(--t-accent);
-}
-
-.t-btn-primary:hover {
-    background: #1b5fcc;
-    border-color: #1b5fcc;
+/* Compact density variant */
+.t-table--compact .t-table thead th,
+.t-table--compact .t-table tbody td{
+    padding: 0.5rem 0.75rem;
 }
 
 /* Responsive table */
@@ -290,26 +261,4 @@ body.dark-mode {
     .t-pagination {
         justify-content: center;
     }
-}
-
-/* Compact density variant */
-.t-table--compact .t-table thead th,
-.t-table--compact .t-table tbody td{
-    padding: 0.5rem 0.75rem;
-}
-
-/* Soft pill badges – use in cells if you want */
-.t-badge{
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(47,128,237,0.1);
-    color: #1b5fcc;
-    font-weight: 600;
-    font-size: 0.82rem;
-}
-
-/* Accent borders if you fancy */
-.t-table-card.accent {
-    border-left: 4px solid var(--t-accent);
 }

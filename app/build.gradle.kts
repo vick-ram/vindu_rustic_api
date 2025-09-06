@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.chartjs)
     implementation(libs.webjars.locator.core)
     implementation(libs.feather)
+    implementation(libs.tabler)
 
     //Logging
     implementation(libs.logback.classic)

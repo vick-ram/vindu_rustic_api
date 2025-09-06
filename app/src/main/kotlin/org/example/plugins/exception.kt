@@ -10,10 +10,12 @@ import io.ktor.server.plugins.statuspages.exception
 import io.ktor.server.request.ContentTransformationException
 import io.ktor.server.response.respond
 import io.ktor.server.thymeleaf.ThymeleafContent
+import org.attoparser.ParseException
 import org.example.utils.respondApi
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 import org.postgresql.util.PSQLException
 import org.thymeleaf.exceptions.TemplateInputException
+import org.thymeleaf.exceptions.TemplateProcessingException
 import java.sql.SQLException
 
 fun Application.configureStatusPages() {
@@ -201,7 +203,7 @@ suspend fun Throwable.dynamicRespond(call: ApplicationCall) {
         is SQLException ->
             mapSqlState(sqlState, this.message).let { (s, m) -> Triple(s, m, null) }
 
-        is TemplateInputException -> Triple(HttpStatusCode.UnprocessableEntity, message ?: "template parsing error", null)
+        is TemplateInputException, is ParseException, is TemplateProcessingException -> Triple(HttpStatusCode.UnprocessableEntity, message ?: "template parsing error", null)
 
         else ->
             Triple(HttpStatusCode.InternalServerError, message ?: "Internal server error", null)
@@ -216,9 +218,13 @@ suspend fun Throwable.dynamicRespond(call: ApplicationCall) {
         if (errors != null) {
             model["errors"] = errors
         }
+        val template = when(status) {
+            HttpStatusCode.NotFound -> ThymeleafContent("error/404.html", model)
+            else -> ThymeleafContent("error/500.html", model)
+        }
         call.respond(
             status,
-            ThymeleafContent("error.html", model)
+            template
         )
     } else {
         call.respondApi<Unit>(

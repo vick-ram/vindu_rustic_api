@@ -4,7 +4,6 @@
 }
 
 .sidebar {
-    background-color: var(--color-surface);
     width: 250px;
     height: 100vh;
     position: fixed;
@@ -13,14 +12,12 @@
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-md);
-    padding: 2rem;
-    z-index: 1;
+    padding: 2rem 1rem;
+    z-index: 3;
     overflow-y: auto;
-    border-right: 1px solid var(--color-border)
 }
 
 .sidebar-header {
-    padding: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
@@ -44,31 +41,37 @@
 .nav-item {
     display: flex;
     align-items: center;
-    padding: 0.9rem 1.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    padding: 0.45rem 1.5rem;
     transition: var(--transition);
     cursor: pointer;
+    text-decoration: none;
+    border-radius: var(--border-radius);
 }
 
 .nav-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
+    text-decoration: none;
 }
 
 .nav-item.active {
     background-color: var(--color-accent);
-    color: white;
+    color: var(--color-text);
     border-left: 4px solid white;
+    text-decoration: none;
 }
 
 .nav-icon {
     margin-right: 0.75rem;
     width: 24px;
     text-align: center;
+    color: var(--color-text);
 }
 
 .nav-text {
     font-weight: 500;
+    color: var(--color-text);
+    font-size: 14px;
 }
 
 .sidebar-footer {
@@ -80,13 +83,14 @@
 .app-bar {
     height: 70px;
     background-color: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 2rem;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 250px;
+    right: 0;
     z-index: 2;
     box-shadow: var(--shadow-sm);
 }
@@ -201,7 +205,8 @@
 .main-content {
     flex-grow: 1;
     margin-left: 250px;
-    padding: 2rem;
+    padding: 1rem;
+    margin-top: 70px;
 }
 
 .content-header {
@@ -227,6 +232,10 @@
 
     .sidebar-toggle {
         display: block;
+    }
+
+    .app-bar {
+        left: 0;
     }
 
     .main-content {

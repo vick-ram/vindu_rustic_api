@@ -1,0 +1,10 @@
+<div th:fragment="avatar(id, imageUrl, menu)" class="menu-wrapper relative" xmlns:th="http://www.w3.org/1999/xhtml">
+
+    <div class="avatar">
+        <img th:src="${imageUrl}" alt="User Avatar" class="avatar-img" th:attr="data-menu-id=${id}"
+             onclick="toggleMenu(this)">
+    </div>
+
+    <!-- if a slot fragment was passed, insert it -->
+    <div th:if="${menu != null}" th:insert="${menu}"></div>
+</div>

@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Auth</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/all.min.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/auth.css}">
+    <link rel="stylesheet" th:href="@{/webjars/tabler-icons/iconfont/tabler-icons.min.css}" />
+    <link rel="stylesheet" th:href="@{/resources/styles/global/index.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/button.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/typography.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/form.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/auth.css}">
 </head>
-<body class="white">
+<body data-theme="light">
 <div class="container" style="max-width: 500px; margin-top: 100px;">
     <div layout:fragment="auth-content">
         <!--        Auth screens goes here-->
@@ -16,7 +19,10 @@
     </div>
 </div>
 
-<!--Bootstrap Js Bundle with Popper-->
-<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
+<script th:src="@{/resources/js/global/togglePassword.js}"></script>
+<script>
+    feather.replace();
+</script>
 </body>
 </html>

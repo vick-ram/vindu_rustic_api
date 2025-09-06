@@ -93,10 +93,10 @@ data class User(
 
         val columns: List<Map<String, Any>> = listOf(
             mapOf("key" to "id", "label" to "ID"),
-            mapOf("key" to "name", "label" to "Name"),
-            mapOf("key" to "email", "label" to "Email"),
-            mapOf("key" to "createdAt", "label" to "Created At"),
-            mapOf("key" to "updatedAt", "label" to "Updated At"),
+            mapOf("key" to "name", "label" to "Name", "sortable" to true),
+            mapOf("key" to "email", "label" to "Email", "sortable" to true),
+            mapOf("key" to "createdAt", "label" to "Created At", "sortable" to true),
+            mapOf("key" to "updatedAt", "label" to "Updated At", "sortable" to true),
         )
 
         fun toRows(users: List<User>): List<Map<String, Any?>> =

@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTheme(newTheme);
     });
 
-
     function setTheme(theme) {
         body.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
@@ -24,10 +23,4 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.innerHTML = `<i data-feather="${icon}"></i>`;
         feather.replace();
     }
-
-
-//<button id="themeToggle" aria-label="Toggle theme">
-//<i data-feather="moon"></i>
-//</button>
-//<span id="currentTheme"></span>
 });

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{auth/auth.html}">
+      layout:decorate="~{auth/index.html}">
 <head>
     <meta charset="UTF-8">
     <title>Welcome Back!</title>
@@ -11,9 +11,8 @@
     <div class="container flex">
         <div class="row justify-center">
             <div class="">
-                <div class="card shadow-lg border-0 rounded-md">
+                <div class="card shadow-md border-0 rounded-md">
                     <div class="card-body p-5">
-                        <!-- Welcome Header -->
                         <div class="text-center mb-5">
                             <h2 class="font-bold text-success">Welcome Back!</h2>
                             <p class="text-muted">Sign in to continue your journey with us</p>
@@ -21,15 +20,21 @@
 
                         <!-- Login Form -->
                         <form method="post" th:action="@{/signin}">
-                            <div class="mb-3">
+                            <div class="form-group">
                                 <label for="email" class="label">Email</label>
-                                <input type="text" class="form-control py-2" id="email" name="email"
+                                <input type="text" class="py-2" id="email" name="email"
                                        placeholder="Enter your email">
                             </div>
-                            <div class="mb-4">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control py-2" id="password" name="password"
-                                       placeholder="Enter your password">
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <div class="password-container">
+                                    <input type="password" class="py-2" id="password" name="password"
+                                           placeholder="Enter your password">
+                                    <button type="button" class="toggle-password"
+                                            aria-label="Toggle password visibility">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </div>
                                 <div class="text-end mt-2">
                                     <a href="#" class="text-decoration-none small">Forgot password?</a>
                                 </div>
@@ -40,30 +45,30 @@
                         </form>
 
                         <!-- Divider -->
-                        <div class="relative my-4">
-                            <hr>
-                            <div class="absolute top-5 start-5 translate-middle bg-white px-3">OR</div>
+                        <div class="w-full flex flex-row items-center gap-1 mt-1">
+                            <hr class="flex-grow-1">
+                            <div class="">OR</div>
+                            <hr class="flex-grow-1">
                         </div>
 
                         <div class="social-login">
                             <a href="#" class="social-icon" title="Login with Google">
-                                <i class="fab fa-google"></i>
+                                <i class="ti ti-brand-google"></i>
                             </a>
                             <a href="#" class="social-icon" title="Login with Facebook">
-                                <i class="fab fa-facebook-f"></i>
+                                <i class="ti ti-brand-facebook"></i>
                             </a>
-                            <a href="#" class="social-icon" title="Login with Twitter">
-                                <i class="fab fa-twitter"></i>
+                            <a href="#" class="social-icon" title="Login with X">
+                                <i class="ti ti-brand-x"></i>
                             </a>
                             <a href="#" class="social-icon" title="Login with Apple">
-                                <i class="fab fa-apple"></i>
+                                <i class="ti ti-apple"></i>
                             </a>
                         </div>
-
                         <!-- Sign Up Link -->
-                        <div class="text-center mt-4">
+                        <div class="text-center mt-2">
                             <p class="text-muted">Don't have an account?
-                                <a th:href="@{/signup}" class="text-primary fw-bold text-decoration-none">Create one</a>
+                                <a th:href="@{/signup}" class="text-decoration-none">Create one</a>
                             </p>
                         </div>
                     </div>

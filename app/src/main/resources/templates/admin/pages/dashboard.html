@@ -1,78 +1,68 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
+<html lang="en"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layouts/main.html}">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard page</title>
+    <title>Dashboard</title>
 </head>
 <body>
-<div layout:fragment="content">
+<div layout:fragment="content" class="mt-1">
+
     <div class="content-header">
         <h2>Welcome to WoodWorks Admin</h2>
         <p>Manage your wood products and orders from this dashboard.</p>
     </div>
-
-    <div class="row g-4">
         <!-- Orders Card -->
-        <div class="content-grid">
-
-            <div class="card">
-                <div class="d-flex justify-between">
-                    <div>
-                        <h6 class="text-muted">Orders</h6>
-                        <h4>152</h4>
-                        <small class="text-success">24 new</small> <small class="text-muted">since last visit</small>
-                    </div>
-                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-sm">
-                        <i data-feather="shopping-cart"></i>
-                    </div>
+        <div class="grid grid-cols-4 gap-2">
+            <div class="card flex justify-between">
+                <div>
+                    <h6 class="text-muted">Orders</h6>
+                    <h4>152</h4>
+                    <small class="text-success">24 new</small> <small class="text-muted">since last visit</small>
+                </div>
+                <div class="bg-green opacity-4 text-success p-3 rounded-sm">
+                    <i data-feather="shopping-cart"></i>
                 </div>
             </div>
 
             <!-- Revenue Card -->
-            <div class="card">
-                <div class="d-flex justify-between">
-                    <div>
-                        <h6 class="text-gray">Revenue</h6>
-                        <h4>$2,100</h4>
-                        <small class="text-success">+52%</small> <small class="text-muted">since last week</small>
-                    </div>
-                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
-                        <i class="fas fa-dollar-sign fa-lg"></i>
-                    </div>
+            <div class="card flex justify-between">
+                <div>
+                    <h6 class="text-gray">Revenue</h6>
+                    <h4>$2,100</h4>
+                    <small class="text-success">+52%</small> <small class="text-muted">since last week</small>
+                </div>
+                <div class="text-warning p-3 rounded-3" style="background-color: #FFB300; opacity: 0.3;">
+                    <i data-feather="dollar-sign"></i>
                 </div>
             </div>
-        </div>
+
 
         <!-- Customers Card -->
-        <div class="card">
-            <div class="d-flex justify-between">
-                <div>
-                    <h6 class="text-muted">Customers</h6>
-                    <h4>28,441</h4>
-                    <small class="text-success">520</small> <small class="text-muted">newly registered</small>
-                </div>
-                <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
-                    <i class="fas fa-user-plus fa-lg"></i>
-                </div>
+        <div class="card flex justify-between">
+            <div>
+                <h6 class="text-muted">Customers</h6>
+                <h4>28,441</h4>
+                <small class="text-success">520</small> <small class="text-muted">newly registered</small>
+            </div>
+            <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
+                <i class="fas fa-user-plus fa-lg"></i>
             </div>
         </div>
 
         <!-- Comments Card -->
-        <div class="card">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <h6 class="text-muted">Comments</h6>
-                    <h4>152 <span class="fw-light fs-6">Unread</span></h4>
-                    <small class="text-success">85</small> <small class="text-muted">responded</small>
-                </div>
-                <div class="bg-purple bg-opacity-10 text-purple p-3 rounded-3">
-                    <i class="fas fa-comment-dots fa-lg"></i>
-                </div>
+        <div class="card flex justify-between">
+            <div>
+                <h6 class="text-muted">Comments</h6>
+                <h4>152 <span class="fw-light fs-6">Unread</span></h4>
+                <small class="text-success">85</small> <small class="text-muted">responded</small>
+            </div>
+            <div class="bg-purple opacity-2 p-3 rounded-3">
+                <i data-feather="message-circle" class="text-purple"></i>
             </div>
         </div>
-    </div>
+        </div>
 
     <!-- Charts Section -->
     <div class="row">

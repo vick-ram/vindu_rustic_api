@@ -1,0 +1,36 @@
+.menu-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.menu {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    min-width: 160px;
+    background-color: var(--menu-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    z-index: 5;
+    display: none;
+}
+
+.menu.show {
+    display: block;
+}
+
+.menu li {
+    list-style: none;
+    padding: 0.5rem 1rem;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: var(--color-accent);
+    display: block;
+    transition: background 0.2s ease;
+}
+
+.menu li a:hover {
+    background: rgba(0, 0, 0, 0.5);
+}

@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
 <body>
 <div th:fragment="dataTable(title, columns, rows, emptyText='No data found')" class="t-table-wrap">
-    <div class="t-table-card">
+    <div class="card">
         <div class="t-table-header">
             <h3 class="t-title" th:text="${title}">Table Title</h3>
 <!--            Optional slot: extra header actions (filter/search, e.t.c..,)-->

@@ -80,8 +80,19 @@ fun Route.frontendRoutes() {
             get("products") {
                 call.respond(
                     ThymeleafContent(
-                        "admin/pages/products", mapOf(
+                        "admin/pages/products/index", mapOf(
                             "currentPage" to "products"
+                        )
+                    )
+                )
+            }
+        }
+        requireAuth(role = "admin", userService = userService, roleService = roleService) {
+            get("orders") {
+                call.respond(
+                    ThymeleafContent(
+                        "admin/pages/orders/index", mapOf(
+                            "currentPage" to "orders"
                         )
                     )
                 )

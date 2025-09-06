@@ -4,8 +4,7 @@
 <div th:fragment="appbar" class="app-bar">
     <div class="app-bar-left">
         <button class="sidebar-toggle">
-<!--            <i data-feather="menu"></i>-->
-            toggle
+            <i data-feather="menu"></i>
         </button>
         <h1 class="app-title">Dashboard</h1>
     </div>
@@ -22,9 +21,11 @@
                 <span class="badge">3</span>
             </button>
 
-            <button class="action-btn">
+            <button class="action-btn menu-wrapper-relative" th:attr="data-menu-id='admin-notification-menu'" onclick="toggleMenu(this)">
                 <i data-feather="mail"></i>
                 <span class="badge">4</span>
+
+                <div th:insert="~{base/fragments/menu :: menu('admin-notification-menu', ~{admin/fragments/notifications})}">Hello</div>
             </button>
 
             <button class="theme-toggle" id="themeToggle">
@@ -32,9 +33,11 @@
             </button>
         </div>
 
-        <div class="user-menu">
-            <div class="user-avatar small">VR</div>
-            <div class="user-name">John</div>
+        <div th:insert="~{base/fragments/avatar :: avatar(
+                'admin-avatar-menu',
+                 @{/resources/images/profile.jpg},
+                  ~{base/fragments/menu :: menu('admin-avatar-menu', ~{admin/fragments/avatarMenu})}
+                  )}">
         </div>
     </div>
 </div>
