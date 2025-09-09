@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+    <div th:fragment="drawer(id, position, width, height, title)"
+         th:id="${id} + '-drawer-container'"
+         class="drawer-container"
+         th:attr="data-position=${position},
+                  data-width=${width},
+                  data-height=${height},
+                  data-title=${title}">
+
+        <div class="drawer-backdrop"></div>
+
+        <div th:id="${id}"
+             th:classappend="'drawer drawer-' + ${position}">
+
+            <div class="drawer-header">
+                <h3 th:text="${!#strings.isEmpty(title)} ? ${title} : ${id} + ' Drawer'">Drawer title</h3>
+                <button class="drawer-close">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+
+            <div class="drawer-body">
+                <div th:id="${id} + '-content'">
+                    <p>Loading content for <span th:text="${id}"></span> drawer...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

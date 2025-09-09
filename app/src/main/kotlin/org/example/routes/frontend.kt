@@ -44,8 +44,6 @@ fun Route.frontendRoutes() {
         }
         requireAuth(role = "admin", userService = userService, roleService = roleService) {
             get("dashboard") {
-                println("Content type from headers: ${call.request.headers["Accept"]}")
-                application.log.info("Content type from headers: ${call.request.headers["Accept"]}")
                 call.respond(
                     ThymeleafContent(
                         "admin/pages/dashboard", mapOf(

@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         body.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
 
-        const icon = theme === 'dark' ? 'sun' : 'moon';
+        const icon = theme === 'dark' ? 'moon' : 'sun';
         themeToggle.innerHTML = `<i data-feather="${icon}"></i>`;
         feather.replace();
     }
