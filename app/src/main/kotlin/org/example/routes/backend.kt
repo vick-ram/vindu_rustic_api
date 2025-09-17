@@ -1,13 +1,13 @@
 package org.example.routes
 
 import io.ktor.server.routing.Route
-import org.example.controllers.CartController
-import org.example.controllers.CategoryController
-import org.example.controllers.OrderController
-import org.example.controllers.ProductController
-import org.example.controllers.ProductReviewController
-import org.example.controllers.RoleController
-import org.example.controllers.UserController
+import org.example.controllers.backend.CartController
+import org.example.controllers.backend.CategoryController
+import org.example.controllers.backend.OrderController
+import org.example.controllers.backend.ProductController
+import org.example.controllers.backend.ProductReviewController
+import org.example.controllers.backend.RoleController
+import org.example.controllers.backend.UserController
 import org.koin.ktor.ext.inject
 
 fun Route.backendRoutes(issuer: String, audience: String, secret: String) {

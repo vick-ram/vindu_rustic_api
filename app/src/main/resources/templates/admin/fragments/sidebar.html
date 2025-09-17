@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="sidebar(currentPage)" class="sidebar">
+<div th:fragment="sidebar(currentPage)" class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">
             <i data-feather="home"></i>
@@ -15,16 +15,29 @@
             <div class="nav-text">Dashboard</div>
         </a>
 
-        <h6 class="section-title mt-3">Config</h6>
+        <h6 class="section-title">Config</h6>
 
         <a th:href="@{/admin/users}" th:class="${currentPage == 'users'} ? 'nav-item active' : 'nav-item'">
             <div class="nav-icon"><i data-feather="users"></i></div>
             <div class="nav-text">Users</div>
         </a>
-        <a th:href="@{/admin/products}" th:class="${currentPage == 'products'} ? 'nav-item active' : 'nav-item'">
+
+<!--        Nested nav-->
+        <div class="nav-item" onclick="toggleNavGroup('productGroup')">
             <div class="nav-icon"><i data-feather="shopping-bag"></i></div>
             <div class="nav-text">Products</div>
-        </a>
+            <div class="nav-arrow"><i data-feather="chevron-right"></i></div>
+        </div>
+        <div class="nav-group" id="productGroup">
+            <a th:href="@{/admin/products/categories}" th:class="${currentPage == 'categories'} ? 'nav-subitem active' : 'nav-subitem'">Category</a>
+            <a th:href="@{/admin/products/list}" th:class="${currentPage == 'products'} ? 'nav-subitem active' : 'nav-subitem'">List</a>
+            <a th:href="@{/admin/products/reviews}" th:class="${currentPage == 'reviews'} ? 'nav-subitem active' : 'nav-subitem'">Reviews</a>
+        </div>
+
+<!--        <a th:href="@{/admin/products}" th:class="${currentPage == 'products'} ? 'nav-item active' : 'nav-item'">-->
+<!--            <div class="nav-icon"><i data-feather="shopping-bag"></i></div>-->
+<!--            <div class="nav-text">Products</div>-->
+<!--        </a>-->
         <a th:href="@{/admin/orders}" th:class="${currentPage == 'orders'} ? 'nav-item active' : 'nav-item'">
             <div class="nav-icon"><i data-feather="shopping-cart"></i></div>
             <div class="nav-text">Orders</div>
@@ -48,7 +61,11 @@
 
     <div class="sidebar-footer">
         <div class="user-info">
-            <div class="user-profile">Administrator</div>
+            <div class="user-avatar">V</div>
+            <div class="user-details">
+                <div class="user-name">Admin User</div>
+                <div class="user-profile">Administrator</div>
+            </div>
         </div>
     </div>
 

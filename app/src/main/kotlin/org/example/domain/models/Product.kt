@@ -1,10 +1,18 @@
 package org.example.domain.models
 
+import io.ktor.http.Parameters
+import io.ktor.http.parameters
 import kotlinx.datetime.LocalDateTime
+import org.example.data.db.entities.ProductEntity
+import org.example.data.db.entities.UserEntity
+import org.example.data.mappers.ProductMapper
+import org.example.data.mappers.UserMapper
 import org.example.domain.validations.Validations
+import org.example.plugins.NotFoundException
 import org.example.plugins.ValidationException
 import org.example.utils.now
 import org.example.utils.shortUUID
+import org.example.utils.toCustomFormat
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -19,8 +27,8 @@ data class Product(
     val categoryId: String,
     val stock: StockInfo,
     val media: List<Media> = emptyList(),
-    val dimensions: List<Dimension>? = null,
-    val isFavorite: Boolean, // Added is favorite
+    val dimensions: List<Dimension>? = null, // variations
+    val isFavorite: Boolean = false, // Added is favorite
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : Serializable {
@@ -34,6 +42,16 @@ data class Product(
             { dimensions?.forEach { it.validate() } }
         )
         return this
+    }
+
+    companion object {
+        val columns: List<Map<String, Any>> = listOf(
+            mapOf("id" to "id", "label" to "id")
+        )
+
+        fun toRows(products: List<Product>): List<Map<String, Any?>> = products.map {
+            mapOf()
+        }
     }
 }
 
@@ -94,6 +112,35 @@ data class Category(
             { Validations.validateNonEmpty(slug, "Category slug") },
         )
         return this
+    }
+
+    fun formParameters(parameters: Parameters): Category {
+        val name = parameters["name"].toString()
+        val slug = parameters["slug"].toString()
+        val description = parameters["description"].toString()
+        val image = parameters["image"].toString()
+
+        return Category(name = name, slug = slug, description = description, imageUrl = image)
+    }
+
+    companion object {
+        val columns: List<Map<String, Any>> = listOf(
+            mapOf("key" to "id", "label" to "id"),
+            mapOf("key" to "name", "label" to "name", "sortable" to true),
+            mapOf("key" to "slug", "label" to "slug", "sortable" to true),
+            mapOf("key" to "description", "label" to "slug", "sortable" to true),
+            mapOf("key" to "imageUrl", "label" to "imageUrl")
+        )
+
+        fun toRow(categories: List<Category>): List<Map<String, Any?>> = categories.map { category ->
+            mapOf(
+                "id" to category.id,
+                "name" to category.name,
+                "slug" to category.slug,
+                "description" to category.description,
+                "imageUrl" to category.imageUrl
+            )
+        }
     }
 }
 
@@ -187,7 +234,8 @@ data class ProductReview(
     val rating: Int, // 1-5
     val title: String,
     val content: String,
-    val isApproved: Boolean = false
+    val isApproved: Boolean = false,
+    val date: LocalDateTime
 ) {
     fun validate(): ProductReview {
         Validations.validateAll(
@@ -199,6 +247,40 @@ data class ProductReview(
         )
 
         return this
+    }
+
+    companion object {
+        // Helper functions
+        private fun getReviewUser(userId: String): User {
+            val userEntity = UserEntity.findById(userId) ?: throw NotFoundException("User with id: $userId not found")
+            val user = UserMapper.toModel(userEntity)
+            return user
+        }
+
+        private fun getReviewProduct(productId: String): Product {
+            val productEntity = ProductEntity.findById(productId) ?: throw NotFoundException("Product with id: $productId not found")
+            val product = ProductMapper.toModel(productEntity)
+            return product
+        }
+
+        val columns: List<Map<String, Any>> = listOf(
+            mapOf("key" to "product", "label" to "product"),
+            mapOf("key" to "reviewer", "label" to "reviewer", "sortable" to true),
+            mapOf("key" to "review", "label" to "review", "sortable" to true),
+            mapOf("key" to "date", "label" to "date", "sortable" to true),
+            mapOf("key" to "status", "label" to "status", "sortable" to true),
+            mapOf("key" to "actions", "label" to "actions")
+        )
+
+        fun toRows(reviews: List<ProductReview>): List<Map<String, Any?>> = reviews.map { review ->
+            mapOf(
+                "product" to getReviewProduct(review.productId),
+                "reviewer" to getReviewUser(review.userId),
+                "review" to review,
+                "date" to review.date.toCustomFormat(),
+                "status" to if (review.isApproved) "Published" else "Pending"
+            )
+        }
     }
 }
 

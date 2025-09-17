@@ -1,22 +1,11 @@
 package org.example
 
-import io.ktor.client.HttpClient
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopped
+import io.ktor.client.*
+import io.ktor.server.application.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.example.di.configureDI
-import org.example.plugins.appHttpClient
-import org.example.plugins.configureCors
-import org.example.plugins.configureDatabase
-import org.example.plugins.configureFrontend
-import org.example.plugins.configureRouteLogging
-import org.example.plugins.configureRouting
-import org.example.plugins.configureSecurity
-import org.example.plugins.configureSerialization
-import org.example.plugins.configureStatusPages
-import org.example.plugins.configureWebSockets
-import org.example.plugins.configureWebjar
+import org.example.plugins.*
 import org.example.utils.cleanOldCache
 import java.io.File
 import kotlin.time.Duration.Companion.hours
@@ -64,4 +53,5 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
     monitor.subscribe(ApplicationStopped) {
         cleanJob.cancel()
     }
+
 }

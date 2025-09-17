@@ -41,7 +41,7 @@ fun Route.requireAuth(role: String, userService: UserService, roleService: RoleS
                 val userRole = user?.roleId?.let { roleService?.getRole(it) }?.name
 
                 if (userRole != role) {
-                    call.respond(HttpStatusCode.Forbidden, "Access denied")
+                    call.respond(HttpStatusCode.Forbidden, "Access denied for $role")
                     return@on
                 }
             }

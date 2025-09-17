@@ -1,4 +1,4 @@
-package org.example.controllers
+package org.example.controllers.backend
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate

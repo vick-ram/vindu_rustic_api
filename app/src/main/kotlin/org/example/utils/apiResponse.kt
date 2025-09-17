@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
 
-data class ApiResponse<T>(
+private data class ApiResponse<T>(
     val statusCode: HttpStatusCode,
     val data: T? = null,
     val message: String? = null,

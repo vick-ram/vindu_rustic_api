@@ -1,14 +1,10 @@
 package org.example.di
 
-import org.example.controllers.CartController
+import org.example.controllers.backend.CartController
 import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.CartItemEntity
 import org.example.data.mappers.CartItemMapper
-import org.example.data.mappers.CartItemMapper.toEntity
-import org.example.data.mappers.CartItemMapper.toModel
 import org.example.data.mappers.CartMapper
-import org.example.data.mappers.CartMapper.toEntity
-import org.example.data.mappers.CartMapper.toModel
 import org.example.data.repo.CartRepositoryImpl
 import org.example.services.CartService
 import org.example.domain.models.Cart

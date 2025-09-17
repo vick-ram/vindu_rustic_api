@@ -4,8 +4,8 @@ import org.example.data.db.tables.AddressTable
 import org.example.data.db.tables.OrderItemTable
 import org.example.data.db.tables.OrderTable
 import org.example.data.db.tables.PaymentTable
-import org.example.utils.CustomEntity
-import org.example.utils.CustomEntityClass
+import org.example.data.db.config.CustomEntity
+import org.example.data.db.config.CustomEntityClass
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
 class OrderEntity(id: EntityID<String>): CustomEntity(id, OrderTable) {

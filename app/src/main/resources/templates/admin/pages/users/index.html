@@ -15,9 +15,8 @@
         <p class="mb-0">Manage system users and their permissions</p>
     </div>
 
-    <div class="grid grid-cols-3 gap-3 justify-between items-center mb-4">
-        <!--        Stats Cards-->
-        <div class="card border-0 shadow-md p-2">
+    <div class="grid md:grid-cols-3 gap-3 mb-4">
+        <div class="col-span-3 md:col-span-1 card border-0 shadow-md p-2">
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-muted mb-1">Total Users</h6>
@@ -29,7 +28,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-md p-2">
+        <div class="col-span-3 md:col-span-1  card border-0 p-2">
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-muted mb-1">Active Users</h6>
@@ -41,7 +40,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-md p-2">
+        <div class="col-span-3 md:col-span-1 card border-0 shadow-md p-2">
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-muted mb-1">Inactive</h6>
@@ -54,16 +53,106 @@
         </div>
     </div>
 
-    <div th:replace="~{admin/fragments/table :: dataTable(
-        'Users',
-        ${columns},
-        ${rows},
-        'No users found'
-    )}">
-        <th:block th:fragment="headerActions">
-            <button class="t-btn t-btn-primary">Add New User</button>
-            <button class="t-btn">Export CSV</button>
-        </th:block>
+    <div class="t-table-wrap">
+        <div class="controls-container">
+            <input aria-label="search users" type="text" placeholder="Search.." class="w-48">
+            <div class="controls-right">
+                <div class="select-container">
+                    <select aria-label="Select number of rows">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                        <option>100</option>
+                    </select>
+                </div>
+                <button class="export-btn">
+                    <i data-feather="download"></i>
+                    <span>Export</span>
+                </button>
+                <button class="add-btn">
+                    <i data-feather="plus"></i>
+                    <span>Add new Customer</span>
+                </button>
+            </div>
+        </div>
+        <div class="t-table-scroller">
+            <table class="t-table" aria-label="Data table">
+                <thead>
+                    <tr>
+                        <th th:if="${selectable}" class="t-checkbox-col">
+                            <input type="checkbox" class="t-checkbox select-all" aria-label="Select all rows">
+                        </th>
+                        <th class="text-uppercase">customer</th>
+                        <th class="text-uppercase">customer id</th>
+                        <th class="text-uppercase">Status</th>
+                        <th class="text-uppercase">Created At</th>
+                        <th class="text-uppercase">Updated At</th>
+                        <th class="text-uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${rows == null or #lists.isEmpty(rows)}">
+                    <td class="t-empty"
+                        th:colspan="${selectable ? #lists.size(columns) + 1 : #lists.size(columns)}"
+                        th:text="${emptyText}">
+                        No data found
+                    </td>
+                </tr>
+
+                <tr th:each="row, ri : ${rows}">
+                    <td th:if="${selectable}" class="t-checkbox-col">
+                        <input type="checkbox" th:id="'rowCheckbox_' + ${ri.index}" th:name="'selectedRows'"
+                               th:value="${row.id}" class="t-checkbox row-checkbox"
+                               aria-label="Select row">
+                    </td>
+
+                    <td>
+                        <div class="flex row gap-3 items-center">
+                            <div class="w-8 h-8 rounded-full">
+                                <img th:src="${row.avatar}" alt="user avatar" class="w-full h-full" style="object-fit: cover;">
+                            </div>
+                            <div class="flex column gap-2">
+                                <a th:href="@{/admin/users/detail/{id}(id=${row.id})}" th:text="${row.name}">User name</a>
+
+                                <small th:text="${row.email}"></small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td th:text="${row.id}">Customer id</td>
+
+                    <td>
+                        <span th:if="${row.active}" class="t-badge t-badge-success">Active</span>
+                        <span th:unless="${row.active}" class="badge t-badge-error">Inactive</span>
+                    </td>
+
+                    <td th:text="${row.createdAt}">Created At</td>
+                    <td th:text="${row.updatedAt}">Updated At</td>
+
+                    <td>
+                        <div class="flex row gap-3 items-center">
+                            <i data-feather="edit" class="clickable-icon"></i>
+                            <i data-feather="eye" class="clickable-icon"></i>
+                            <i data-feather="trash-2" class="clickable-icon"></i>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="t-table-footer">
+                <div class="t-page-info">
+                    Showing 1-10 of <span th:text="${#lists.size(users)}"></span> items
+                </div>
+                <div class="t-pagination">
+                    <button class="t-page-btn" disabled>Previous</button>
+                    <button class="t-page-btn active">1</button>
+                    <button class="t-page-btn">2</button>
+                    <button class="t-page-btn">3</button>
+                    <button class="t-page-btn">Next</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 </body>

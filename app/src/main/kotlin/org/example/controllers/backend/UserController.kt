@@ -1,6 +1,5 @@
-package org.example.controllers
+package org.example.controllers.backend
 
-import com.google.gson.Gson
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -13,6 +12,9 @@ import org.example.domain.models.LoginCredentials
 import org.example.domain.models.User
 import org.example.plugins.AuthenticationException
 import org.example.services.UserService
+import org.example.utils.DynamicRouteConfig
+import org.example.utils.DynamicRouteFactory
+import org.example.utils.HttpMethodType
 import org.example.utils.IncomingMessage
 import org.example.utils.Json
 import org.example.utils.OutgoingMessage

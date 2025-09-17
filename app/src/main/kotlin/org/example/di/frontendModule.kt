@@ -1,0 +1,29 @@
+package org.example.di
+
+import org.example.controllers.frontend.AdminController
+import org.example.controllers.frontend.AuthController
+import org.example.controllers.frontend.EcommerceController
+import org.example.controllers.frontend.RootController
+import org.example.services.CategoryService
+import org.example.services.OrderService
+import org.example.services.ProductReviewService
+import org.example.services.ProductService
+import org.example.services.RoleService
+import org.example.services.UserService
+import org.koin.dsl.module
+
+val frontendModule = module {
+    single { RootController(get<UserService>(), get<RoleService>()) }
+    single { AuthController(get<UserService>(), get<RoleService>()) }
+    single {
+        AdminController(
+            get<UserService>(),
+            get<RoleService>(),
+            get<OrderService>(),
+            get<ProductReviewService>(),
+            get<CategoryService>(),
+            get<ProductService>()
+        )
+    }
+    single { EcommerceController(get<UserService>(), get<RoleService>()) }
+}

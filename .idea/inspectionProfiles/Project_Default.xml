@@ -9,7 +9,7 @@
     <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="23">
+          <list size="30">
             <item index="0" class="java.lang.String" itemvalue="th:fragment" />
             <item index="1" class="java.lang.String" itemvalue="th:text" />
             <item index="2" class="java.lang.String" itemvalue="th:src" />
@@ -33,6 +33,13 @@
             <item index="20" class="java.lang.String" itemvalue="th:id" />
             <item index="21" class="java.lang.String" itemvalue="th:classappend" />
             <item index="22" class="java.lang.String" itemvalue="th:style" />
+            <item index="23" class="java.lang.String" itemvalue="th:utext" />
+            <item index="24" class="java.lang.String" itemvalue="th:data-tab-id" />
+            <item index="25" class="java.lang.String" itemvalue="th:data-tab-target" />
+            <item index="26" class="java.lang.String" itemvalue="th:alt" />
+            <item index="27" class="java.lang.String" itemvalue="th:with" />
+            <item index="28" class="java.lang.String" itemvalue="th:name" />
+            <item index="29" class="java.lang.String" itemvalue="th:onclick" />
           </list>
         </value>
       </option>

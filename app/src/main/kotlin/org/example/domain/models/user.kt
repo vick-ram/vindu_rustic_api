@@ -67,6 +67,7 @@ data class User(
     val password: String,
     val active: Boolean = true,
     val roleId: String,
+    val avatar: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : Serializable {
@@ -95,6 +96,7 @@ data class User(
             mapOf("key" to "id", "label" to "ID"),
             mapOf("key" to "name", "label" to "Name", "sortable" to true),
             mapOf("key" to "email", "label" to "Email", "sortable" to true),
+            mapOf("key" to "status", "label" to "Status", "sortable" to true),
             mapOf("key" to "createdAt", "label" to "Created At", "sortable" to true),
             mapOf("key" to "updatedAt", "label" to "Updated At", "sortable" to true),
         )
@@ -105,6 +107,8 @@ data class User(
                     "id" to user.id,
                     "name" to user.name,
                     "email" to user.email,
+                    "active" to user.active,
+                    "avatar" to user.avatar,
                     "createdAt" to user.createdAt.toCustomFormat(),
                     "updatedAt" to user.updatedAt.toCustomFormat()
                 )

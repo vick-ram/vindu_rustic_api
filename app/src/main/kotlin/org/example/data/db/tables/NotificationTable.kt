@@ -1,7 +1,7 @@
 package org.example.data.db.tables
 
 import org.example.domain.models.NotificationChannel
-import org.example.utils.CustomTable
+import org.example.data.db.config.CustomTable
 import org.example.utils.PGEnum
 
 object NotificationTable: CustomTable("notifications") {

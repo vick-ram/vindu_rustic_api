@@ -24,8 +24,6 @@
             <button class="action-btn menu-wrapper-relative" th:attr="data-menu-id='admin-notification-menu'" onclick="toggleMenu(this)">
                 <i data-feather="mail"></i>
                 <span class="badge">4</span>
-
-                <div th:insert="~{base/fragments/menu :: menu('admin-notification-menu', ~{admin/fragments/notifications})}">Hello</div>
             </button>
 
             <button class="theme-toggle" id="themeToggle">

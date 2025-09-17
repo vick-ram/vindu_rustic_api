@@ -1,5 +1,7 @@
 package org.example.utils
 
+import org.example.data.db.config.CustomEntity
+import org.example.data.db.config.CustomEntityClass
 import org.example.data.repo.CrudCache
 import org.example.data.repo.CrudRepositoryImpl
 import org.example.domain.repo.CrudRepository

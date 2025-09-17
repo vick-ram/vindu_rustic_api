@@ -1,4 +1,4 @@
-package org.example.controllers
+package org.example.controllers.backend
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -30,6 +30,17 @@ class OrderController(private val orderService: OrderService) {
                         message = "Order created successfully"
                     )
                 }
+            }
+
+            get {
+                val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val orders = orderService.getOrders(offset, limit, emptyMap())
+
+                call.respondApi(
+                    data = orders,
+                    message = "Orders fetched successfully"
+                )
             }
 
             get("{id}") {

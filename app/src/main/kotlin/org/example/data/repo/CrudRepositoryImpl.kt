@@ -1,10 +1,10 @@
 package org.example.data.repo
 
+import org.example.data.db.config.CustomEntity
+import org.example.data.db.config.CustomEntityClass
 import org.example.domain.repo.CrudRepository
 import org.example.plugins.AlreadyExistsException
 import org.example.plugins.NotFoundException
-import org.example.utils.CustomEntity
-import org.example.utils.CustomEntityClass
 import org.example.utils.suspendTransaction
 import kotlin.reflect.KClass
 

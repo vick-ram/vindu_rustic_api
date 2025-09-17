@@ -60,7 +60,6 @@ dependencies {
     implementation(libs.ktor.server.webjars)
     implementation(libs.ktor.server.thymeleaf)
     implementation(libs.thymeleaf.layout.dialect)
-    implementation(libs.chartjs)
     implementation(libs.webjars.locator.core)
     implementation(libs.feather)
     implementation(libs.tabler)

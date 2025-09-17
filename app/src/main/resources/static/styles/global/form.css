@@ -48,3 +48,47 @@ input:focus, select:focus, textarea:focus {
     outline: none;
     color: var(--color-accent);
 }
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.toolbar button {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text);
+}
+
+.editor {
+    min-height: 150px;
+    overflow-y: auto;
+}
+
+.editor::focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+dialog {
+    width: 90%;
+    max-width: 500px;
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}

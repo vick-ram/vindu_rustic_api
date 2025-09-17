@@ -1,6 +1,6 @@
 package org.example.di
 
-import org.example.controllers.RoleController
+import org.example.controllers.backend.RoleController
 import org.example.data.db.entities.RoleEntity
 import org.example.data.mappers.RoleMapper
 import org.example.data.repo.RoleRepositoryImpl

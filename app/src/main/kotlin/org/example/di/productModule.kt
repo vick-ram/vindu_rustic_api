@@ -1,8 +1,8 @@
 package org.example.di
 
-import org.example.controllers.CategoryController
-import org.example.controllers.ProductController
-import org.example.controllers.ProductReviewController
+import org.example.controllers.backend.CategoryController
+import org.example.controllers.backend.ProductController
+import org.example.controllers.backend.ProductReviewController
 import org.example.data.db.entities.CategoryEntity
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.entities.ProductReviewEntity

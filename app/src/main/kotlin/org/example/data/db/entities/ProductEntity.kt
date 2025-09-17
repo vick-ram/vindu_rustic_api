@@ -7,8 +7,8 @@ import org.example.data.db.tables.MediaTable
 import org.example.data.db.tables.ProductReviewTable
 import org.example.data.db.tables.ProductTable
 import org.example.data.db.tables.SpecialOfferTable
-import org.example.utils.CustomEntity
-import org.example.utils.CustomEntityClass
+import org.example.data.db.config.CustomEntity
+import org.example.data.db.config.CustomEntityClass
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
 class CategoryEntity(id: EntityID<String>) : CustomEntity(id, CategoryTable) {

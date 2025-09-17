@@ -6,8 +6,6 @@ object TsVectorManager {
             createTriggerFunction(config)
             createTrigger(config)
         }
-
-        println("ALL TSVECTOR triggers created successfully")
     }
 
     private fun createTriggerFunction(config: TsVectorConfig) {
@@ -64,7 +62,6 @@ object TsVectorManager {
                     END $$;
             """.trimIndent()
             statement.execute(triggerSql)
-            println("Created trigger for table: ${config.tableName}")
         } catch (e: Exception) {
             println("Error creating trigger for ${config.tableName}: ${e.message}")
         } finally {
@@ -94,8 +91,7 @@ object TsVectorManager {
                 WHERE ${config.tsVectorColumn} IS NULL OR ${config.tsVectorColumn} = '';
             """.trimIndent()
 
-            val result = statement.executeUpdate(updateSql)
-            println("Updated $result records in ${config.tableName}")
+            statement.executeUpdate(updateSql)
 
         } catch (e: Exception) {
             println("Error populating data for ${config.tableName}: ${e.message}")

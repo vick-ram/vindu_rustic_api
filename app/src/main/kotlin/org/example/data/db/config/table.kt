@@ -1,6 +1,8 @@
-package org.example.utils
+package org.example.data.db.config
 
 import kotlinx.datetime.LocalDateTime
+import org.example.utils.currentUtc
+import org.example.utils.shortUUID
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
@@ -15,13 +17,14 @@ abstract class CustomTable(
     name: String = "",
     columnName: String = "id",
 ) : IdTable<String>(name) {
+
     private val randomUUID = varchar(columnName, length = 10)
         .clientDefault { shortUUID() }
         .uniqueIndex()
 
     override val id: Column<EntityID<String>> = randomUUID.entityId()
     val createdAt = datetime("created_at")
-        .clientDefault { LocalDateTime.currentUtc() }
+        .clientDefault { LocalDateTime.Companion.currentUtc() }
     val updatedAt = datetime("updated_at")
         .clientDefault { LocalDateTime.currentUtc() }
 }
@@ -54,3 +57,4 @@ abstract class CustomEntityClass<E: CustomEntity>(table: CustomTable) : EntityCl
         }
     }
 }
+

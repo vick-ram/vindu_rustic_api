@@ -1,6 +1,6 @@
 package org.example.data.db.tables
 
-import org.example.utils.CustomTable
+import org.example.data.db.config.CustomTable
 import org.example.utils.tsVector
 import org.jetbrains.exposed.v1.core.ReferenceOption
 
@@ -9,6 +9,7 @@ object UserTable : CustomTable("users") {
     val email = varchar("email", 255)
     val password = varchar("password", 255)
     val active = bool("active")
+    val avatar = varchar("avatar", 100).nullable()
     val tsv = tsVector("tsv")
 
     val role = reference("role", RoleTable, ReferenceOption.CASCADE)

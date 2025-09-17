@@ -1,6 +1,6 @@
 package org.example.di
 
-import org.example.controllers.OrderController
+import org.example.controllers.backend.OrderController
 import org.example.data.db.entities.OrderEntity
 import org.example.data.db.entities.OrderItemEntity
 import org.example.data.mappers.OrderItemMapper

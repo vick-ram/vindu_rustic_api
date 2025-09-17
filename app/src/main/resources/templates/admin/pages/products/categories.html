@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/main.html}"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Category</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="t-table-wrap">
+            <div class="controls-container">
+                <input aria-label="search categories" type="text" placeholder="Search.." class="w-48">
+                <div class="controls-right">
+                    <div class="select-container">
+                        <select aria-label="Select number of rows">
+                            <option>10</option>
+                            <option>20</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+                    <button class="add-btn">
+                        <i data-feather="plus"></i>
+                        <span>Add Category</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="t-table-scroller">
+                <table class="t-table" aria-label="Data table">
+                    <thead>
+                    <tr>
+                        <th th:if="${selectable}" class="t-checkbox-col">
+                            <input type="checkbox" class="t-checkbox select-all" aria-label="Select all rows">
+                        </th>
+                        <th class="text-uppercase">category</th>
+                        <th class="text-uppercase">total products</th>
+                        <th class="text-uppercase">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${rows == null or #lists.isEmpty(rows)}">
+                            <td class="t-empty"
+                                th:colspan="${selectable ? #lists.size(columns) + 1 : #lists.size(columns)}"
+                                th:text="${emptyText}">
+                                No data found
+                            </td>
+                        </tr>
+
+                        <tr th:each="row, ri : ${rows}">
+                            <td th:if="${selectable}" class="t-checkbox-col">
+                                <input type="checkbox" th:id="'rowCheckbox_' + ${ri.index}" th:name="'selectedRows'"
+                                       th:value="${row.id}" class="t-checkbox row-checkbox"
+                                       aria-label="Select row">
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

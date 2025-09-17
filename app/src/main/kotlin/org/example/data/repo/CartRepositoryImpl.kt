@@ -8,7 +8,6 @@ import org.example.data.db.tables.CartItemTable
 import org.example.data.db.tables.CartTable
 import org.example.data.mappers.CartMapper
 import org.example.domain.models.Cart
-import org.example.domain.models.User
 import org.example.domain.repo.CartRepository
 import org.example.utils.suspendTransaction
 import org.jetbrains.exposed.v1.core.and

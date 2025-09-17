@@ -3,6 +3,7 @@ package org.example.domain.models
 import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
 import org.example.utils.now
+import org.example.utils.toCustomFormat
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -43,7 +44,28 @@ data class Order(
     val notes: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
-): Serializable
+): Serializable {
+    companion object {
+
+        val columns: List<Map<String, Any>> = listOf(
+            mapOf("key" to "id", "label" to "id"),
+            mapOf("key" to "order", "label" to "orders", "sortable" to true),
+            mapOf("key" to "status", "label" to "status", "sortable" to true),
+            mapOf("key" to "payment_status", "label" to "payment status", "sortable" to true),
+            mapOf("key" to "createdAt", "label" to "date", "sortable" to true),
+        )
+
+        fun toRows(orders: List<Order>): List<Map<String, Any?>> = orders.map { order ->
+            mapOf(
+                "id" to order.id,
+                "order" to order.orderNumber,
+                "status" to order.status,
+                "payment_status" to order.paymentStatus,
+                "date" to order.createdAt.toCustomFormat()
+            )
+        }
+    }
+}
 
 data class OrderItem(
     val id: String,

@@ -1,22 +1,11 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.CategoryEntity
-import org.example.data.db.entities.DimensionEntity
-import org.example.data.db.entities.MediaEntity
-import org.example.data.db.entities.ProductEntity
-import org.example.data.db.entities.ProductReviewEntity
-import org.example.data.db.entities.SpecialOfferEntity
-import org.example.domain.models.Category
-import org.example.domain.models.Dimension
-import org.example.domain.models.DimensionUnit
-import org.example.domain.models.Media
-import org.example.domain.models.OfferType
-import org.example.domain.models.Product
-import org.example.domain.models.ProductReview
-import org.example.domain.models.SpecialOffer
-import org.example.domain.models.StockInfo
+import kotlinx.datetime.LocalDateTime
+import org.example.data.db.entities.*
+import org.example.domain.models.*
 import org.example.domain.repo.EntityMapper
 import org.example.utils.generateProductSku
+import org.example.utils.now
 
 object CategoryMapper : EntityMapper<CategoryEntity, Category, String> {
     override fun toModel(entity: CategoryEntity): Category {
@@ -204,7 +193,8 @@ object ProductReviewMapper : EntityMapper<ProductReviewEntity, ProductReview, St
             rating = entity.rating,
             title = entity.title,
             content = entity.title,
-            isApproved = entity.isApproved
+            isApproved = entity.isApproved,
+            date = entity.createdAt
         )
     }
 
@@ -217,6 +207,7 @@ object ProductReviewMapper : EntityMapper<ProductReviewEntity, ProductReview, St
         entity.content = model.content
         entity.isApproved = model.isApproved
         entity.tsv = "to_tsvector('english', '${entity.title} ${entity.content}')"
+        entity.createdAt = LocalDateTime.now()
 
         return entity
     }

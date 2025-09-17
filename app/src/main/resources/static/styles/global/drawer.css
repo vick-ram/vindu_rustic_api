@@ -5,8 +5,7 @@
     width: 100%;
     height: 100%;
     z-index: 50;
-    visibility: hidden;
-    display: none;
+    pointer-events: none;
 }
 
 .drawer-backdrop {
@@ -24,77 +23,83 @@
 .drawer {
     position: absolute;
     background-color: white;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.4s ease;
     overflow-y: auto;
-    visibility: hidden;
-    display: none;
+    max-width: 100%;
+    padding: 16px;
+}
+
+.drawer-left, .drawer-right {
+    height: 100%;
+    top: 0;
 }
 
 .drawer-left {
-    top: 0;
     left: 0;
-    height: 100%;
     transform: translateX(-100%);
 }
 
 .drawer-right {
-    top: 0;
     right: 0;
-    height: 100%;
     transform: translateX(100%);
+}
+
+.drawer-top, .drawer-bottom {
+    width: 100%;
+    left: 0;
 }
 
 .drawer-top {
     top: 0;
-    left: 0;
-    width: 100%;
     transform: translateY(-100%);
 }
 
 .drawer-bottom {
     bottom: 0;
-    left: 0;
-    width: 100%;
     transform: translateY(100%);
 }
 
-.darwer-container .drawer-open {
-    visibility: visible;
-    display: block;
-}
-
-.drawer-open .drawer-backdrop {
-    opacity: 1;
-}
-
-.drawer-open .drawer {
-    transform: translate(0, 0);
-    visibility: visible;
-    display: block;
-}
-
 .drawer-header {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.drawer-title {
+    font-size: 1.6rem;
+    color: var(--color-text);
+}
+
+.drawer-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: color 0.2s;
+}
+
+.drawer-close-btn:hover {
+    color: var(--color-accent);
 }
 
 .drawer-body {
-    padding: 1rem;
+    text-align: left;
 }
 
-.drawer-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.drawer-container.active {
+    pointer-events: all;
+}
+
+.drawer-container.active .drawer-backdrop {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.drawer-container.active .drawer {
+    transform: translate(0, 0);
 }

@@ -8,8 +8,9 @@ import org.example.domain.models.Role
 import org.example.domain.models.User
 import org.example.domain.repo.EntityMapper
 import org.example.utils.HashPassword
+import java.io.File
 
-object UserMapper: EntityMapper<UserEntity, User, String> {
+object UserMapper : EntityMapper<UserEntity, User, String> {
     override fun toModel(entity: UserEntity): User {
         return User(
             id = entity.id.value,
@@ -17,7 +18,8 @@ object UserMapper: EntityMapper<UserEntity, User, String> {
             email = entity.email,
             password = entity.password,
             active = entity.active,
-            roleId = entity.role.id.value
+            roleId = entity.role.id.value,
+            avatar = entity.avatar
         )
     }
 
@@ -25,18 +27,20 @@ object UserMapper: EntityMapper<UserEntity, User, String> {
         model: User,
         entity: UserEntity
     ): UserEntity {
+        val userAvatar = "/resources/images/profile.jpg"
         entity.name = model.name
         entity.email = model.email
         entity.password = HashPassword.hashPassword(model.password)
         entity.active = true
         entity.role = RoleEntity[model.roleId]
+        entity.avatar = userAvatar
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"
 
         return entity
     }
 }
 
-object RoleMapper: EntityMapper<RoleEntity, Role, String> {
+object RoleMapper : EntityMapper<RoleEntity, Role, String> {
     override fun toModel(entity: RoleEntity): Role {
         return Role(
             id = entity.id.value,
@@ -53,11 +57,11 @@ object RoleMapper: EntityMapper<RoleEntity, Role, String> {
         entity.description = model.description
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description}')"
 
-        return  entity
+        return entity
     }
 }
 
-object PermissionMapper: EntityMapper<PermissionEntity, Permission, String> {
+object PermissionMapper : EntityMapper<PermissionEntity, Permission, String> {
     override fun toModel(entity: PermissionEntity): Permission {
         return Permission(
             id = entity.id.value,

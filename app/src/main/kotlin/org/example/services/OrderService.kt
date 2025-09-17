@@ -9,6 +9,10 @@ class OrderService(private val orderRepository: OrderRepository) {
         return orderRepository.createOrder(userId)
     }
 
+    suspend fun getOrders(offset: Int, limit: Int, queryParams: Map<String, String>?): List<Order> {
+        return orderRepository.readAll(offset, limit, queryParams)
+    }
+
     suspend fun getOrderById(id: String): Order? {
         return orderRepository.read(id)
     }

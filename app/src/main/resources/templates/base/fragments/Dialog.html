@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+    <div th:fragment="dialog(id, content)" th:id="${id}">
+        <form method="dialog">
+            <div th:if="${content != null}" th:replace="${content}">Default dialog content</div>
+            <div class="w-full flex row justify-end items-center gap-3">
+                <button id="cancelBtn" class="btn">Cancel</button>
+                <button id="confirmBtn" class="btn">Confirm</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

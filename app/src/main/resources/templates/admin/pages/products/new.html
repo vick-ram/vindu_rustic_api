@@ -8,6 +8,50 @@
     <title>Title</title>
 </head>
 <body>
-    <div layout:fragment="content"></div>
+<div layout:fragment="content" class="mt-1">
+    <div class="flex column gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h5 class="mb-0">Add a new product</h5>
+            <p class="mb-0">Orders placed across your store</p>
+        </div>
+        <div class="flex row gap-3 items-center nowrap">
+            <button class="btn-secondary">Discard</button>
+            <button class="p-2 rounded-md bg-blue-200 text-blue-800 cursor-pointer inline-block border-0 font-medium transition"
+                    style="padding: 0.7rem 1.5rem;">Save draft
+            </button>
+            <button class="btn">Publish product</button>
+        </div>
+    </div>
+    <div class="card mt-2">
+        <h4>Product Information</h4>
+        <form>
+            <div class="form-group">
+                <label for="name" class="label">Name</label>
+                <input type="text" placeholder="Bed" id="name">
+            </div>
+            <div class="form-group">
+                <label for="description">Description(optional)</label>
+                <textarea id="description" class="h-28" placeholder="Product description"></textarea>
+            </div>
+<!--            <div class="form-group">-->
+<!--                <label for="description">Description(optional)</label>-->
+<!--                <div class="border rounded-sm p-2">-->
+<!--                    <div class="toolbar">-->
+<!--                        <button onclick="formatText('bold')" title="Bold"><strong>B</strong></button>-->
+<!--                        <button onclick="formatText('underline')" title="Underline"><u>U</u></button>-->
+<!--                        <button onclick="formatText('italic')" title="Italic"><em>I</em></button>-->
+<!--                        <button onclick="formatText('strikeThrough')" title="Strikethrough"><s>S</s></button>-->
+<!--                        <button onclick="formatText('justifyLeft')" title="Align Left">⎡⎣</button>-->
+<!--                        <button onclick="formatText('justifyCenter')" title="Align Center">⎢⎢</button>-->
+<!--                        <button onclick="formatText('justifyRight')" title="Align Right">⎦⎤</button>-->
+<!--                    </div>-->
+<!--                    <div id="description" class="editor" contenteditable="true" aria-placeholder="Product description"></div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+        </form>
+    </div>
+    <div></div>
+</div>
 </body>
 </html>

@@ -22,44 +22,31 @@ fun LocalDateTime.toCustomFormat(): String {
     val month = this.date.month
     val year = this.date.year
 
-    val hour = this.hour
-    val minute = this.minute
-
-    val (hour12, amPm) = when {
-        hour == 0 -> 12 to "AM"
-        hour < 12 -> hour to "PM"
-        hour == 12 -> 12 to "AM"
-        else -> (hour - 12) to "PM"
-    }
-
-    val formattedTime = minute.toString().padStart(2, '0')
-    val time = "$hour12:$formattedTime $amPm"
-
     val dayWithSuffix = "$day${daySuffix(day)}"
     val monthShort = monthAbbreviation(month)
 
-    return "$dayWithSuffix $monthShort $year, $time"
+    return "$dayWithSuffix $monthShort $year"
 }
 
 fun daySuffix(day: Int): String = when {
-    day in 11..13 -> "TH"
-    day % 10 == 1 -> "ST"
-    day % 10 == 2 -> "ND"
-    day % 10 == 3 -> "RD"
-    else -> "TH"
+    day in 11..13 -> "th"
+    day % 10 == 1 -> "st"
+    day % 10 == 2 -> "nd"
+    day % 10 == 3 -> "rd"
+    else -> "th"
 }
 
 fun monthAbbreviation(month: Month): String = when (month) {
-    Month.JANUARY -> "JAN"
-    Month.FEBRUARY -> "FEB"
-    Month.MARCH -> "MAR"
-    Month.APRIL -> "APR"
-    Month.MAY -> "MAY"
-    Month.JUNE -> "JUN"
-    Month.JULY -> "JUL"
-    Month.AUGUST -> "AUG"
-    Month.SEPTEMBER -> "SEP"
-    Month.OCTOBER -> "OCT"
-    Month.NOVEMBER -> "NOV"
-    Month.DECEMBER -> "DEC"
+    Month.JANUARY -> "Jan"
+    Month.FEBRUARY -> "Feb"
+    Month.MARCH -> "Mar"
+    Month.APRIL -> "Apr"
+    Month.MAY -> "May"
+    Month.JUNE -> "Jun"
+    Month.JULY -> "Jul"
+    Month.AUGUST -> "Aug"
+    Month.SEPTEMBER -> "Sep"
+    Month.OCTOBER -> "Oct"
+    Month.NOVEMBER -> "Nov"
+    Month.DECEMBER -> "Dec"
 }

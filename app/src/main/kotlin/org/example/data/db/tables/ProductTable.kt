@@ -5,11 +5,10 @@ import org.example.domain.models.DiscountAppliedTo
 import org.example.domain.models.DiscountType
 import org.example.domain.models.MediaType
 import org.example.domain.models.OfferType
-import org.example.utils.CustomTable
+import org.example.data.db.config.CustomTable
 import org.example.utils.PGEnum
 import org.example.utils.tsVector
 import org.jetbrains.exposed.v1.core.ReferenceOption
-import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.datetime.datetime
 
 object CategoryTable : CustomTable("categories") {

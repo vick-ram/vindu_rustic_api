@@ -1,13 +1,11 @@
 package org.example.data.db.tables
 
 import org.example.domain.models.OrderStatus
-import org.example.domain.models.PaymentMethod
 import org.example.domain.models.PaymentStatus
-import org.example.utils.CustomTable
+import org.example.data.db.config.CustomTable
 import org.example.utils.PGEnum
 import org.example.utils.tsVector
 import org.jetbrains.exposed.v1.core.ReferenceOption
-import org.jetbrains.exposed.v1.datetime.datetime
 import java.math.BigDecimal
 
 object OrderTable : CustomTable("orders") {

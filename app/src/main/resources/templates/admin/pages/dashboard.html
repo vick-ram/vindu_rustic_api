@@ -38,27 +38,26 @@
         <p>Manage your wood products and orders from this dashboard.</p>
     </div>
 
-    <div th:replace="~{base/fragments/drawer :: drawer(
+    <!-- <div th:replace="~{base/fragments/drawer :: drawer(
         id='user-profile',
         position='right',
         width='300px',
         height='auto',
         title='user-profile'
-    )}"></div>
+    )}"></div> -->
 
-    <div style="display: none">
-        <div id="user-profile-content" class="user-content">
-            <div class="user-info">
-                <h4>john doe</h4>
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{base/fragments/drawer :: drawer(
+        position='right',
+        width='400px',
+        height='auto',
+        title='user-profile'
+    )}"></div>
 
     <div class="grid grid-cols-12 gap-3 mb-3">
         <div class="card col-span-12 md:col-span-4">
             <h4>Extra statistics</h4>
             <p>Some extra statistics goes here</p>
-            <button class="btn" onclick="toggleDrawer('user-profile')">View all</button>
+            <button class="btn" id="open-right">View all</button>
         </div>
         <div class="col-span-12 md:col-span-8">
             <div class="card shadow-md flex column gap-2">
@@ -72,8 +71,8 @@
                             <i data-feather="pie-chart"></i>
                         </div>
                         <div class="flex column">
-                            <h5 class="m-0">230k</h5>
-                            <p class="small m-0">Sales</p>
+                            <h5 class="mb-0">230k</h5>
+                            <p class="small mb-0">Sales</p>
                         </div>
                     </div>
                     <div class="flex flex-row gap-1 items-center">
@@ -81,8 +80,8 @@
                             <i data-feather="users"></i>
                         </div>
                         <div class="flex column">
-                            <h5 class="m-0">230k</h5>
-                            <p class="small m-0">Customers</p>
+                            <h5 class="mb-0">230k</h5>
+                            <p class="small mb-0">Customers</p>
                         </div>
                     </div>
                     <div class="flex flex-row gap-1 items-center">
@@ -90,8 +89,8 @@
                             <i data-feather="shopping-cart"></i>
                         </div>
                         <div class="flex column">
-                            <h5 class="m-0">1.2k</h5>
-                            <p class="small m-0">Orders</p>
+                            <h5 class="mb-0">1.2k</h5>
+                            <p class="small mb-0">Orders</p>
                         </div>
                     </div>
                     <div class="flex flex-row gap-1 items-center">
@@ -148,87 +147,156 @@
 
 
         <div class="card col-span-12 md:col-span-8">
-            <h5 class="text-sm">Revenue Report</h5>
-            <canvas id="barChart" style="width: 100%; height: 200px;"></canvas>
-        </div>
-    </div>
-
-    <!-- Orders Card -->
-    <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
-        <div class="card flex justify-between">
-            <div>
-                <h6 class="text-muted">Orders</h6>
-                <h4>152</h4>
-                <small class="text-success">24 new</small> <small class="text-muted">since last visit</small>
-            </div>
-            <div class="bg-green opacity-4 text-success p-3 rounded-sm">
-                <i data-feather="shopping-cart"></i>
+            <h5 class="text-sm mb-0">Revenue Report</h5>
+            <div class="w-full h-ull">
+                <canvas id="barChart" class="w-full h-full"></canvas>
             </div>
         </div>
 
-        <!-- Revenue Card -->
-        <div class="card flex justify-between">
-            <div>
-                <h6 class="text-gray">Revenue</h6>
-                <h4>$2,100</h4>
-                <small class="text-success">+52%</small> <small class="text-muted">since last week</small>
-            </div>
-            <div class="text-warning p-3 rounded-3" style="background-color: #FFB300; opacity: 0.3;">
-                <i data-feather="dollar-sign"></i>
-            </div>
-        </div>
-
-
-        <!-- Customers Card -->
-        <div class="card flex justify-between">
-            <div>
-                <h6 class="text-muted">Customers</h6>
-                <h4>28,441</h4>
-                <small class="text-success">520</small> <small class="text-muted">newly registered</small>
-            </div>
-            <div class="bg-info bg-opacity-10 text-info p-3 rounded-3">
-                <i class="fas fa-user-plus fa-lg"></i>
-            </div>
-        </div>
-
-        <!-- Comments Card -->
-        <div class="card flex justify-between">
-            <div>
-                <h6 class="text-muted">Comments</h6>
-                <h4>152 <span class="fw-light fs-6">Unread</span></h4>
-                <small class="text-success">85</small> <small class="text-muted">responded</small>
-            </div>
-            <div class="bg-purple opacity-2 p-3 rounded-3">
-                <i data-feather="message-circle" class="text-purple"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="row">
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
+        <div class="col-span-12 grid grid-cols-3 gap-3">
+            <div class="col-span-3 md:col-span-1 card flex column gap-2">
+                <div class="flex row justify-between">
+                    <div class="flex column gap-1">
+                        <h5 class="mb-0 font-medium">Earning Reports</h5>
+                        <p class="mb-0 text-muted text-sm">Weekly Earnings Overview</p>
+                    </div>
+                    <i data-feather="more-vertical" class="clickable-icon"></i>
                 </div>
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="salesChart"></canvas>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-2 items-center">
+                        <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                            'feather:pie-chart',
+                            'bg-blue-100',
+                            'text-blue-700',
+                            'rounded-md',
+                            'size-8',
+                        )}"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Net Profit</h6>
+                            <small class="mb-0 text-xs text-gray-400">12.4k Sales</small>
+                        </div>
+                    </div>
+                    <div class="flex row gap-3 items-center">
+                        <p class="mb-0">$1,619</p>
+                        <div class="flex row gap-2 items-center">
+                            <i data-feather="chevron-up" class="size-4 green-600"></i>
+                            <small class="mb-0 text-xs gray-400">18.6%</small>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Traffic Sources</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                        <canvas id="trafficChart"></canvas>
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-2 items-center">
+                        <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                            'feather:dollar-sign',
+                            'bg-green-100',
+                            'text-blue-700',
+                            'rounded-md',
+                            'size-8'
+                        )}"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <div class="flex row gap-3 items-center">
+                        <p class="mb-0">$430</p>
+                        <div class="flex row gap-2 items-center">
+                            <i data-feather="chevron-up" class="size-4 green-600"></i>
+                            <small class="mb-0 text-xs gray-400">52.8%</small>
+                        </div>
                     </div>
                 </div>
+
+                <div class="my-3 h-60">
+                    <canvas id="weekly-earnings-barChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+            <div class="col-span-3 md:col-span-1 card space-y-3">
+                <div class="flex row justify-between">
+                    <div class="flex column gap-1">
+                        <h5 class="mb-0 font-medium">Popular Products</h5>
+                        <p class="mb-0 text-muted text-sm">Total 10.4k Visitors</p>
+                    </div>
+                    <i data-feather="more-vertical" class="clickable-icon"></i>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+
+                <div class="flex row justify-between items-center">
+                    <div class="flex row gap-5 items-center">
+                        <div class="h-9 w-9 rounded-md bg-blue-300"></div>
+                        <div class="flex column gap-1">
+                            <h6 class="mb-0 text-sm">Total Income</h6>
+                            <small class="mb-0 text-xs text-gray-400">Sales Affiliation</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">$430</p>
+                </div>
+            </div>
+            <div class="col-span-3 md:col-span-1 card">
+                <div class="flex row justify-between mb-3">
+                    <div class="flex column gap-1">
+                        <h5 class="mb-0 font-medium">Transactions</h5>
+                        <p class="mb-0 text-muted text-sm">52 Total transactions done</p>
+                    </div>
+                    <i data-feather="more-vertical" class="clickable-icon"></i>
+                </div>
+                <div th:replace="~{base/fragments/tabs :: tabs(${activeTab}, ${tabs})}"></div>
             </div>
         </div>
     </div>

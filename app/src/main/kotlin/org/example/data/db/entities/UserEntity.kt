@@ -4,8 +4,8 @@ import org.example.data.db.tables.PermissionTable
 import org.example.data.db.tables.RolePermissionTable
 import org.example.data.db.tables.RoleTable
 import org.example.data.db.tables.UserTable
-import org.example.utils.CustomEntity
-import org.example.utils.CustomEntityClass
+import org.example.data.db.config.CustomEntity
+import org.example.data.db.config.CustomEntityClass
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
 class UserEntity(id: EntityID<String>): CustomEntity(id, UserTable) {
@@ -15,6 +15,7 @@ class UserEntity(id: EntityID<String>): CustomEntity(id, UserTable) {
     var email by UserTable.email
     var password by UserTable.password
     var active by UserTable.active
+    var avatar by UserTable.avatar
     var tsv by UserTable.tsv
 
     var role by RoleEntity referencedOn UserTable.role

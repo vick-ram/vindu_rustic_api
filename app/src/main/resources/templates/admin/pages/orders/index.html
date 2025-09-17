@@ -2,12 +2,114 @@
 <html lang="en"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layouts/main.html}"
->
+      xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-    <div layout:fragment="content"></div>
+<div layout:fragment="content" class="mt-1">
+    <div class="order-card-grid">
+        <div class="order-card">
+            <div class="flex column">
+                <h4 class="mb-0">56</h4>
+                <h6 class="text-sm mb-0">Pending Payments</h6>
+            </div>
+            <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                        'feather:calendar',
+                        'bg-gray-500',
+                        'text-gray-200',
+                        'rounded-sm',
+                        'size-8'
+                    )}"></div>
+        </div>
+        <div class="order-card">
+            <div class="flex column">
+                <h4 class="mb-0">56</h4>
+                <h6 class="text-sm mb-0">Unfulfilled</h6>
+            </div>
+            <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                        'feather:x-circle',
+                        'bg-gray-500',
+                        'text-gray-200',
+                        'rounded-sm',
+                        'size-8'
+                    )}"></div>
+        </div>
+        <div class="order-card">
+            <div class="flex column">
+                <h4 class="mb-0">56</h4>
+                <h6 class="text-sm mb-0">Completed</h6>
+            </div>
+            <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                        'tabler:checks',
+                        'bg-gray-500',
+                        'text-gray-200',
+                        'rounded-sm',
+                        'size-8'
+                    )}"></div>
+        </div>
+        <div class="order-card">
+            <div class="flex column">
+                <h4 class="mb-0">56</h4>
+                <h6 class="text-sm mb-0">Refunded</h6>
+            </div>
+            <div th:replace="~{admin/fragments/iconButton :: iconButton(
+                        '{/resources/icons/wallet.svg}',
+                        'bg-gray-500',
+                        'text-gray-200',
+                        'rounded-sm',
+                        'size-8'
+                    )}"></div>
+        </div>
+    </div>
+    <div class="t-table-wrap">
+        <div class="controls-container">
+            <input aria-label="search orders" type="text" placeholder="Search.." class="w-48">
+            <div class="controls-right">
+                <div class="select-container">
+                    <select aria-label="Select number of rows">
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                        <option>100</option>
+                    </select>
+                </div>
+                <button class="export-btn">
+                    <i data-feather="download"></i>
+                    <span>Export</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="t-table-scroller">
+            <table class="t-table" aria-label="Data table">
+                <thead>
+                <tr>
+                    <th th:if="${selectable}" class="t-checkbox-col">
+                        <input type="checkbox" class="t-checkbox select-all" aria-label="Select all rows">
+                    </th>
+                    <th class="text-uppercase">order</th>
+                    <th class="text-uppercase">date</th>
+                    <th class="text-uppercase">customers</th>
+                    <th class="text-uppercase">payment</th>
+                    <th class="text-uppercase">status</th>
+                    <th class="text-uppercase">method</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:if="${rows == null or #lists.isEmpty(rows)}">
+                    <td class="t-empty"
+                        th:colspan="${selectable ? #lists.size(columns) + 1 : #lists.size(columns)}"
+                        th:text="${emptyText}">
+                        No data found
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -1,0 +1,56 @@
+.tab-container {
+    margin: 1rem 0;
+}
+
+.tab-header {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid #e2e8f0;
+    gap: 0.5rem;
+}
+
+.tab-header li {
+    margin-bottom: -2px;
+    cursor: pointer;
+}
+
+.tab-header li a {
+    display: block;
+    text-decoration: none;
+    padding: 12px 20px;
+    color: #2d3748;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-header li.active a {
+    border-bottom: 2px solid #3182ce;
+    cursor: #3182ce;
+    font-weight: 600;
+}
+
+.tab-header li:not(.active):hover a {
+    border-bottom: 2px solid #cbd5e0;
+    color: #4a5568;
+}
+
+.tab-content {
+    padding: 1.5rem 0;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+

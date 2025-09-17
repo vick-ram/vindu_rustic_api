@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+  <body>
+  <div th:fragment="tabs(activeTab, tabs)" class="tabs-container" data-tabs-container>
+    <ul class="tab-header" role="tablist">
+      <li th:each="tab : ${tabs}"
+          th:data-tab-id="${tab.id}"
+          th:classappend="${activeTab == tab.id} ? 'active' : ''"
+          role="presentation">
+        <a href="#"
+           th:text="${tab.label}"
+           th:attr="role='tab', aria-selected=${activeTab == tab.id}, aria-controls='tab-${tab.id}'"
+           th:data-tab-target="${tab.id}"></a>
+      </li>
+    </ul>
+
+    <div class="tab-content" role="tabpanel">
+      <div th:each="tab : ${tabs}"
+           th:id="'tab-' + ${tab.id}"
+           th:attr="data-tab-id=${tab.id}, role='tabpanel', aria-labelledby='tab-${tab.id}'"
+           th:classappend="${activeTab == tab.id} ? 'active' : 'tab-pane'"
+           th:utext="${tab.content}">
+      </div>
+    </div>
+  </div>
+  </body>
+</html>

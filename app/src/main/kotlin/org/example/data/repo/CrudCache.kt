@@ -9,6 +9,8 @@ import org.ehcache.config.units.MemoryUnit
 import org.ehcache.impl.config.persistence.CacheManagerPersistenceConfiguration
 import org.example.domain.repo.CrudRepository
 import org.example.utils.cachePath
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 
 class CrudCache<T: Any, ID: Any>(
@@ -17,7 +19,8 @@ class CrudCache<T: Any, ID: Any>(
     idClazz: Class<ID>,
     storageFile: File?,
     private val getId: (T) -> ID,
-    cacheName: String? = null
+    cacheName: String? = null,
+    private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java)
 ): CrudRepository<T, ID> {
     private val uniquePath = cachePath(storageFile)
     private val cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
@@ -44,8 +47,13 @@ class CrudCache<T: Any, ID: Any>(
     }
 
     override suspend fun read(id: ID): T? {
+        logger.info("READ - Checking cache for ID: $id")
         val cached = cache.get(id)
-        if (cached != null) return cached
+        if (cached != null) {
+            logger.info("READ - Cache HIT for ID: $id")
+            return cached
+        }
+        logger.info("READ - Cache MISS for ID: $id, delegating to repository")
         val entity = delegate.read(id)
         if (entity != null) cache.put(id, entity)
         return entity

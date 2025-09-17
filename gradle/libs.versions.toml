@@ -13,7 +13,6 @@ postgresql = "42.7.7"
 logback = "1.5.18"
 koin = "4.1.0"
 lattuce = "6.7.1.RELEASE"
-chartjs = "4.4.3"
 thymeleaf = "3.4.0"
 jakarta = "2.0.1"
 locator = "0.50"
@@ -54,7 +53,6 @@ exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datet
 #webjars
 ktor-server-webjars = { module = "io.ktor:ktor-server-webjars", version.ref = "ktor" }
 ktor-server-thymeleaf = { module = "io.ktor:ktor-server-thymeleaf", version.ref = "ktor" }
-chartjs = { module = "org.webjars:chartjs", version.ref = "chartjs" }
 webjars-locator-core = { module = "org.webjars:webjars-locator-core", version.ref = "locator" }
 thymeleaf-layout-dialect = { module = "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect", version.ref = "thymeleaf" }
 feather = { module = "org.webjars.npm:feather-icons", version.ref = "feather" }

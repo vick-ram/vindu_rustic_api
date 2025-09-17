@@ -3,14 +3,17 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
-    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Dashboard</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/tabler-icons/iconfont/tabler-icons.min.css}" />
     <link rel="stylesheet" th:href="@{/resources/styles/global/index.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/tailwind.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/avatar.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/button.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/typography.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/form.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/menu.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/global/drawer.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/tabs.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/admin/index.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/admin/table.css}">
 </head>
@@ -34,13 +37,15 @@
     </div>
 </div>
 
-<script th:src="@{/webjars/chartjs/chart.umd.js}"></script>
 <script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
 <script th:src="@{/resources/js/global/darkmode.js}"></script>
 <script th:src="@{/resources/js/global/drawer.js}"></script>
 <script th:src="@{/resources/js/global/toggleMenu.js}"></script>
+<script th:src="@{/resources/js/global/tabs.js}"></script>
 <script th:src="@{/resources/js/admin/index.js}"></script>
 <script th:src="@{/resources/js/admin/chart.js}"></script>
+<script th:src="@{/resources/js/admin/table.js}"></script>
+<script th:src="@{/resources/js/admin/form.js}"></script>
 <script>
     feather.replace();
 </script>

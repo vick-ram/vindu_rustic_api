@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/main.html}"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Reviews</title>
+</head>
+<body>
+    <div layout:fragment="content" class="mt-1">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="col-span-2 md:col-span-1 card grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden px-1 mb-2">
+                <div class="order-card" style="flex-direction: column !important;">
+                    <div class="inline-flex row gap-2 items-center">
+                        <h4>4.89</h4>
+                        <i data-feather="star"></i>
+                    </div>
+                    <p class="font-medium">All reviews from genuine customers</p>
+                    <div class="inline-flex w-fit-content row gap-1 items-center p-1 rounded-sm text-white bg-success">
+                        <p class="mb-0 text-xs">+5</p>
+                        <small class="mb-0 text-xs">This week</small>
+                    </div>
+                </div>
+                <div class="order-card" style="flex-direction: column !important;">
+                    <div class="flex row gap-2 items-center">
+                        <p class="text-xs font-medium mb-0">5 Star</p>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar w-4/5"></div>
+                        </div>
+                        <p class="text-xs font-medium mb-0">124</p>
+                    </div>
+                    <div class="flex row gap-2 items-center">
+                        <p class="text-xs font-medium mb-0">4 Star</p>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar w-1/5"></div>
+                        </div>
+                        <p class="text-xs font-medium mb-0">40</p>
+                    </div>
+                    <div class="flex row gap-2 items-center">
+                        <p class="text-xs font-medium mb-0">3 Star</p>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar w-1/6"></div>
+                        </div>
+                        <p class="text-xs font-medium mb-0">12</p>
+                    </div>
+                    <div class="flex row gap-2 items-center">
+                        <p class="text-xs font-medium mb-0">2 Star</p>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar" style="width: 10px;"></div>
+                        </div>
+                        <p class="text-xs font-medium mb-0">7</p>
+                    </div>
+                    <div class="flex row gap-2 items-center">
+                        <p class="text-xs font-medium mb-0">1 Star</p>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar" style="width: 4px;"></div>
+                        </div>
+                        <p class="text-xs font-medium mb-0">2</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-2 md:col-span-1 card grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden px-1 mb-2">
+                <div class="order-card" style="flex-direction: column !important;">
+                    <h4>Reviews statistics</h4>
+                    <p><span class="text-green-700 font-bold pr-2">84%</span>Positive Reviews</p>
+                    <div class="flex row items-center gap-2">
+                        <p class="text-sm mb-0"><span style="padding-right: 2px;">12</span>New Reviews</p>
+                        <div class="w-fit-content rounded-sm bg-green-200" style="padding: 1px;">
+                            <p class="mb-0 text-xs text-green-600">+8.4%</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-500">Weekly Report</p>
+                </div>
+                <div class="">
+                    <canvas id="review-barchart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+        </div>
+
+<!--        Table-->
+        <div class="t-table-wrap">
+            <div class="controls-container">
+                <input aria-label="search reviews" type="text" placeholder="Search..." class="w-48">
+                <div class="controls-right">
+                    <div class="select-container">
+                        <select aria-label="Select number of rows">
+                            <option>10</option>
+                            <option>20</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+                    <div class="select-container">
+                        <select aria-label="select sort type">
+                            <option>All</option>
+                            <option>Published</option>
+                            <option>Pending</option>
+                        </select>
+                    </div>
+                    <button class="export-btn">
+                        <i data-feather="download"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
+            </div>
+            <div class="t-table-scroller">
+                <table class="t-table" aria-label="Data table">
+                    <thead>
+                        <tr>
+                            <th th:if="${selectable}" class="t-checkbox-col">
+                                <input aria-label="select all rows" type="checkbox" class="t-checkbox select-all">
+                            </th>
+                            <th class="text-uppercase">product</th>
+                            <th class="text-uppercase">reviewer</th>
+                            <th class="text-uppercase">review</th>
+                            <th class="text-uppercase">date</th>
+                            <th class="text-uppercase">status</th>
+                            <th class="text-uppercase">actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr  th:if="${rows == null or #lists.isEmpty(rows)}">
+                            <td class="t-empty"
+                                th:colspan="${selectable ? #lists.size(columns) + 1 : #lists.size(columns)}"
+                                th:text="${emptyText}">
+                                No data found
+                            </td>
+                        </tr>
+                        <tr th:each="row, ri : ${rows}">
+                            <td th:if="${selectable}" class="t-checkbox-col">
+                                <input type="checkbox" th:id="'rowCheckbox_' + ${ri.index}" th:name="'selectedRows'"
+                                       th:value="${row.id}" class="t-checkbox row-checkbox"
+                                       aria-label="Select row">
+                            </td>
+
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="t-table-footer">
+                <div class="t-page-info">
+                    Showing 1-10 of <span th:text="${#lists.size(rows)}"></span> items
+                </div>
+                <div class="t-pagination">
+                    <button class="t-page-btn" disabled>Previous</button>
+                    <button class="t-page-btn active">1</button>
+                    <button class="t-page-btn">2</button>
+                    <button class="t-page-btn">3</button>
+                    <button class="t-page-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
