@@ -5,6 +5,7 @@ data class TsVectorConfig(
     val tsVectorColumn: String,
     val searchColumns: List<String>,
     val weights: Map<String, String> = emptyMap(),
+    val enumColumns: Set<String> = emptySet(),
     val language: String = "english"
 )
 
@@ -43,18 +44,21 @@ val tsVectorConfigs = listOf(
         tableName = "discounts",
         tsVectorColumn = "tsv",
         searchColumns = listOf("name", "description", "type", "applied_to"),
-        weights = mapOf("name" to "A", "description" to "B", "type" to "C", "applied_to" to "D")
+        weights = mapOf("name" to "A", "description" to "B", "type" to "C", "applied_to" to "D"),
+        enumColumns = setOf("type", "applied_to")
     ),
     TsVectorConfig(
         tableName = "special_offers",
         tsVectorColumn = "tsv",
         searchColumns = listOf("name", "description", "type"),
-        weights = mapOf("name" to "A", "description" to "B", "type" to "C")
+        weights = mapOf("name" to "A", "description" to "B", "type" to "C"),
+        enumColumns = setOf("type")
     ),
     TsVectorConfig(
         tableName = "orders",
         tsVectorColumn = "tsv",
         searchColumns = listOf("order_number", "status", "payment_status"),
-        weights = mapOf("order_number" to "A", "status" to "B", "payment_status" to "C")
+        weights = mapOf("order_number" to "A", "status" to "B", "payment_status" to "C"),
+        enumColumns = setOf("status", "payment_status")
     ),
 )

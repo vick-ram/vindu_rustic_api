@@ -57,7 +57,7 @@ const setupDrawers = {
 }
 
 // Setup all drawers
-setupDrawers.initialize('open-right', 'right-drawer', 'right-backdrop');
+setupDrawers.initialize('open-bottom', 'bottom-drawer', 'bottom-backdrop');
 
 
 // class Drawer {

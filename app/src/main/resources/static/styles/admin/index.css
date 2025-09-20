@@ -562,11 +562,15 @@
     font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
+
+/*    If used on a tag*/
+    text-decoration: none;
 }
 
 .add-btn:hover {
     box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
     transform: translateY(-1px);
+    text-decoration: none;
 }
 
 /*Order card styles*/

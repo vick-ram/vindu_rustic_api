@@ -70,7 +70,6 @@ dependencies {
 
     //Database
     implementation(libs.hikariCp)
-    implementation(libs.ehcache)
     implementation(libs.postgresql)
 
     //Migrations

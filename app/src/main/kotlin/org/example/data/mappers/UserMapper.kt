@@ -31,7 +31,7 @@ object UserMapper : EntityMapper<UserEntity, User, String> {
         entity.name = model.name
         entity.email = model.email
         entity.password = HashPassword.hashPassword(model.password)
-        entity.active = true
+        entity.active = false
         entity.role = RoleEntity[model.roleId]
         entity.avatar = userAvatar
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"

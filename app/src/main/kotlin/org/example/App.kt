@@ -2,10 +2,15 @@ package org.example
 
 import io.ktor.client.*
 import io.ktor.server.application.*
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.example.di.configureDI
 import org.example.plugins.*
+import org.example.utils.RedisService
 import org.example.utils.cleanOldCache
 import java.io.File
 import kotlin.time.Duration.Companion.hours
@@ -14,6 +19,8 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
+@OptIn(DelicateCoroutinesApi::class)
+@Suppress("unused")
 fun Application.module(httpClient: HttpClient = appHttpClient) {
     val secret = environment.config.property("jwt.secret").getString()
     val issuer = environment.config.property("jwt.issuer").getString()
@@ -50,8 +57,18 @@ fun Application.module(httpClient: HttpClient = appHttpClient) {
         }
     }
 
+    GlobalScope.launch {
+        val redisRunning = RedisService.healthCheck()
+        if (redisRunning) {
+            this@module.environment.log.info("Redis is running")
+        } else {
+            this@module.environment.log.info("Redis is not running...")
+        }
+    }
+
     monitor.subscribe(ApplicationStopped) {
         cleanJob.cancel()
     }
 
 }
+

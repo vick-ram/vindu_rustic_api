@@ -126,6 +126,7 @@
 .text-uppercase { text-transform: uppercase; }
 .text-lowercase { text-transform: lowercase; }
 .text-capitalize { text-transform: capitalize }
+.text-decoration-none { text-decoration: none; }
 
 .size-0 { width: 0; height: 0; }
 .size-1 { width: 0.25rem; height: 0.25rem; }

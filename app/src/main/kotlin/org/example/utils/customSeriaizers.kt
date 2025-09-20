@@ -1,5 +1,7 @@
 package org.example.utils
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -37,7 +39,7 @@ class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<Loc
     }
 }
 
-class DateTimeAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
     private val formatter = LocalDate.Formats.ISO
 
     override fun serialize(
@@ -77,5 +79,18 @@ class BigDecimalAdapter : JsonSerializer<BigDecimal>, JsonDeserializer<BigDecima
         p2: JsonDeserializationContext?
     ): BigDecimal? {
         return BigDecimal(p0?.asString)
+    }
+}
+
+
+
+object GsonFactory {
+    val gson: Gson by lazy {
+        GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(BigDecimal::class.java, BigDecimalAdapter())
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+            .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
+            .create()
     }
 }

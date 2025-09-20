@@ -9,6 +9,15 @@
 </head>
 <body>
     <div layout:fragment="content">
+
+<!--        Drawer to create new category-->
+        <div th:replace="~{base/fragments/drawer :: drawer(
+        position='right',
+        width='350px',
+        height='100%',
+        title='Create new Category'
+    )}"></div>
+
         <div class="t-table-wrap">
             <div class="controls-container">
                 <input aria-label="search categories" type="text" placeholder="Search.." class="w-48">
@@ -21,7 +30,7 @@
                             <option>100</option>
                         </select>
                     </div>
-                    <button class="add-btn">
+                    <button class="add-btn" onclick="">
                         <i data-feather="plus"></i>
                         <span>Add Category</span>
                     </button>

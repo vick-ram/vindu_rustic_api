@@ -24,8 +24,6 @@ inline fun <reified T: Any, reified E: CustomEntity> createCrudCache(
             }
         },
         clazz = T::class.java,
-        idClazz = String::class.java,
-        storageFile = storageDir,
         getId = getId,
         cacheName = cacheName
     )

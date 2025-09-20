@@ -16,7 +16,13 @@ object TsVectorManager {
 
             val weightExpression = config.searchColumns.joinToString(" || \n") { column ->
                 val weight = config.weights[column] ?: "D"
-                "setweight(to_tsvector('${config.language}', coalesce(new.$column, '')), '$weight')"
+                val expr = if (config.enumColumns.contains(column)) {
+                    "coalesce($column::text, '')"
+                } else {
+                    "coalesce($column, '')"
+                }
+                "setweight(to_tsvector('${config.language}', $expr), '$weight')"
+//                "setweight(to_tsvector('${config.language}', coalesce(new.$column, '')), '$weight')"
             }
 
             val functionSql = """
@@ -29,7 +35,6 @@ object TsVectorManager {
                 $$ LANGUAGE plpgsql;
             """.trimIndent()
             statement.execute(functionSql)
-            println("Created trigger function for table: ${config.tableName}")
         } catch (e: Exception) {
             println("Error creating trigger function for ${config.tableName}: ${e.message}")
         } finally {
@@ -82,7 +87,13 @@ object TsVectorManager {
 
             val weightExpressions = config.searchColumns.joinToString(" ||\n") { column ->
                 val weight = config.weights[column] ?: "D"
-                "setweight(to_tsvector('${config.language}', coalesce($column, '')), '$weight')"
+                val expr = if (config.enumColumns.contains(column)) {
+                    "coalesce($column::text, '')" // 👈 enum safe cast
+                } else {
+                    "coalesce($column, '')"
+                }
+                "setweight(to_tsvector('${config.language}', $expr), '$weight')"
+//                "setweight(to_tsvector('${config.language}', coalesce($column, '')), '$weight')"
             }
 
             val updateSql = """

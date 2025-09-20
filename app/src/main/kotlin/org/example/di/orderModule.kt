@@ -1,40 +1,42 @@
 package org.example.di
 
 import org.example.controllers.backend.OrderController
-import org.example.data.db.entities.OrderEntity
-import org.example.data.db.entities.OrderItemEntity
 import org.example.data.mappers.OrderItemMapper
 import org.example.data.mappers.OrderMapper
+import org.example.data.repo.CrudCache
 import org.example.data.repo.OrderRepositoryImpl
 import org.example.domain.models.Order
-import org.example.domain.models.OrderItem
+import org.example.domain.repo.CachedOrder
 import org.example.domain.repo.CrudRepository
 import org.example.domain.repo.OrderRepository
 import org.example.services.OrderService
-import org.example.utils.createCrudCache
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val orderModule = module {
     single { OrderMapper }
-    single<CrudRepository<Order, String>> {
-        createCrudCache(
-            entityClass = OrderEntity,
+    single { OrderItemMapper }
+
+    single<CrudRepository<Order, String>>(named("orderReal")) { OrderRepositoryImpl(get()) }
+    single<OrderRepository>(named("orderReal")) { get<CrudRepository<Order, String>>(named("orderReal")) as OrderRepository }
+
+    // Cache wrapping the real repo
+    single<CrudRepository<Order, String>>(named("orderCache")) {
+        CrudCache(
+            delegate = get(named("orderReal")),
+            clazz = Order::class.java,
             getId = { it.id },
-            toDomain = OrderMapper::toModel,
-            toEntity = OrderMapper::toEntity,
             cacheName = "order-cache"
         )
     }
-    single<CrudRepository<OrderItem, String>> {
-        createCrudCache(
-            entityClass = OrderItemEntity,
-            getId = { it.id },
-            toDomain = OrderItemMapper::toModel,
-            toEntity = OrderItemMapper::toEntity,
-            cacheName = "order-item-cache"
+
+    single<OrderRepository> {
+        CachedOrder(
+            delegate = get(named("orderReal")),
+            cache = get(named("orderCache"))
         )
     }
-    single<OrderRepository> { OrderRepositoryImpl(get()) }
+
     single { OrderService(get()) }
-    single { OrderController(get<OrderService>()) }
+    single { OrderController(get()) }
 }

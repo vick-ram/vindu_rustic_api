@@ -38,18 +38,10 @@
         <p>Manage your wood products and orders from this dashboard.</p>
     </div>
 
-    <!-- <div th:replace="~{base/fragments/drawer :: drawer(
-        id='user-profile',
-        position='right',
-        width='300px',
-        height='auto',
-        title='user-profile'
-    )}"></div> -->
-
     <div th:replace="~{base/fragments/drawer :: drawer(
-        position='right',
-        width='400px',
-        height='auto',
+        position='bottom',
+        width='100%',
+        height='400px',
         title='user-profile'
     )}"></div>
 
@@ -57,7 +49,7 @@
         <div class="card col-span-12 md:col-span-4">
             <h4>Extra statistics</h4>
             <p>Some extra statistics goes here</p>
-            <button class="btn" id="open-right">View all</button>
+            <button class="btn" id="open-bottom">View all</button>
         </div>
         <div class="col-span-12 md:col-span-8">
             <div class="card shadow-md flex column gap-2">

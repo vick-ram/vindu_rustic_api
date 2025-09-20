@@ -57,11 +57,17 @@ class UserController(
                 }
             }
             get {
+                var users: List<User> = emptyList()
                 val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
                 val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
                 val queryParams = call.request.queryParameters.toMap().mapValues { it.value.firstOrNull() ?: "" }
                     .filterKeys { it != "offset" && it != "limit" }
-                val users = userService.getUsers(offset, limit, queryParams)
+                val query = call.request.queryParameters["q"]
+                users = if (query != null) {
+                    userService.searchUsers(query, offset, limit)
+                } else {
+                    userService.getUsers(offset, limit, queryParams)
+                }
                 call.respondApi(
                     data = users,
                     message = "Users fetched successfully"
