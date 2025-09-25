@@ -68,8 +68,8 @@ data class User(
     val active: Boolean = true,
     val roleId: String,
     val avatar: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
 ) : Serializable {
 
     fun validate(): User {
@@ -89,7 +89,14 @@ data class User(
             val password = parameters["password"].toString()
             val roleId = parameters["roleId"] ?: ""
 
-            return User(name = name, email = email, password = password, roleId = roleId)
+            return User(
+                name = name,
+                email = email,
+                password = password,
+                roleId = roleId,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
         }
 
         val columns: List<Map<String, Any>> = listOf(

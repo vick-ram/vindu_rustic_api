@@ -47,6 +47,7 @@ abstract class CrudRepositoryImpl<T : CustomEntity, D : Any>(
                     property?.call(entity).toString().contains(value, ignoreCase = true)
                 } == true
             }
+            .sortedBy { it.createdAt.coerceAtLeast(it.updatedAt) }
             .map { it.toDomain() }
     }
 

@@ -1,7 +1,9 @@
 package org.example.domain.models
 
-import io.ktor.http.Parameters
-import io.ktor.http.parameters
+import io.ktor.http.*
+import io.ktor.http.content.MultiPartData
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
 import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.entities.UserEntity
@@ -11,6 +13,7 @@ import org.example.domain.validations.Validations
 import org.example.plugins.NotFoundException
 import org.example.plugins.ValidationException
 import org.example.utils.now
+import org.example.utils.saveMedia
 import org.example.utils.shortUUID
 import org.example.utils.toCustomFormat
 import java.io.Serializable
@@ -29,9 +32,11 @@ data class Product(
     val media: List<Media> = emptyList(),
     val dimensions: List<Dimension>? = null, // variations
     val isFavorite: Boolean = false, // Added is favorite
+//    val isActive: Boolean = false,
+//    val tags: List<String> = emptyList(),
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
-) : Serializable {
+) {
     fun validate(): Product {
         Validations.validateAll(
             { Validations.validateNonEmpty(name, "Product name") },
@@ -59,6 +64,8 @@ data class StockInfo(
     val available: Int,
     val lowStockThreshold: Int = 3
 )
+
+enum class ProductStatus { ACTIVE, INACTIVE, OUT_OF_STOCK, DISCONTINUED }
 
 enum class DimensionUnit { CM, INCH }
 
@@ -105,7 +112,7 @@ data class Category(
     val description: String? = null,
     val imageUrl: String? = null,
     val displayOrder: Int = 0,
-) : Serializable {
+) {
     fun validate(): Category {
         Validations.validateAll(
             { Validations.validateNonEmpty(name, "Category name") },
@@ -114,16 +121,43 @@ data class Category(
         return this
     }
 
-    fun formParameters(parameters: Parameters): Category {
-        val name = parameters["name"].toString()
-        val slug = parameters["slug"].toString()
-        val description = parameters["description"].toString()
-        val image = parameters["image"].toString()
-
-        return Category(name = name, slug = slug, description = description, imageUrl = image)
-    }
-
     companion object {
+        fun formParameters(parameters: Parameters): Category {
+            val name = parameters["name"].toString()
+            val slug = parameters["slug"].toString()
+            val description = parameters["description"].toString()
+            val image = parameters["image"].toString()
+
+            return Category(name = name, slug = slug, description = description, imageUrl = image)
+        }
+
+        suspend fun multipartFormData(multipart: MultiPartData): Category {
+            var name: String? = null
+            var slug: String? = null
+            var description: String? = null
+            var image: String? = null
+
+            multipart.forEachPart { part ->
+                when (part) {
+                    is PartData.FormItem -> {
+                        when (part.name) {
+                            "name" -> name = part.value
+                            "slug" -> slug = part.value
+                            "description" -> description = part.value
+                        }
+                    }
+                    is PartData.FileItem -> {
+                        if (part.name == "image") {
+                            image = saveMedia("categories", part)
+                        }
+                    }
+                    else -> {}
+                }
+                part.dispose()
+            }
+            return Category(name = name!!, slug = slug!!, description = description!!, imageUrl = image)
+        }
+
         val columns: List<Map<String, Any>> = listOf(
             mapOf("key" to "id", "label" to "id"),
             mapOf("key" to "name", "label" to "name", "sortable" to true),
@@ -145,7 +179,7 @@ data class Category(
 }
 
 data class Discount(
-    val id: String,
+    val id: String = shortUUID(),
     val name: String,
     val description: String? = null,
     val type: DiscountType,
@@ -158,7 +192,7 @@ data class Discount(
     val maxUses: Int? = null,
     val currentUses: Int = 0,
     val isActive: Boolean = false,
-) : Serializable {
+) {
     fun validate(): Discount {
         Validations.validateAll(
             { Validations.validateNonEmpty(name, "Discount name") },
@@ -180,6 +214,34 @@ data class Discount(
             )
         return this
     }
+
+    companion object {
+        fun formParameters(parameters: Parameters): Discount {
+            val name = parameters["name"].toString()
+            val description = parameters["description"].toString()
+            val type = parameters["type"].toString()
+            val value = parameters["value"].toString()
+            val code = parameters["code"].toString()
+            val appliedTo = parameters["code"].toString()
+            val minimumOrderAmount = parameters["code"].toString()
+            val startDate = parameters["startDate"].toString()
+            val endDate = parameters["endDate"].toString()
+            val isActive = parameters["isActive"].toBoolean()
+
+            return Discount(
+                name = name,
+                description = description,
+                type = DiscountType.valueOf(type),
+                value = BigDecimal(value),
+                code = code,
+                appliedTo = DiscountAppliedTo.valueOf(appliedTo),
+                minimumOrderAmount = BigDecimal(minimumOrderAmount),
+                startDate = LocalDateTime.parse(startDate),
+                endDate = LocalDateTime.parse(endDate),
+                isActive = isActive
+            )
+        }
+    }
 }
 
 enum class DiscountType {
@@ -197,11 +259,11 @@ enum class DiscountAppliedTo {
 }
 
 data class SpecialOffer(
-    val id: String,
+    val id: String = shortUUID(),
     val name: String,
     val description: String,
     val type: OfferType,
-    val products: List<Product> = emptyList(),
+    val products: List<String> = emptyList(),
     val startDate: LocalDateTime,
     val endDate: LocalDateTime,
     val isActive: Boolean = false,
@@ -217,6 +279,28 @@ data class SpecialOffer(
             { Validations.validateFutureDateTime(endDate, "End date") },
         )
         return this
+    }
+
+    companion object {
+        fun formParameters(parameters: Parameters): SpecialOffer {
+            val name = parameters["name"].toString()
+            val description = parameters["description"].toString()
+            val type = parameters["type"].toString()
+            val products = parameters.getAll("products")?.map { it } ?: emptyList()
+            val startDate = parameters["startDate"].toString()
+            val endDate = parameters["endDate"].toString()
+            val isActive = parameters["isActive"].toBoolean()
+
+            return SpecialOffer(
+                name = name,
+                description = description,
+                type = OfferType.valueOf(type),
+                products = products,
+                startDate = LocalDateTime.parse(startDate),
+                endDate = LocalDateTime.parse(endDate),
+                isActive = isActive
+            )
+        }
     }
 }
 
@@ -258,7 +342,8 @@ data class ProductReview(
         }
 
         private fun getReviewProduct(productId: String): Product {
-            val productEntity = ProductEntity.findById(productId) ?: throw NotFoundException("Product with id: $productId not found")
+            val productEntity =
+                ProductEntity.findById(productId) ?: throw NotFoundException("Product with id: $productId not found")
             val product = ProductMapper.toModel(productEntity)
             return product
         }

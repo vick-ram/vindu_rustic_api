@@ -13,7 +13,7 @@
     --color-light-blue-primary: rgb(59, 130, 246);
     --color-container-light: #fff;
     /* Dark   */
-    --color-dark-primary: #6D4C41;
+    --color-dark-primary: #B5651D;
     --color-dark-secondary: #5D4037;
     --color-dark-accent: #8D6E63;
     --color-dark-background: #1E1E1E;
@@ -32,17 +32,6 @@
 
     /*    Animation*/
     --transition: all 0.3s ease;
-    --tw-translate-x: 0;
-    --tw-translate-y: 0;
-    --tw-rotate: 0;
-    --tw-scale-x: 1;
-    --tw-scale-y: 1;
-    --tw-skew-x: 0;
-    --tw-skew-y: 0;
-    --tw-transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y))
-    rotate(var(--tw-rotate))
-    skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
-    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 
     /* Light gradients */
     --gradient-light-primary: linear-gradient(135deg, var(--color-light-primary), var(--color-light-accent));
@@ -134,5 +123,45 @@ body {
     transition: var(--transition);
     padding: 1em;
 }
+
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    cursor: pointer;
+    position: relative;
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.action-btn:hover {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--color-error);
+    color: white;
+    font-size: 0.7rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 

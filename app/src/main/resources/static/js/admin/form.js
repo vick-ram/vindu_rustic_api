@@ -48,4 +48,34 @@ document.querySelectorAll("dialog").forEach(dialog => {
             dialog.close();
         }
     })
-})
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle all form submissions
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (submitBtn && submitBtn.classList.contains('btn')) {
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            // Remove loading state after timeout
+            setTimeout(() => {
+                if (submitBtn.classList.contains('loading')) {
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                }
+            }, 10000);
+        }
+    });
+
+    window.addEventListener('pageshow', (e) => {
+        document.querySelectorAll('.btn.loading').forEach(btn => {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        });
+    });
+});
+

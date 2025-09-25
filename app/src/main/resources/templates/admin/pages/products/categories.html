@@ -9,14 +9,14 @@
 </head>
 <body>
     <div layout:fragment="content">
-
 <!--        Drawer to create new category-->
         <div th:replace="~{base/fragments/drawer :: drawer(
-        position='right',
-        width='350px',
-        height='100%',
-        title='Create new Category'
-    )}"></div>
+            position='right',
+            width='350px',
+            height='100%',
+            title='Create new Category',
+            content=~{admin/fragments/category-form :: categoryForm}
+        )}"></div>
 
         <div class="t-table-wrap">
             <div class="controls-container">
@@ -30,7 +30,7 @@
                             <option>100</option>
                         </select>
                     </div>
-                    <button class="add-btn" onclick="">
+                    <button class="add-btn" id="open-category">
                         <i data-feather="plus"></i>
                         <span>Add Category</span>
                     </button>
@@ -64,7 +64,6 @@
                                        th:value="${row.id}" class="t-checkbox row-checkbox"
                                        aria-label="Select row">
                             </td>
-
                         </tr>
                     </tbody>
                 </table>

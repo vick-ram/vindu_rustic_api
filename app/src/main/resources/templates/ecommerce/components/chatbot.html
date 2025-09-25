@@ -4,7 +4,9 @@
     <body>
     <div th:fragment="chatbot" xmlns:th="http://www.w3.org/1999/xhtml">
         <div class="chatbot-container">
-            <button class="chat-button" onclick="toggleChat()">💬</button>
+            <button class="chat-button" onclick="toggleChat()">
+                <i data-feather="message-circle"></i>
+            </button>
 
             <div class="chatbot-window" id="chatWindow">
                 <div class="chatbot-header">

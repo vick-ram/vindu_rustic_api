@@ -16,6 +16,17 @@ input, select, textarea {
     border-radius: var(--border-radius);
     background-color: var(--color-surface);
     color: var(--color-text);
+    transition: var(--transition);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+textarea.auto-resize {
+    resize: none;
+    overflow-y: hidden;
 }
 
 input:focus, select:focus, textarea:focus {

@@ -9,7 +9,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #007bff;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -35,8 +35,8 @@
 }
 
 .chatbot-header {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--color-container);
+    color: var(--color-primary);
     padding: 15px;
     font-weight: bold;
     display: flex;
@@ -47,12 +47,12 @@
 .chatbot-close {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--color-primary);
     font-size: 18px;
     cursor: pointer;
 }
 .chatbot-close:hover {
-    color: #ffdddd;
+    color: var(--color-accent);
 }
 
 .chatbot-messages {
@@ -77,8 +77,8 @@
 }
 
 .user-message {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--color-container);
+    color: var(--color-primary);
     align-self: flex-end;
 }
 
@@ -98,7 +98,7 @@
 
 .chatbot-input button {
     padding: 10px 15px;
-    background-color: #007bff;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 20px;

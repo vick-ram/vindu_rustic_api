@@ -1,5 +1,6 @@
 package org.example.data.mappers
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.PermissionEntity
 import org.example.data.db.entities.RoleEntity
 import org.example.data.db.entities.UserEntity
@@ -8,6 +9,7 @@ import org.example.domain.models.Role
 import org.example.domain.models.User
 import org.example.domain.repo.EntityMapper
 import org.example.utils.HashPassword
+import org.example.utils.now
 import java.io.File
 
 object UserMapper : EntityMapper<UserEntity, User, String> {
@@ -19,7 +21,9 @@ object UserMapper : EntityMapper<UserEntity, User, String> {
             password = entity.password,
             active = entity.active,
             roleId = entity.role.id.value,
-            avatar = entity.avatar
+            avatar = entity.avatar,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt
         )
     }
 
@@ -35,6 +39,8 @@ object UserMapper : EntityMapper<UserEntity, User, String> {
         entity.role = RoleEntity[model.roleId]
         entity.avatar = userAvatar
         entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"
+        entity.createdAt = LocalDateTime.now()
+        entity.updatedAt = LocalDateTime.now()
 
         return entity
     }

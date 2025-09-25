@@ -3,6 +3,7 @@ package org.example.controllers.frontend
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import org.example.plugins.AuthSession
@@ -15,7 +16,7 @@ class RootController(private val userService: UserService, private val roleServi
             val session = call.sessions.get<AuthSession>()
 
             if (session == null) {
-                call.respondRedirect("/signin")
+                call.respondRedirect("/ecommerce")
                 return@get
             }
 
@@ -25,8 +26,11 @@ class RootController(private val userService: UserService, private val roleServi
 
             when (role) {
                 "admin" -> call.respondRedirect("/admin/dashboard")
-                "customer" -> call.respondRedirect("/customer/home")
-                else -> call.respondRedirect("/signin") // Handle unknown roles
+                "customer" -> call.respondRedirect("/ecommerce/home")
+                else -> {
+                    call.sessions.clear<AuthSession>()
+                    call.respondRedirect("/ecommerce")
+                }
             }
         }
     }

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ecommerce/layouts/main.html}">
+<body>
+<div layout:fragment="content" class="flex column min-h-screen">
+    <!--  Appbar  -->
+    <header th:replace="~{ecommerce/components/header :: header}">Default header</header>
+    <!--  Content  -->
+    <main id="page-content">
+<!--        Home Page (default)-->
+        <section id="home-page" class="page-content">
+            <!-- Hero Section -->
+            <div class="hero">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <span class="hero-badge">Handcrafted Excellence</span>
+                        <h1 class="hero-title">Timeless <span>Traditional</span> Interiors</h1>
+                        <p class="hero-description">Discover our curated collection of rustic beds, traditional tables, handcrafted chairs, and authentic wooden sinks. Each piece tells a story of craftsmanship and heritage.</p>
+                        <div class="hero-cta">
+                            <a href="#" class="btn btn-primary">Explore Collection</a>
+                            <a href="#" class="btn btn-secondary">Custom Orders</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Showcase -->
+            <div class="category-showcase">
+                <h2 class="section-title">Our Collections</h2>
+                <div class="categories-grid">
+                    <div class="category-card">
+                        <div class="category-image">
+                            <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Traditional Beds">
+                        </div>
+                        <div class="category-info">
+                            <h3 class="category-name">Traditional Beds</h3>
+                            <p class="category-count">24 unique designs</p>
+                        </div>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-image">
+                            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1758&q=80" alt="Rustic Tables">
+                        </div>
+                        <div class="category-info">
+                            <h3 class="category-name">Rustic Tables</h3>
+                            <p class="category-count">18 handcrafted pieces</p>
+                        </div>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-image">
+                            <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Handcrafted Chairs">
+                        </div>
+                        <div class="category-info">
+                            <h3 class="category-name">Handcrafted Chairs</h3>
+                            <p class="category-count">32 seating options</p>
+                        </div>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-image">
+                            <img th:src="@{/resources/images/woodenSink.jpg}" alt="wooden sink">
+                        </div>
+                        <div class="category-info">
+                            <h3 class="category-name">Wooden Sinks</h3>
+                            <p class="category-count">12 artisan creations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features">
+                <div class="features-container">
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-hammer"></i>
+                            </div>
+                            <h3 class="feature-title">Handcrafted Quality</h3>
+                            <p class="feature-description">Each piece is meticulously crafted by skilled artisans using traditional techniques.</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <h3 class="feature-title">Sustainable Materials</h3>
+                            <p class="feature-description">We source our wood responsibly, ensuring minimal environmental impact.</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h3 class="feature-title">White-Glove Delivery</h3>
+                            <p class="feature-description">Professional delivery and setup included with all large furniture purchases.</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h3 class="feature-title">Heirloom Guarantee</h3>
+                            <p class="feature-description">Our furniture is built to last generations, backed by our lifetime warranty.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<!--            <div class="products-grid">-->
+                <!-- Product cards will be dynamically loaded here -->
+<!--            </div>-->
+        </section>
+
+<!--    Furniture    -->
+        <section id="furniture-page" class="page-content" style="display: none;">
+            <h1 class="page-title">Furniture Collection</h1>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem; font-size: 1.1rem;">
+                Our furniture collection features handcrafted pieces made from sustainably sourced wood,
+                designed to bring warmth and character to your home.
+            </p>
+
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">All Furniture</button>
+                <button class="filter-btn" data-category="beds">Beds</button>
+                <button class="filter-btn" data-category="tables">Tables</button>
+                <button class="filter-btn" data-category="chairs">Chairs</button>
+                <button class="filter-btn" data-category="cabinets">Cabinets</button>
+            </div>
+
+            <div class="products-grid">
+                <!-- Furniture products will be dynamically loaded here -->
+            </div>
+        </section>
+
+
+        <!-- Lighting Page -->
+        <section id="lighting-page" class="page-content" style="display: none;">
+            <h1 class="page-title">Lighting Collection</h1>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem; font-size: 1.1rem;">
+                Illuminate your space with our artisan-crafted lighting fixtures, blending traditional design with modern functionality.
+            </p>
+
+            <div class="products-grid">
+                <!-- Lighting products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Decor Page -->
+        <section id="decor-page" class="page-content" style="display: none;">
+            <h1 class="page-title">Home Decor</h1>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem; font-size: 1.1rem;">
+                Complete your traditional interior with our selection of handcrafted decor items, from wall art to textiles.
+            </p>
+
+            <div class="products-grid">
+                <!-- Decor products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Kitchen & Bath Page -->
+        <section id="kitchen-bath-page" class="page-content" style="display: none;">
+            <h1 class="page-title">Kitchen & Bath</h1>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem; font-size: 1.1rem;">
+                Functional and beautiful solutions for your kitchen and bathroom, featuring handcrafted wooden sinks and custom cabinetry.
+            </p>
+
+            <div class="products-grid">
+                <!-- Kitchen & Bath products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Sale Page -->
+        <section id="sale-page" class="page-content" style="display: none;">
+            <div class="sale-banner">
+                <h2>End of Season Sale</h2>
+                <p>Up to 40% off selected items - Limited time only!</p>
+                <button class="btn-submit" style="width: auto; display: inline-block; padding: 0.8rem 1.5rem;">Shop Sale Items</button>
+            </div>
+
+            <h1 class="page-title">Sale Items</h1>
+
+            <div class="products-grid">
+                <!-- Sale products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Custom Orders Page -->
+        <section id="custom-orders-page" class="page-content" style="display: none;">
+            <h1 class="page-title">Custom Orders</h1>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem; font-size: 1.1rem;">
+                Have a specific vision for your space? Our artisans can create custom pieces tailored to your needs and preferences.
+            </p>
+
+            <div class="custom-order-form">
+                <form id="custom-order-form">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="product-type">Type of Product</label>
+                        <select id="product-type" required>
+                            <option value="">Select a product type</option>
+                            <option value="furniture">Furniture</option>
+                            <option value="lighting">Lighting</option>
+                            <option value="decor">Decor</option>
+                            <option value="kitchen-bath">Kitchen & Bath</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Project Description</label>
+                        <textarea id="description" placeholder="Please describe your custom order requirements, including dimensions, materials, and any specific design elements..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget">Budget Range</label>
+                        <select id="budget" required>
+                            <option value="">Select a budget range</option>
+                            <option value="under-500">Under $500</option>
+                            <option value="500-1000">$500 - $1,000</option>
+                            <option value="1000-2500">$1,000 - $2,500</option>
+                            <option value="2500-5000">$2,500 - $5,000</option>
+                            <option value="over-5000">Over $5,000</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Submit Custom Order Request</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!--  Chatbot float  -->
+    <div th:replace="~{ecommerce/components/chatbot :: chatbot}">Default chatbot</div>
+    <!-- Footer   -->
+    <footer th:replace="~{ecommerce/components/footer :: footer}">Default footer content</footer>
+</div>
+</body>
+</html>

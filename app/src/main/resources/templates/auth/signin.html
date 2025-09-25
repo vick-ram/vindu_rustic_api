@@ -19,16 +19,16 @@
                         </div>
 
                         <!-- Login Form -->
-                        <form method="post" th:action="@{/signin}">
+                        <form method="post" th:action="@{/signin}" class="mb-3">
                             <div class="form-group">
                                 <label for="email" class="label">Email</label>
-                                <input type="text" class="py-2" id="email" name="email"
+                                <input type="text" class="py-2" id="email" name="email" required
                                        placeholder="Enter your email">
                             </div>
                             <div class="form-group">
                                 <label for="password">Password</label>
                                 <div class="password-container">
-                                    <input type="password" class="py-2" id="password" name="password"
+                                    <input type="password" class="py-2" id="password" name="password" required
                                            placeholder="Enter your password">
                                     <button type="button" class="toggle-password"
                                             aria-label="Toggle password visibility">
@@ -36,7 +36,7 @@
                                     </button>
                                 </div>
                                 <div class="text-end mt-2">
-                                    <a href="#" class="text-decoration-none small">Forgot password?</a>
+                                    <a th:href="@{/forgot-password}" class="text-decoration-none small">Forgot password?</a>
                                 </div>
                             </div>
                             <button type="submit" class="btn w-full py-2 font-bold">

@@ -154,7 +154,7 @@ object SpecialOfferMapper : EntityMapper<SpecialOfferEntity, SpecialOffer, Strin
         val products = entity.products
             .map { productEntity ->
                 ProductMapper.toModel(productEntity)
-            }
+            }.map { it.id }
 
         return SpecialOffer(
             id = entity.id.value,

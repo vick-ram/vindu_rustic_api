@@ -17,9 +17,9 @@ object TsVectorManager {
             val weightExpression = config.searchColumns.joinToString(" || \n") { column ->
                 val weight = config.weights[column] ?: "D"
                 val expr = if (config.enumColumns.contains(column)) {
-                    "coalesce($column::text, '')"
+                    "coalesce(New.$column::text, '')"
                 } else {
-                    "coalesce($column, '')"
+                    "coalesce(New.$column, '')"
                 }
                 "setweight(to_tsvector('${config.language}', $expr), '$weight')"
 //                "setweight(to_tsvector('${config.language}', coalesce(new.$column, '')), '$weight')"

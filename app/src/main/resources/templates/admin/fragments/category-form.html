@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+    <th:block th:fragment="categoryForm">
+        <form method="post" th:action="@{/admin/products/categories}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="categoryName" id="name"/>
+            </div>
+
+            <div class="form-group">
+                <label for="slug">Slug</label>
+                <input type="text" name="categorySlug" id="slug"/>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Image</label>
+                <input type="file" name="categoryImage" id="image">
+            </div>
+
+            <button class="btn w-full" type="submit">Save</button>
+        </form>
+    </th:block>
+</body>
+</html>

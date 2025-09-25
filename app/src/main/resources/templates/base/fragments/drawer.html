@@ -35,7 +35,7 @@
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
   <body>
     <div
-      th:fragment="drawer(position, width, height, title)"
+      th:fragment="drawer(position, width, height, title, content)"
       th:id="${position} + '-drawer'"
       class="drawer-container"
       th:attr="data-position=${position},
@@ -62,9 +62,9 @@
 
         <!-- Drawer body -->
          <div class="drawer-body">
-                <div>
+                <th:block th:replace="${content}">
                     <p>Loading content for drawer...</p>
-                </div>
+                </th:block>
             </div>
       </div>
     </div>

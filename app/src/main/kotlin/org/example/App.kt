@@ -2,12 +2,10 @@ package org.example
 
 import io.ktor.client.*
 import io.ktor.server.application.*
-import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.example.di.configureDI
 import org.example.plugins.*
 import org.example.utils.RedisService

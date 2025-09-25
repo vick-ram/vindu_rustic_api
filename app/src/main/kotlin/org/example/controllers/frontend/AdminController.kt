@@ -1,18 +1,23 @@
 package org.example.controllers.frontend
 
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.thymeleaf.ThymeleafContent
 import org.example.domain.models.Category
+import org.example.domain.models.Discount
 import org.example.domain.models.Order
 import org.example.domain.models.Product
 import org.example.domain.models.ProductReview
 import org.example.domain.models.User
 import org.example.routes.requireAuth
 import org.example.services.CategoryService
+import org.example.services.DiscountService
 import org.example.services.OrderService
 import org.example.services.ProductReviewService
 import org.example.services.ProductService
@@ -25,7 +30,8 @@ class AdminController(
     private val orderService: OrderService,
     private val reviewService: ProductReviewService,
     private val categoryService: CategoryService,
-    private val productService: ProductService
+    private val productService: ProductService,
+    private val discountService: DiscountService
 ) {
     fun Route.adminRoutes() {
         route("/admin/") {
@@ -80,18 +86,24 @@ class AdminController(
                 }
 
                 route("products/") {
-                    get("categories") {
-                        val categories = categoryService.getCategories(0, 100, emptyMap())
-                        call.respond(
-                            ThymeleafContent(
-                                "admin/pages/products/categories", mapOf(
-                                    "currentPage" to "categories",
-                                    "selectable" to false,
-                                    "columns" to Category.columns,
-                                    "rows" to Category.toRow(categories)
+                    route("categories") {
+                        get {
+                            val categories = categoryService.getCategories(0, 100, emptyMap())
+                            call.respond(
+                                ThymeleafContent(
+                                    "admin/pages/products/categories", mapOf(
+                                        "currentPage" to "categories",
+                                        "selectable" to false,
+                                        "columns" to Category.columns,
+                                        "rows" to Category.toRow(categories)
+                                    )
                                 )
                             )
-                        )
+                        }
+                        post {
+                            val multipart = call.receiveMultipart()
+                            categoryService.createCategory(Category.multipartFormData(multipart))
+                        }
                     }
 
                     get("new") {
@@ -115,6 +127,23 @@ class AdminController(
                         )
                     }
 
+                    route("discount") {
+                        get {
+                            call.respond(
+                                ThymeleafContent(
+                                    "admin/pages/products/discount",
+                                    mapOf()
+                                )
+                            )
+                        }
+
+                        post {
+                            val params = call.receiveParameters()
+                            val formData = Discount.formParameters(params)
+                            discountService.createDiscount(formData)
+                        }
+                    }
+
                     get("reviews") {
                         val reviews = reviewService.getAllReviews(0, 100, emptyMap())
                         call.respond(
@@ -135,7 +164,7 @@ class AdminController(
                         ThymeleafContent(
                             "admin/pages/orders/index", mapOf(
                                 "currentPage" to "orders",
-                                "columns" to User.columns,
+                                "columns" to Order.columns,
                                 "rows" to Order.toRows(orders),
                                 "selectable" to true,
                                 "emptyText" to "No orders found"
