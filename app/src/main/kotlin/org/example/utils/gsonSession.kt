@@ -10,14 +10,13 @@ class GsonSessionSerializer<T>(private val gson: Gson, private val clazz: Class<
 }
 
 object Json {
-    private val gson = Gson()
 
-    internal inline fun <reified T> decodeFromString(json: String): T {
+    fun <T: Any> decodeFromString(json: String): T {
         val type = object : TypeToken<T>() {}.type
-        return gson.fromJson(json, type)
+        return GsonFactory.gson.fromJson(json, type)
     }
 
-    fun encodeToString(src: Any): String {
-        return gson.toJson(src)
+    fun <T> encodeToString(src: T): String {
+        return GsonFactory.gson.toJson(src)
     }
 }

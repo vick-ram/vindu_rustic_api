@@ -1,5 +1,6 @@
 package org.example.utils
 
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
@@ -21,7 +22,7 @@ class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<Loc
         p0: LocalDateTime,
         p1: Type?,
         p2: JsonSerializationContext?
-    ): JsonElement? {
+    ): JsonElement {
         return JsonPrimitive(formatter.format(p0))
     }
 
@@ -29,7 +30,7 @@ class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<Loc
         p0: JsonElement,
         p1: Type?,
         p2: JsonDeserializationContext?
-    ): LocalDateTime? {
+    ): LocalDateTime {
         try {
             val dateString = p0.asString
             return formatter.parse(dateString)
@@ -46,7 +47,7 @@ class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> 
         p0: LocalDate,
         p1: Type?,
         p2: JsonSerializationContext?
-    ): JsonElement? {
+    ): JsonElement {
         return JsonPrimitive(formatter.format(p0))
     }
 
@@ -54,7 +55,7 @@ class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> 
         p0: JsonElement?,
         p1: Type?,
         p2: JsonDeserializationContext?
-    ): LocalDate? {
+    ): LocalDate {
         try {
             val dateString = p0?.asString!!
             return formatter.parse(dateString)
@@ -69,7 +70,7 @@ class BigDecimalAdapter : JsonSerializer<BigDecimal>, JsonDeserializer<BigDecima
         p0: BigDecimal?,
         p1: Type?,
         p2: JsonSerializationContext?
-    ): JsonElement? {
+    ): JsonElement {
         return JsonPrimitive(p0?.toPlainString())
     }
 
@@ -77,12 +78,43 @@ class BigDecimalAdapter : JsonSerializer<BigDecimal>, JsonDeserializer<BigDecima
         p0: JsonElement?,
         p1: Type?,
         p2: JsonDeserializationContext?
-    ): BigDecimal? {
+    ): BigDecimal {
         return BigDecimal(p0?.asString)
     }
 }
 
+class MapTypeAdapter : JsonDeserializer<Map<String, Any>>, JsonSerializer<Map<String, Any>> {
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Map<String, Any> {
+        return json.asJsonObject.entrySet().associate { (key, value) ->
+            key to when {
+                value.isJsonPrimitive -> value.asJsonPrimitive.let { primitive ->
+                    when {
+                        primitive.isBoolean -> primitive.asBoolean
+                        primitive.isNumber -> {
+                            val num = primitive.asNumber
+                            // Try to preserve integer types
+                            if (num.toDouble() == num.toLong().toDouble()) num.toLong() else num.toDouble()
+                        }
+                        else -> primitive.asString
+                    }
+                }
+                value.isJsonObject -> context.deserialize<Map<String, Any>>(value, MAP_TYPE)
+                value.isJsonArray -> context.deserialize<List<Any>>(value, LIST_TYPE)
+                else -> null
+            }
+        }.filterValues { it != null }
+            .mapValues { it.value!! }
+    }
 
+    override fun serialize(src: Map<String, Any>, typeOfT: Type, context: JsonSerializationContext): JsonElement {
+        return context.serialize(src)
+    }
+
+    companion object {
+        private val MAP_TYPE = object : TypeToken<Map<String, Any>>() {}.type
+        private val LIST_TYPE = object : TypeToken<List<Any>>() {}.type
+    }
+}
 
 object GsonFactory {
     val gson: Gson by lazy {
@@ -91,6 +123,7 @@ object GsonFactory {
             .registerTypeAdapter(BigDecimal::class.java, BigDecimalAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
             .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
+            .registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, MapTypeAdapter())
             .create()
     }
 }

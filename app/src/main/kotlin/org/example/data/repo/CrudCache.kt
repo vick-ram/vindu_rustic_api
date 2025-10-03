@@ -3,7 +3,7 @@ package org.example.data.repo
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.example.domain.repo.CrudRepository
-import org.example.utils.GsonFactory
+import org.example.utils.Json
 import org.example.utils.RedisService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,8 +16,6 @@ class CrudCache<T: Any, ID: Any>(
     private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java),
     private val ttl: Long? = null
 ): CrudRepository<T, ID> {
-
-    private val gson = GsonFactory.gson
 
     private fun generateCacheKey(id: ID): String {
         return "$cacheName:$id"
@@ -37,7 +35,8 @@ class CrudCache<T: Any, ID: Any>(
     private suspend fun putInCache(id: ID, entity: T) {
         withRedis { commands ->
             val key = generateCacheKey(id)
-            val jsonValue = gson.toJson(entity)
+//            val jsonValue = gson.toJson(entity)
+            val jsonValue = Json.encodeToString(entity)
             if (ttl != null) {
                 commands.setex(key, ttl, jsonValue)
             } else {
@@ -53,7 +52,8 @@ class CrudCache<T: Any, ID: Any>(
             val jsonValue = commands.get(key)
             jsonValue?.let {
                 try {
-                    gson.fromJson(it, clazz)
+//                    gson.fromJson(it, clazz)
+                    Json.decodeFromString(it)
                 } catch (e: Exception) {
                     logger.error("Failed to deserialize cached entity for ID: $id", e)
                     null

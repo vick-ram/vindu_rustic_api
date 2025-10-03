@@ -1,7 +1,14 @@
 package org.example.utils
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import io.ktor.util.*
+import org.example.plugins.AuthSession
 
 enum class AuthType { NONE, SESSION, JWT, ANY }
 
@@ -15,7 +22,6 @@ data class DynamicRouteConfig(
     val version: String? = null,
     val requiresAuth: Boolean = false,
     val authType: AuthType = AuthType.NONE,
-    val requiredPermissions: Set<String> = emptySet(),
     val metadata: Map<String, Any> = emptyMap()
 )
 
@@ -23,7 +29,6 @@ data class RouteGroupConfig(
     val prefix: String,
     val requiresAuth: Boolean = false,
     val authType: AuthType = AuthType.NONE,
-    val commonPermissions: Set<String> = emptySet(),
     val version: String? = null,
     val metadata: Map<String, Any> = emptyMap()
 )
@@ -40,6 +45,14 @@ class DynamicRouteFactory {
 
     // Register a single route
     fun addRoute(config: DynamicRouteConfig) {
+        val conflict = dynamicRoutes.find { existing ->
+            existing.path == config.path && existing.methods.any { it in config.methods }
+        }
+
+        if (conflict != null) {
+            throw IllegalArgumentException("Route conflict: ${config.path} with methods ${config.methods}")
+        }
+
         dynamicRoutes.add(config)
     }
 
@@ -52,16 +65,15 @@ class DynamicRouteFactory {
     fun registerGroup(name: String, config: RouteGroupConfig, routes: List<DynamicRouteConfig>) {
         routeGroups[name] = config
         routes.forEach { route ->
-            val fullPath = if (config.prefix.isNotEmpty()) {
-                "${config.prefix}${route.path}"
-            } else {
-                route.path
+            val fullPath = buildString {
+                if (config.prefix.isNotEmpty()) append(config.prefix)
+                if (!route.version.isNullOrEmpty()) append("/v${route.version}")
+                append(route.path)
             }
 
             val enhancedConfig = route.copy(
                 path = fullPath,
                 requiresAuth = config.requiresAuth || route.requiresAuth,
-                requiredPermissions = config.commonPermissions + route.requiredPermissions,
                 version = route.version ?: config.version
             )
 
@@ -81,15 +93,16 @@ class DynamicRouteFactory {
 
     fun registerRoutes(routing: Routing) {
         dynamicRoutes.forEach { config ->
+            val wrapHandler = wrapHandler(config)
             config.methods.forEach { method ->
                 when (method) {
-                    HttpMethodType.GET -> routing.get(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.POST -> routing.post(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.PUT -> routing.put(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.PATCH -> routing.patch(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.DELETE -> routing.delete(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.HEAD -> routing.head(config.path, config.handler).apply { applyRouteMetadata(config) }
-                    HttpMethodType.OPTIONS -> routing.options(config.path, config.handler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.GET -> routing.get(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.POST -> routing.post(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.PUT -> routing.put(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.PATCH -> routing.patch(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.DELETE -> routing.delete(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.HEAD -> routing.head(config.path, wrapHandler).apply { applyRouteMetadata(config) }
+                    HttpMethodType.OPTIONS -> routing.options(config.path, wrapHandler).apply { applyRouteMetadata(config) }
                 }
             }
         }
@@ -99,10 +112,54 @@ class DynamicRouteFactory {
         attributes.put(RouteMetadataKey, config)
     }
 
-    fun findRoute(path: String): DynamicRouteConfig? {
-        return dynamicRoutes.find { it.path == path }
+    fun findRoute(path: String, method: HttpMethodType): DynamicRouteConfig? {
+        return dynamicRoutes.find { config ->
+            config.methods.contains(method) && pathMatchesRoute(path, config.path)
+        }
     }
 
     fun getAllRoutes(): List<DynamicRouteConfig> =dynamicRoutes.toList()
 
+    private fun pathMatchesRoute(requestPath: String, routePath: String): Boolean {
+        val regexPattern = routePath
+            .replace(Regex("\\{.*?}"), "[^/]+") // Convert {param} to wildcard
+            .let { $$"^$$it$" }
+
+        return Regex(regexPattern).matches(requestPath)
+    }
+
+    private fun wrapHandler(config: DynamicRouteConfig): suspend RoutingContext.() -> Unit {
+        return handler@ {
+            if (config.requiresAuth) {
+                when (config.authType) {
+                    AuthType.SESSION -> {
+                        val session = call.sessions.get<AuthSession>()
+                        if (session == null) {
+                            call.respond(HttpStatusCode.Unauthorized, "Session required")
+                            return@handler
+                        }
+                    }
+                    AuthType.JWT -> {
+                        val principal = call.principal<JWTPrincipal>()
+                        if (principal == null) {
+                            call.respond(HttpStatusCode.Unauthorized, "JWT required")
+                            return@handler
+                        }
+                    }
+                    AuthType.ANY -> {
+                        val session = call.sessions.get<AuthSession>()
+                        val principal = call.principal<JWTPrincipal>()
+                        if (session == null && principal == null) {
+                            call.respond(HttpStatusCode.Unauthorized, "Auth required")
+                            return@handler
+                        }
+                    }
+                    else -> {}
+                }
+            }
+            config.handler(this)
+        }
+    }
 }
+
+

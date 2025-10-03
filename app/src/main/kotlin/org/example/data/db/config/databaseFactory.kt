@@ -10,6 +10,7 @@ import org.example.domain.models.OfferType
 import org.example.domain.models.OrderStatus
 import org.example.domain.models.PaymentMethod
 import org.example.domain.models.PaymentStatus
+import org.example.utils.DatabaseConfig
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -25,24 +26,6 @@ object DatabaseFactory {
         datasource.close()
     }
 }
-
-data class DatabaseConfig(
-    val dbPort: Int,
-    val driver: String,
-    val dbName: String,
-    val user: String,
-    val password: String,
-    val poolSize: Int = 10,
-    val connectionTimeout: Long = 30000,
-    val idleTimeout: Long = 600000,
-    val maxLifetime: Long = 1800000,
-    val minimumIdle: Int = 5,
-    val leakDetectionThreshold: Long = 60000,
-    val cachePrepStmts: Boolean = true,
-    val prepStmtCacheSize: Int = 250,
-    val prepStmtCacheSqlLimit: Int = 2048,
-    val useServerPrepStmts: Boolean = true
-)
 
 fun hikariDataSource(config: DatabaseConfig): HikariDataSource {
     val hikariConfig = HikariConfig().apply {

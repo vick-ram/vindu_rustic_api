@@ -3,26 +3,33 @@ package org.example.domain.models
 import kotlinx.datetime.LocalDateTime
 import org.example.domain.validations.Validations
 import org.example.utils.now
+import org.example.utils.shortUUID
 import org.example.utils.toCustomFormat
 import java.io.Serializable
 import java.math.BigDecimal
 
 data class Cart(
-    val id: String,
+    val id: String = shortUUID(),
     val userId: String,
     val items: List<CartItem> = emptyList(),
-    val totalQuantity: Int,
-    val totalPrice: BigDecimal,
+    val totalQuantity: Int = 0,
+    val totalPrice: BigDecimal = BigDecimal.ZERO,
     val discount: Discount? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+) {
+    val quantity: Int
+        get() = items.sumOf { it.quantity }
+
+    val total: BigDecimal
+        get() = items.sumOf { it.total } - (discount?.value ?: BigDecimal.ZERO)
+}
 
 data class CartItem(
-    val id: String,
+    val id: String = shortUUID(),
     val cartId: String,
     val productId: String,
-    val quantity: Int,
+    var quantity: Int,
     val unitPrice: BigDecimal,
     val addedAt: LocalDateTime = LocalDateTime.now()
 ) {

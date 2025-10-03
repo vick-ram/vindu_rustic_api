@@ -10,8 +10,10 @@ import org.example.data.db.entities.UserEntity
 import org.example.data.mappers.ProductMapper
 import org.example.data.mappers.UserMapper
 import org.example.domain.validations.Validations
+import org.example.plugins.BadRequestException
 import org.example.plugins.NotFoundException
 import org.example.plugins.ValidationException
+import org.example.utils.Json
 import org.example.utils.now
 import org.example.utils.saveMedia
 import org.example.utils.shortUUID
@@ -37,18 +39,6 @@ data class Product(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun validate(): Product {
-        Validations.validateAll(
-            { Validations.validateNonEmpty(name, "Product name") },
-            { Validations.validateMaxLength(description, 500, "Product description") },
-            { Validations.validateMaxLength(shortDescription, 120, "Short description") },
-            { if (basePrice < BigDecimal.ZERO) throw ValidationException("Price cannot be negative") },
-            { if (stock.available < 0) throw ValidationException("Stock cannot be negative") },
-            { dimensions?.forEach { it.validate() } }
-        )
-        return this
-    }
-
     companion object {
         val columns: List<Map<String, Any>> = listOf(
             mapOf("id" to "id", "label" to "id")
@@ -122,14 +112,6 @@ data class Category(
     }
 
     companion object {
-        fun formParameters(parameters: Parameters): Category {
-            val name = parameters["name"].toString()
-            val slug = parameters["slug"].toString()
-            val description = parameters["description"].toString()
-            val image = parameters["image"].toString()
-
-            return Category(name = name, slug = slug, description = description, imageUrl = image)
-        }
 
         suspend fun multipartFormData(multipart: MultiPartData): Category {
             var name: String? = null
@@ -392,6 +374,41 @@ data class CreateProductRequest(
             { dimensions?.forEach { it.validate() } }
         )
         return this
+    }
+
+    companion object {
+        suspend fun formMultipart(multipart: MultiPartData, mediaFiles: MutableList<PartData.FileItem>): CreateProductRequest {
+            var createRequest: CreateProductRequest? = null
+
+            multipart.forEachPart { part ->
+                when (part) {
+                    is PartData.FormItem -> {
+                        when (part.name) {
+                            "name" -> createRequest = (createRequest ?: CreateProductRequest()).copy(name = part.value)
+                            "description" -> createRequest = createRequest?.copy(description = part.value) ?: CreateProductRequest(description = part.value)
+                            "shortDescription" -> createRequest = createRequest?.copy(shortDescription = part.value) ?: CreateProductRequest(shortDescription = part.value)
+                            "basePrice" -> createRequest = createRequest?.copy(basePrice = part.value.toBigDecimal()) ?: CreateProductRequest(basePrice = part.value.toBigDecimal())
+                            "categoryId" -> createRequest = createRequest?.copy(categoryId = part.value) ?: CreateProductRequest(categoryId = part.value)
+                            "availableStock" -> createRequest = createRequest?.copy(availableStock = part.value.toInt()) ?: CreateProductRequest(availableStock = part.value.toInt())
+                            "lowStockThreshold" -> createRequest = createRequest?.copy(lowStockThreshold = part.value.toInt()) ?: CreateProductRequest(lowStockThreshold = part.value.toInt())
+                            "dimensions" -> {
+                                val dims = Json.decodeFromString<List<Dimension>>(part.value)
+                                createRequest = (createRequest ?: CreateProductRequest()).copy(dimensions = dims)
+                            }
+                        }
+                    }
+                    is PartData.FileItem -> {
+                        if (part.name == "images") {
+                            mediaFiles.add(part)
+                        }
+                    }
+                    else -> {}
+                }
+                part.dispose()
+            }
+            val request = createRequest ?: throw BadRequestException("Product data is required")
+            return request
+        }
     }
 }
 

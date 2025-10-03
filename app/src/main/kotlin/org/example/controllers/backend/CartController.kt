@@ -1,15 +1,10 @@
 package org.example.controllers.backend
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.receive
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
 import org.example.domain.models.CartRequest
 import org.example.domain.models.RemoveFromCart
 import org.example.domain.models.UpdateCartQuantity
@@ -26,7 +21,7 @@ class CartController(
                 get {
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal?.subject
-                    val cart = cartService.getCart(userId!!)
+                    val cart = cartService.getCart(userId!!, "")
                     call.respondApi(
                         data = cart,
                         message = "User cart"
@@ -38,7 +33,7 @@ class CartController(
                         val principal = call.principal<JWTPrincipal>()
                         val userId = principal?.subject ?: ""
                         val cartRequest = call.receive<CartRequest>().validate()
-                        val newCart = cartService.addToCart(userId, cartRequest.productId, cartRequest.quantity)
+                        val newCart = cartService.addToCart(userId = userId, sessionId = "",cartRequest.productId, cartRequest.quantity)
                         call.respondApi(
                             status = HttpStatusCode.Created,
                             data = newCart,
@@ -52,7 +47,7 @@ class CartController(
                         val principal = call.principal<JWTPrincipal>()
                         val userId = principal?.subject ?: ""
                         val cartRequest = call.receive<RemoveFromCart>().validate()
-                        val res = cartService.removeFromCart(userId, cartRequest.productId)
+                        val res = cartService.removeFromCart(userId, "",cartRequest.productId)
                         call.respondApi(
                             status = HttpStatusCode.Accepted,
                             data = res,
@@ -67,7 +62,7 @@ class CartController(
                         val userId = principal?.subject ?: ""
                         val cartRequest = call.receive<UpdateCartQuantity>()
 
-                        val res = cartService.updateCartItem(userId, cartRequest.productId, cartRequest.quantity)
+                        val res = cartService.updateCartItem(userId, "",cartRequest.productId, cartRequest.quantity)
                         call.respondApi(
                             status = HttpStatusCode.Accepted,
                             data = res,
@@ -76,17 +71,17 @@ class CartController(
                     }
                 }
 
-                authenticate("auth-jwt") {
-                    post("clear") {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal?.subject ?: ""
-                        cartService.clearCart(userId)
-                        call.respondApi<Unit>(
-                            status = HttpStatusCode.NoContent,
-                            message = "Cart items cleared"
-                        )
-                    }
-                }
+//                authenticate("auth-jwt") {
+//                    post("clear") {
+//                        val principal = call.principal<JWTPrincipal>()
+//                        val userId = principal?.subject ?: ""
+//                        cartService.clearCart(userId)
+//                        call.respondApi<Unit>(
+//                            status = HttpStatusCode.NoContent,
+//                            message = "Cart items cleared"
+//                        )
+//                    }
+//                }
             }
         }
     }

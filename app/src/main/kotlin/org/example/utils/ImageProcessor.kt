@@ -17,36 +17,32 @@ import org.jetbrains.skia.Typeface
 
 class ImageProcessor {
     suspend fun resize(imageBytes: ByteArray, width: Int, height: Int): Result<ByteArray> =
-        withContext(Dispatchers.Default) {
-            safeImageOp {
-                val format = detectFormat(imageBytes)
-                val image = Image.makeFromEncoded(imageBytes)
-                val surface = Surface.makeRasterN32Premul(width, height)
-                val canvas = surface.canvas
+        safeImageOp {
+            val format = detectFormat(imageBytes)
+            val image = Image.makeFromEncoded(imageBytes)
+            val surface = Surface.makeRasterN32Premul(width, height)
+            val canvas = surface.canvas
 
-                canvas.drawImageRect(image, Rect.makeWH(width.toFloat(), height.toFloat()))
-                surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
-                    ?: throw ImageError.ProcessingFailed("Encoding failed")
-            }
+            canvas.drawImageRect(image, Rect.makeWH(width.toFloat(), height.toFloat()))
+            surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
+                ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
 
     suspend fun crop(imageBytes: ByteArray, x: Int, y: Int, width: Int, height: Int): Result<ByteArray> =
-        withContext(Dispatchers.Default) {
-            safeImageOp {
-                val format = detectFormat(imageBytes)
-                val image = Image.makeFromEncoded(imageBytes)
+        safeImageOp {
+            val format = detectFormat(imageBytes)
+            val image = Image.makeFromEncoded(imageBytes)
 
-                val surface = Surface.makeRasterN32Premul(width, height)
-                val srcRect = Rect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
-                val dstRect = Rect.makeWH(width.toFloat(), height.toFloat())
+            val surface = Surface.makeRasterN32Premul(width, height)
+            val srcRect = Rect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            val dstRect = Rect.makeWH(width.toFloat(), height.toFloat())
 
-                surface.canvas.drawImageRect(image, srcRect, dstRect)
-                surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
-                    ?: throw ImageError.ProcessingFailed("Encoding failed")
-            }
+            surface.canvas.drawImageRect(image, srcRect, dstRect)
+            surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
+                ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
 
-    suspend fun rotate(imageBytes: ByteArray, degrees: Double): Result<ByteArray> = withContext(Dispatchers.Default) {
+    suspend fun rotate(imageBytes: ByteArray, degrees: Double): Result<ByteArray> =
         safeImageOp {
             val format = detectFormat(imageBytes)
             val image = Image.makeFromEncoded(imageBytes)
@@ -60,51 +56,47 @@ class ImageProcessor {
             surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
                 ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
-    }
 
     suspend fun optimizeImage(originalImage: ByteArray, maxWidth: Int, quality: Int): Result<ByteArray> =
-        withContext(Dispatchers.Default) {
-            safeImageOp {
-                val format = detectFormat(originalImage)
-                val image = Image.makeFromEncoded(originalImage)
-                val aspectRatio = image.height.toDouble() / image.width.toDouble()
-                val newHeight = (maxWidth * aspectRatio).toInt()
+        safeImageOp {
+            val format = detectFormat(originalImage)
+            val image = Image.makeFromEncoded(originalImage)
+            val aspectRatio = image.height.toDouble() / image.width.toDouble()
+            val newHeight = (maxWidth * aspectRatio).toInt()
 
-                val surface = Surface.makeRasterN32Premul(maxWidth, newHeight)
-                val canvas = surface.canvas
-                canvas.drawImageRect(image, Rect.makeWH(maxWidth.toFloat(), newHeight.toFloat()))
+            val surface = Surface.makeRasterN32Premul(maxWidth, newHeight)
+            val canvas = surface.canvas
+            canvas.drawImageRect(image, Rect.makeWH(maxWidth.toFloat(), newHeight.toFloat()))
 
-                surface.makeImageSnapshot().encodeToData(format, quality)?.bytes
-                    ?: throw ImageError.ProcessingFailed("Encoding failed")
-            }
+            surface.makeImageSnapshot().encodeToData(format, quality)?.bytes
+                ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
 
     suspend fun addWatermark(imageBytes: ByteArray, watermarkText: String): Result<ByteArray> =
-        withContext(Dispatchers.Default) {
-            safeImageOp {
-                val format = detectFormat(imageBytes)
-                val image = Image.makeFromEncoded(imageBytes)
-                val surface = Surface.makeRasterN32Premul(image.width, image.height)
-                val canvas = surface.canvas
+        safeImageOp {
+            val format = detectFormat(imageBytes)
+            val image = Image.makeFromEncoded(imageBytes)
+            val surface = Surface.makeRasterN32Premul(image.width, image.height)
+            val canvas = surface.canvas
 
-                canvas.drawImage(image, 0f, 0f)
+            canvas.drawImage(image, 0f, 0f)
 
-                val paint = Paint().apply {
-                    color = 0x80FFFFFF.toInt() // semi-transparent white
-                }
-                // TODO
-                val font = Font(Typeface.makeEmpty(), 48f)
-
-                canvas.drawString(watermarkText, 50f, 50f, font, paint)
-                canvas.drawString(watermarkText, 150f, 150f, font, paint)
-                canvas.drawString(watermarkText, 250f, 250f, font, paint)
-
-                surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
-                    ?: throw ImageError.ProcessingFailed("Encoding failed")
+            val paint = Paint().apply {
+                color = 0x80FFFFFF.toInt() // semi-transparent white
             }
+            // TODO
+            val font = Font(Typeface.makeEmpty(), 48f)
+
+            canvas.drawString(watermarkText, 50f, 50f, font, paint)
+            canvas.drawString(watermarkText, 150f, 150f, font, paint)
+            canvas.drawString(watermarkText, 250f, 250f, font, paint)
+
+            surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
+                ?: throw ImageError.ProcessingFailed("Encoding failed")
+
         }
 
-    suspend fun standardizeImage(imageBytes: ByteArray): Result<ByteArray> = withContext(Dispatchers.Default) {
+    suspend fun standardizeImage(imageBytes: ByteArray): Result<ByteArray> =
         safeImageOp {
             val format = detectFormat(imageBytes)
             val image = Image.makeFromEncoded(imageBytes)
@@ -128,9 +120,8 @@ class ImageProcessor {
             surface.makeImageSnapshot().encodeToData(format, 90)?.bytes
                 ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
-    }
 
-    suspend fun generateBadge(text: String, badgeColor: Int): Result<ByteArray> = withContext(Dispatchers.Default) {
+    suspend fun generateBadge(text: String, badgeColor: Int): Result<ByteArray> =
         safeImageOp {
             val width = 120
             val height = 40
@@ -157,7 +148,6 @@ class ImageProcessor {
             surface.makeImageSnapshot().encodeToData(EncodedImageFormat.PNG, 100)?.bytes
                 ?: throw ImageError.ProcessingFailed("Encoding failed")
         }
-    }
 
     suspend fun validateProductImage(imageBytes: ByteArray): ValidationResult = withContext(Dispatchers.IO) {
         // Skia requires wrapping the byte array into a Data object
@@ -175,11 +165,13 @@ class ImageProcessor {
         )
     }
 
-    private inline fun safeImageOp(block: () -> ByteArray): Result<ByteArray> =
-        try {
-            Result.success(block())
-        } catch (e: Exception) {
-            Result.failure(ImageError.ProcessingFailed(e.message ?: "Unknown error"))
+    private suspend inline fun safeImageOp(crossinline block: suspend () -> ByteArray): Result<ByteArray> =
+        withContext(Dispatchers.Default) {
+            try {
+                Result.success(block())
+            } catch (e: Exception) {
+                Result.failure(ImageError.ProcessingFailed(e.message ?: "Unknown error"))
+            }
         }
 
     private fun detectFormat(bytes: ByteArray): EncodedImageFormat {

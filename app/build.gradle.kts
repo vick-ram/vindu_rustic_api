@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.json)
 
     //Webjars
     implementation(libs.ktor.server.webjars)

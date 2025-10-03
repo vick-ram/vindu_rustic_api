@@ -1,7 +1,6 @@
 package org.example.plugins
 
 import io.ktor.server.application.*
-import org.example.data.db.config.DatabaseConfig
 import org.example.data.db.config.DatabaseFactory
 import org.example.data.db.config.TsVectorManager
 import org.example.data.db.tables.AddressTable
@@ -22,6 +21,7 @@ import org.example.data.db.tables.RoleTable
 import org.example.data.db.tables.SpecialOfferProductTable
 import org.example.data.db.tables.SpecialOfferTable
 import org.example.data.db.tables.UserTable
+import org.example.utils.DatabaseConfig
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.v1.core.Table
@@ -32,29 +32,7 @@ import java.io.File
 
 const val MIGRATION_DIRECTORY = "app/src/main/resources/migrations"
 
-fun Application.configureDatabase() {
-    val dbConfig = DatabaseConfig(
-        dbPort = environment.config.property("database.port").getString().toInt(),
-        driver = environment.config.property("database.driver").getString(),
-        dbName = environment.config.property("database.db").getString(),
-        user = environment.config.property("database.user").getString(),
-        password = environment.config.property("database.password").getString(),
-        poolSize = environment.config.property("database.poolSize").getString().toInt(),
-        connectionTimeout = environment.config.propertyOrNull("database.connectionTimeout")?.getString()?.toLong()
-            ?: 30000,
-        idleTimeout = environment.config.propertyOrNull("database.idleTimeout")?.getString()?.toLong() ?: 600000,
-        maxLifetime = environment.config.propertyOrNull("database.maxLifetime")?.getString()?.toLong() ?: 1800000,
-        minimumIdle = environment.config.propertyOrNull("database.minimumIdle")?.getString()?.toInt() ?: 5,
-        leakDetectionThreshold = environment.config.propertyOrNull("database.leakDetectionThreshold")?.getString()
-            ?.toLong() ?: 60000,
-        cachePrepStmts = environment.config.propertyOrNull("database.cachePrepStmts")?.getString()?.toBoolean() ?: true,
-        prepStmtCacheSize = environment.config.propertyOrNull("database.prepStmtCacheSize")?.getString()?.toInt()
-            ?: 250,
-        prepStmtCacheSqlLimit = environment.config.propertyOrNull("database.prepStmtCacheSqlLimit")?.getString()
-            ?.toInt() ?: 2048,
-        useServerPrepStmts = environment.config.propertyOrNull("database.useServerPrepStmts")?.getString()?.toBoolean()
-            ?: true
-    )
+fun Application.configureDatabase(dbConfig: DatabaseConfig) {
 
     val tables = arrayOf(
         UserTable,
@@ -82,7 +60,6 @@ fun Application.configureDatabase() {
 
     if (this.developmentMode) {
         transaction {
-            log.info("Registered tables total: ${tables.size}")
             // Create tables if they don't exist
             SchemaUtils.create(*tables)
 

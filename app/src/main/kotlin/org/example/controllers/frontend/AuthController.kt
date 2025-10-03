@@ -8,21 +8,27 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.sessions.clear
+import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.server.thymeleaf.ThymeleafContent
 import io.ktor.util.toMap
 import kotlinx.datetime.LocalDateTime
+import org.example.domain.models.LoginCredentials
 import org.example.domain.models.User
 import org.example.plugins.AuthSession
+import org.example.plugins.CartSession
+import org.example.services.CartService
 import org.example.services.RoleService
 import org.example.services.UserService
 import org.example.utils.now
+import org.example.utils.shortUUID
 import kotlin.text.toIntOrNull
 
 class AuthController(
     private val userService: UserService,
-    private val roleService: RoleService
+    private val roleService: RoleService,
+    private val cartService: CartService
 ) {
 
     fun Route.authRoutes() {
@@ -60,13 +66,28 @@ class AuthController(
             }
             post {
                 val params = call.receiveParameters()
-                val email = params["email"].toString()
-                val password = params["password"].toString()
+                val credentials = LoginCredentials.formParameters(params)
                 val redirectUrl = params["redirectUrl"] ?: "/"
-                val user = userService.authenticate(email, password)
+                val user = userService.authenticate(credentials.email, credentials.password)
+
+                val cartSession = call.sessions.get<CartSession>()
+
+                // Merge if session cart exists and has items
+                if (cartSession != null && cartSession.items.isNotEmpty()) {
+                    cartService.mergeCarts(cartSession, user?.id.toString())
+                }
+
+                // Create new authenticated cart session
+                val newCartSession = CartSession(
+                    sessionId = cartSession?.sessionId ?: shortUUID(),
+                    userId = user?.id
+                )
 
                 if (user != null) {
                     call.sessions.set(AuthSession(user.id, user.email, System.currentTimeMillis()))
+
+                    // Cart session
+                    call.sessions.set(newCartSession)
 
                     // Determine where to redirect based on role
                     val role = user.roleId.let { roleService.getRole(it) }?.name
@@ -87,7 +108,9 @@ class AuthController(
         }
 
         post("/logout") {
+            val cartSession = call.sessions.get<CartSession>()
             call.sessions.clear<AuthSession>()
+            call.sessions.set(cartSession?.copy(userId = null)) // keep cart for guest
             call.respondRedirect("/ecommerce")
         }
     }

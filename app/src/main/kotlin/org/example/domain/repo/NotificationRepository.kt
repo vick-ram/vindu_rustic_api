@@ -1,7 +1,13 @@
 package org.example.domain.repo
 
-import org.example.domain.models.Notification
+import org.example.domain.models.AppNotification
+import org.example.domain.models.DeviceToken
 
 interface NotificationRepository {
-    suspend fun send(notification: Notification)
+    suspend fun send(appNotification: AppNotification)
 }
+
+interface DeviceTokenRepository : CrudRepository<DeviceToken, String> {
+    suspend fun findUserDeviceTokens(userId: String): List<DeviceToken>
+}
+

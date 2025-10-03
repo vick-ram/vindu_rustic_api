@@ -18,41 +18,10 @@ class ProductController(private val productService: ProductService) {
         route("/products/") {
             post {
                 val multipart = call.receiveMultipart()
-                var createRequest: CreateProductRequest? = null
-                val mediaFiles = mutableListOf<PartData.FileItem>()
-
-                multipart.forEachPart { part ->
-                    when (part) {
-                        is PartData.FormItem -> {
-                            when (part.name) {
-                                "name" -> createRequest = (createRequest ?: CreateProductRequest()).copy(name = part.value)
-                                "description" -> createRequest = createRequest?.copy(description = part.value) ?: CreateProductRequest(description = part.value)
-                                "shortDescription" -> createRequest = createRequest?.copy(shortDescription = part.value) ?: CreateProductRequest(shortDescription = part.value)
-                                "basePrice" -> createRequest = createRequest?.copy(basePrice = part.value.toBigDecimal()) ?: CreateProductRequest(basePrice = part.value.toBigDecimal())
-                                "categoryId" -> createRequest = createRequest?.copy(categoryId = part.value) ?: CreateProductRequest(categoryId = part.value)
-                                "availableStock" -> createRequest = createRequest?.copy(availableStock = part.value.toInt()) ?: CreateProductRequest(availableStock = part.value.toInt())
-                                "lowStockThreshold" -> createRequest = createRequest?.copy(lowStockThreshold = part.value.toInt()) ?: CreateProductRequest(lowStockThreshold = part.value.toInt())
-                                "dimensions" -> {
-                                    val dims = Json.decodeFromString<List<Dimension>>(part.value)
-                                    createRequest = (createRequest ?: CreateProductRequest()).copy(dimensions = dims)
-                                }
-                            }
-                        }
-
-                        is PartData.FileItem -> {
-                            if (part.name == "images") {
-                                mediaFiles.add(part)
-                            }
-                        }
-
-                        else -> {}
-                    }
-                    part.dispose()
-                }
-
-                val request = createRequest ?: throw BadRequestException("Product data is required")
+                val mediaFiles: MutableList<PartData.FileItem> = mutableListOf()
+                val request = CreateProductRequest.formMultipart(multipart, mediaFiles)
                 try {
-                    val product = productService.createProduct(request, mediaFiles.ifEmpty { null })
+                    val product = productService.createProduct(request, mediaFiles)
                     call.respondApi(
                         status = HttpStatusCode.Created,
                         data = product,

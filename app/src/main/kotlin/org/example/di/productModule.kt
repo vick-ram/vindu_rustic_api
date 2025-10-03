@@ -9,22 +9,26 @@ import org.example.data.mappers.DiscountMapper
 import org.example.data.mappers.MediaMapper
 import org.example.data.mappers.ProductMapper
 import org.example.data.mappers.ProductReviewMapper
+import org.example.data.mappers.SpecialOfferMapper
 import org.example.data.repo.CategoryRepositoryImpl
 import org.example.data.repo.CrudCache
 import org.example.data.repo.DiscountRepositoryImpl
 import org.example.data.repo.MediaRepositoryImpl
 import org.example.data.repo.ProductRepositoryImpl
 import org.example.data.repo.ProductReviewRepositoryImpl
+import org.example.data.repo.SpecialOfferRepositoryImpl
 import org.example.domain.models.Category
 import org.example.domain.models.Discount
 import org.example.domain.models.Media
 import org.example.domain.models.Product
 import org.example.domain.models.ProductReview
+import org.example.domain.models.SpecialOffer
 import org.example.domain.repo.*
 import org.example.services.CategoryService
 import org.example.services.DiscountService
 import org.example.services.ProductReviewService
 import org.example.services.ProductService
+import org.example.services.SpecialOfferService
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -34,6 +38,7 @@ val productModule = module {
     single { ProductReviewMapper }
     single { DiscountMapper }
     single { MediaMapper }
+    single { SpecialOfferMapper }
 
     single<CrudRepository<Category, String>>(named("categoryReal")) { CategoryRepositoryImpl(get()) }
     single<CategoryRepository>(named("categoryReal")) { get<CrudRepository<Category, String>>(named("categoryReal")) as CategoryRepository }
@@ -45,6 +50,8 @@ val productModule = module {
     single<DiscountRepository>(named("discountReal")) { get<CrudRepository<Discount, String>>(named("discountReal")) as DiscountRepository }
     single<CrudRepository<Media, String>>(named("mediaReal")) { MediaRepositoryImpl(get()) }
     single<MediaRepository>(named("mediaReal")) { get<CrudRepository<Media, String>>(named("mediaReal")) as MediaRepository }
+    single<CrudRepository<SpecialOffer, String>>(named("specialOfferReal")) { SpecialOfferRepositoryImpl(get()) }
+    single<SpecialOfferRepository>(named("specialOfferReal")) { get<CrudRepository<SpecialOffer, String>>(named("specialOfferReal")) as SpecialOfferRepository }
 
     single<CrudRepository<Category, String>>(named("categoryCache")) {
         CrudCache(
@@ -86,6 +93,14 @@ val productModule = module {
             cacheName = "media-cache"
         )
     }
+    single<CrudRepository<SpecialOffer, String>>(named("specialOfferCache")) {
+        CrudCache(
+            delegate = get(named("specialOfferReal")),
+            clazz = SpecialOffer::class.java,
+            getId = { it.id },
+            cacheName = "special-offer-cache"
+        )
+    }
 
     single<CategoryRepository> {
         CachedCategory(
@@ -111,6 +126,12 @@ val productModule = module {
             cache = get(named("discountCache"))
         )
     }
+    single<SpecialOfferRepository> {
+        CachedSpecialOfferRepository(
+            delegate = get(named("specialOfferReal")),
+            cache = get(named("specialOfferCache"))
+        )
+    }
 
     single { CategoryService(get()) }
     single { CategoryController(get()) }
@@ -120,4 +141,5 @@ val productModule = module {
     single { ProductReviewController(get()) }
     single { DiscountService(get()) }
     single { DiscountController(get()) }
+    single { SpecialOfferService(get()) }
 }

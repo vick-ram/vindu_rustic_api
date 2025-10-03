@@ -1,5 +1,6 @@
 package org.example.controllers.frontend
 
+import io.ktor.http.content.PartData
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
@@ -10,11 +11,14 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.thymeleaf.ThymeleafContent
 import org.example.domain.models.Category
+import org.example.domain.models.CreateProductRequest
 import org.example.domain.models.Discount
 import org.example.domain.models.Order
 import org.example.domain.models.Product
 import org.example.domain.models.ProductReview
+import org.example.domain.models.SpecialOffer
 import org.example.domain.models.User
+import org.example.domain.repo.SpecialOfferRepository
 import org.example.routes.requireAuth
 import org.example.services.CategoryService
 import org.example.services.DiscountService
@@ -22,6 +26,7 @@ import org.example.services.OrderService
 import org.example.services.ProductReviewService
 import org.example.services.ProductService
 import org.example.services.RoleService
+import org.example.services.SpecialOfferService
 import org.example.services.UserService
 
 class AdminController(
@@ -31,11 +36,12 @@ class AdminController(
     private val reviewService: ProductReviewService,
     private val categoryService: CategoryService,
     private val productService: ProductService,
-    private val discountService: DiscountService
+    private val discountService: DiscountService,
+    private val specialOfferService: SpecialOfferService
 ) {
     fun Route.adminRoutes() {
         route("/admin/") {
-            requireAuth("admin", userService, roleService) {
+//            requireAuth("admin", userService, roleService) {
                 // Redirect
                 get {
                     call.respondRedirect("admin/dashboard")
@@ -114,6 +120,15 @@ class AdminController(
                         )
                     }
 
+                    post {
+                        val productMultipart = call.receiveMultipart()
+                        val mediaFiles: MutableList<PartData.FileItem> = mutableListOf()
+                        val requestData = CreateProductRequest.formMultipart(productMultipart, mediaFiles).validate()
+                        productService.createProduct(requestData, mediaFiles)
+
+                        call.respondRedirect("/admin/products/list")
+                    }
+
                     get("list") {
                         call.respond(
                             ThymeleafContent(
@@ -156,6 +171,14 @@ class AdminController(
                                 )
                             )
                         )
+                    }
+
+                    route("offer") {
+                        post {
+                            val params = call.receiveParameters()
+                            val requestData = SpecialOffer.formParameters(params).validate()
+                            specialOfferService.createSpecialOffer(requestData)
+                        }
                     }
                 }
                 get("orders") {
@@ -212,7 +235,7 @@ class AdminController(
                         )
                     )
                 }
-            }
+//            }
         }
     }
 }

@@ -44,7 +44,7 @@ data class Role(
     val description: String? = null,
 ) {
     fun validate(): Role {
-        Validations.validateNonEmpty(name, "Role name cannot be blank.")
+        Validations.validateNonEmpty(name, "Role name")
         return this
     }
 }
@@ -70,7 +70,7 @@ data class User(
     val avatar: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
-) : Serializable {
+) {
 
     fun validate(): User {
         Validations.validateAll(

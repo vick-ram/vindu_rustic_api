@@ -25,7 +25,7 @@ class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepo
     override suspend fun createProduct(
         request: CreateProductRequest,
         mediaFiles: List<PartData.FileItem>?
-    ): Product? {
+    ): Product {
         // Create dimension if provided
         val dimensions =
             request.dimensions?.map { dimension ->
@@ -67,7 +67,7 @@ class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepo
             isFavorite = false,
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
-        ).validate()
+        )
 
         val newProduct = create(product)
         return newProduct
