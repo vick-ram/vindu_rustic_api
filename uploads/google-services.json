@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "31122178073",
+    "project_id": "vindurustic",
+    "storage_bucket": "vindurustic.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:31122178073:android:0b0fe4b081c6fbd3a5ea88",
+        "android_client_info": {
+          "package_name": "com.vindurustic.vindurustic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvHkZStwjAj5RbXxb-KYnnvueE206G764"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

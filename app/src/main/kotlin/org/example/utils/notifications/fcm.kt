@@ -10,10 +10,13 @@ import org.example.services.DeviceTokenService
 import org.example.utils.FcmConfig
 import java.io.File
 
-class FcmNotificationService(private val config: FcmConfig, private val deviceTokenService: DeviceTokenService): NotificationRepository  {
+class FcmNotificationService(private val config: FcmConfig, private val deviceTokenService: DeviceTokenService) :
+    NotificationRepository {
     private val firebaseMessaging = FirebaseMessaging.getInstance()
 
-    //    init {
+        init {
+            initializeFirebase()
+        }
     override suspend fun send(appNotification: AppNotification) {
         when {
             appNotification.topic != null -> {
@@ -25,19 +28,23 @@ class FcmNotificationService(private val config: FcmConfig, private val deviceTo
                     imageUrl = appNotification.imageUrl
                 )
             }
+
             else -> {
-                val deviceTokens = deviceTokenService.getUserDeviceTokens(appNotification.metadata?.get("userId").toString())
-                if (deviceTokens.size > 1) {
+                val userId = appNotification.metadata?.get("userId").toString()
+                val deviceTokens =
+                    deviceTokenService.getUserDeviceTokens(userId)
+                val tokens = deviceTokens.map { it.token }
+                if (tokens.size > 1) {
                     sendToMultiple(
-                        tokens = deviceTokens.map { it.token },
+                        tokens = tokens,
                         title = appNotification.title,
                         body = appNotification.message,
                         data = appNotification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
                         imageUrl = appNotification.imageUrl
                     )
-                } else if (deviceTokens.isNotEmpty()) {
+                } else if (tokens.isNotEmpty()) {
                     sendToDevice(
-                        token = deviceTokens.first().token,
+                        token = tokens.first(),
                         title = appNotification.title,
                         body = appNotification.message,
                         data = appNotification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
@@ -47,8 +54,6 @@ class FcmNotificationService(private val config: FcmConfig, private val deviceTo
             }
         }
     }
-//        initializeFirebase()
-//    }
 
     private fun initializeFirebase() {
         config.credentialPath?.let { path ->
@@ -91,7 +96,13 @@ class FcmNotificationService(private val config: FcmConfig, private val deviceTo
         )
     }
 
-    fun sendToMultiple(tokens: List<String>, title: String, body: String, data: Map<String, String>, imageUrl: String?): BatchResponse {
+    fun sendToMultiple(
+        tokens: List<String>,
+        title: String,
+        body: String,
+        data: Map<String, String>,
+        imageUrl: String?
+    ): BatchResponse {
         return firebaseMessaging.sendEachForMulticast(
             buildMulticastMessage(
                 tokens = tokens,

@@ -28,7 +28,7 @@ val serviceModule = module {
         EmailNotificationService(get())
     }
     single<NotificationRepository>(named("fcm")) {
-        FcmNotificationService(get())
+        FcmNotificationService(get(), get())
     }
     single<NotificationRepository>(named("database")) {
         DatabaseNotificationService(get())
