@@ -3,9 +3,11 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{ecommerce/layouts/main.html}">
 <body>
+
 <div layout:fragment="content" class="flex column min-h-screen">
     <!--  Appbar  -->
     <header th:replace="~{ecommerce/components/header :: header}">Default header</header>
+    <th:block th:replace="~{base/fragments/Dialog :: dialog('custom-orders-dialog', ~{ecommerce/components/design_dialog :: DesignDialog})}"></th:block>
     <!--  Content  -->
     <main id="page-content">
 <!--        Home Page (default)-->
@@ -19,7 +21,7 @@
                         <p class="hero-description">Discover our curated collection of rustic beds, traditional tables, handcrafted chairs, and authentic wooden sinks. Each piece tells a story of craftsmanship and heritage.</p>
                         <div class="hero-cta">
                             <a href="#" class="btn btn-primary">Explore Collection</a>
-                            <a href="#" class="btn btn-secondary">Custom Orders</a>
+                            <a href="#" onclick="openDialog('custom-orders-dialog')" class="btn btn-secondary">Custom Orders</a>
                         </div>
                     </div>
                 </div>

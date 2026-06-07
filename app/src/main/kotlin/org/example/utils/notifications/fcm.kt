@@ -4,51 +4,52 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.*
-import org.example.domain.models.AppNotification
+import org.example.config.AppConfig
+import org.example.domain.models.system.Notification
 import org.example.domain.repo.NotificationRepository
 import org.example.services.DeviceTokenService
-import org.example.utils.FcmConfig
 import java.io.File
 
-class FcmNotificationService(private val config: FcmConfig, private val deviceTokenService: DeviceTokenService) :
+class FcmNotificationService(private val config: AppConfig, private val deviceTokenService: DeviceTokenService) :
     NotificationRepository {
     private val firebaseMessaging = FirebaseMessaging.getInstance()
 
-        init {
-            initializeFirebase()
-        }
-    override suspend fun send(appNotification: AppNotification) {
+    init {
+        initializeFirebase()
+    }
+
+    override suspend fun send(notification: Notification) {
         when {
-            appNotification.topic != null -> {
+            notification.topic != null -> {
                 sendToTopic(
-                    title = appNotification.title,
-                    body = appNotification.message,
-                    topic = appNotification.topic,
-                    data = appNotification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                    imageUrl = appNotification.imageUrl
+                    title = notification.title,
+                    body = notification.body,
+                    topic = notification.topic,
+                    data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
+                    imageUrl = notification.imageUrl
                 )
             }
 
             else -> {
-                val userId = appNotification.metadata?.get("userId").toString()
+                val userId = notification.metadata?.get("userId").toString()
                 val deviceTokens =
                     deviceTokenService.getUserDeviceTokens(userId)
                 val tokens = deviceTokens.map { it.token }
                 if (tokens.size > 1) {
                     sendToMultiple(
                         tokens = tokens,
-                        title = appNotification.title,
-                        body = appNotification.message,
-                        data = appNotification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                        imageUrl = appNotification.imageUrl
+                        title = notification.title,
+                        body = notification.body,
+                        data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
+                        imageUrl = notification.imageUrl
                     )
                 } else if (tokens.isNotEmpty()) {
                     sendToDevice(
                         token = tokens.first(),
-                        title = appNotification.title,
-                        body = appNotification.message,
-                        data = appNotification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                        imageUrl = appNotification.imageUrl
+                        title = notification.title,
+                        body = notification.body,
+                        data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
+                        imageUrl = notification.imageUrl
                     )
                 }
             }
@@ -56,7 +57,7 @@ class FcmNotificationService(private val config: FcmConfig, private val deviceTo
     }
 
     private fun initializeFirebase() {
-        config.credentialPath?.let { path ->
+        config.fcm.credentialPath?.let { path ->
             val serviceAccount = File(path).inputStream()
             val options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))

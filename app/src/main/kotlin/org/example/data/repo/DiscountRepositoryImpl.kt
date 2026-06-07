@@ -3,7 +3,7 @@ package org.example.data.repo
 import org.example.data.db.entities.DiscountEntity
 import org.example.data.db.tables.DiscountTable
 import org.example.data.mappers.DiscountMapper
-import org.example.domain.models.Discount
+import org.example.domain.models.catalog.Discount
 import org.example.domain.repo.DiscountRepository
 import org.example.utils.suspendTransaction
 

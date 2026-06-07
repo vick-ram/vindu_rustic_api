@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <body>
-<!--<div th:fragment="iconButton(icon, bg, iconColor, rounded, size)">-->
-<!--    <div th:with="isSvg=${icon != null and icon.startsWith('@')},-->
-<!--                     iconType=${isSvg} ? 'svg' : 'feather',-->
-<!--                     iconValue=${isSvg} ? ${icon} : ${icon}">-->
-
-<!--        <div th:class="'inline-flex justify-center items-center ' + ${rounded} + ' ' + ${bg} + ' ' + ${size}">-->
-<!--            <i th:if="${iconType == 'feather'}" th:attr="data-feather=${iconValue}"-->
-<!--               th:class="'size-5 ' + ${iconColor}"></i>-->
-<!--            -->
-<!--            <img th:if="${iconType == 'svg'}" th:src="${iconValue}" th:alt="icon" th:class="'size-5 ' + ${iconColor}"/>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
 <div th:fragment="iconButton(icon, bg, iconColor, rounded, size)">
     <div th:with="
             isSvg=${icon != null and icon.startsWith('@')},

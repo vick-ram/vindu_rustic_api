@@ -1,158 +1,59 @@
 package org.example.data.mappers
 
-import kotlinx.datetime.LocalDateTime
-import org.example.data.db.entities.AddressEntity
-import org.example.data.db.entities.DiscountEntity
 import org.example.data.db.entities.OrderEntity
-import org.example.data.db.entities.OrderItemEntity
-import org.example.domain.models.Address
-import org.example.domain.models.Discount
-import org.example.domain.models.DiscountAppliedTo
-import org.example.domain.models.DiscountType
-import org.example.domain.models.Order
-import org.example.domain.models.OrderItem
+import org.example.data.db.tables.Addresses
+import org.example.data.db.tables.Users
+import org.example.domain.models.sales.Order
 import org.example.domain.repo.EntityMapper
-import org.example.utils.generateOrderNumber
-import org.example.utils.now
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
-object OrderItemMapper: EntityMapper<OrderItemEntity, OrderItem, String> {
-    override fun toModel(entity: OrderItemEntity): OrderItem {
-        return OrderItem(
-            id = entity.id.value,
-            orderId = entity.order.id.value,
-            productId = entity.product.id.value,
-            quantity = entity.quantity,
-            unitPrice = entity.unitPrice,
-            totalPrice = entity.totalPrice
-        )
-    }
-
-    override fun toEntity(
-        model: OrderItem,
-        entity: OrderItemEntity
-    ): OrderItemEntity {
-        val orderEntity = entity.order
-        val orderModel = OrderMapper.toModel(orderEntity)
-
-        val productEntity = entity.product
-        val productModel = ProductMapper.toModel(productEntity)
-
-        entity.order = OrderMapper.toEntity(orderModel, orderEntity)
-        entity.product = ProductMapper.toEntity(productModel, productEntity)
-        entity.quantity = model.quantity
-        entity.unitPrice = model.unitPrice
-        entity.totalPrice = model.totalPrice
-        entity.createdAt = LocalDateTime.now()
-        entity.updatedAt = LocalDateTime.now()
-
-        return entity
-    }
-}
-
-object AddressMapper: EntityMapper<AddressEntity, Address, String> {
-    override fun toModel(entity: AddressEntity): Address {
-        return Address(
-            id = entity.id.value,
-            fullName = entity.fullName,
-            phone = entity.phone,
-            email = entity.email,
-            street = entity.street,
-            county = entity.county,
-            postalCode = entity.postalCode
-        )
-    }
-
-    override fun toEntity(
-        model: Address,
-        entity: AddressEntity
-    ): AddressEntity {
-        entity.fullName = model.fullName
-        entity.phone = model.phone
-        entity.email = model.email
-        entity.street = model.street
-        entity.county = model.county
-        entity.postalCode = model.postalCode
-
-        return entity
-    }
-}
-
-object DiscountMapper: EntityMapper<DiscountEntity, Discount, String> {
-    override fun toModel(entity: DiscountEntity): Discount {
-        return Discount(
-            id = entity.id.value,
-            name = entity.name,
-            description = entity.description,
-            type = entity.type,
-            value = entity.value,
-            code = entity.code,
-            appliedTo = entity.appliedTo,
-            minimumOrderAmount = entity.minimumOrderAmount,
-            startDate = entity.startDate,
-            endDate = entity.endDate,
-            maxUses = entity.maxUses,
-            currentUses = entity.currentUses,
-            isActive = entity.isActive,
-        )
-    }
-
-    override fun toEntity(
-        model: Discount,
-        entity: DiscountEntity
-    ): DiscountEntity {
-        entity.name = model.name
-        entity.description = model.description
-        entity.type = model.type
-        entity.value = model.value
-        entity.code = model.code
-        entity.appliedTo = model.appliedTo
-        entity.minimumOrderAmount = model.minimumOrderAmount
-        entity.startDate = model.startDate
-        entity.endDate = model.endDate
-        entity.maxUses = model.maxUses
-        entity.currentUses = model.currentUses
-        entity.isActive = model.isActive
-
-        return entity
-    }
-}
-
-object OrderMapper: EntityMapper<OrderEntity, Order, String> {
+object OrderMapper : EntityMapper<OrderEntity, Order, String> {
     override fun toModel(entity: OrderEntity): Order {
         return Order(
             id = entity.id.value,
-            userId = entity.user.id.value,
             orderNumber = entity.orderNumber,
-            items = entity.orderItems.map { OrderItemMapper.toModel(it) },
+            userId = entity.userId?.value,
+            email = entity.email,
+            shippingAddressId = entity.shippingAddressId.value,
+            billingAddressId = entity.billingAddressId?.value,
             status = entity.status,
             paymentStatus = entity.paymentStatus,
-            shippingAddress = AddressMapper.toModel(entity.shippingAddress),
-            discount = entity.discount?.let { DiscountMapper.toModel(it) },
-            shippingFee = entity.shippingFee,
+            fulfillmentStatus = entity.fulfillmentStatus,
+            currency = entity.currency,
+            subtotal = entity.subtotal,
+            shippingCost = entity.shippingCost,
+            taxAmount = entity.taxAmount,
+            discountAmount = entity.discountAmount,
             totalAmount = entity.totalAmount,
+            couponCode = entity.couponCode,
             notes = entity.notes,
-            createdAt = entity.createdAt,
+            ipAddress = entity.ipAddress,
+            userAgent = entity.userAgent,
+            placedAt = entity.placedAt,
             updatedAt = entity.updatedAt
         )
     }
 
-    override fun toEntity(
-        model: Order,
-        entity: OrderEntity
-    ): OrderEntity {
-//        entity.user = model.userId
-        entity.orderNumber = generateOrderNumber()
+    override fun toEntity(model: Order, entity: OrderEntity): OrderEntity {
+        entity.orderNumber = model.orderNumber
+        entity.userId = model.userId?.let { EntityID(it, Users) }
+        entity.email = model.email
+        entity.shippingAddressId = EntityID(model.shippingAddressId, Addresses)
+        entity.billingAddressId = model.billingAddressId?.let { EntityID(it, Addresses) }
         entity.status = model.status
         entity.paymentStatus = model.paymentStatus
-        entity.shippingAddress = AddressMapper.toEntity(model.shippingAddress, entity.shippingAddress)
-        entity.discount = model.discount?.let { DiscountMapper.toEntity(it, entity.discount ?: DiscountEntity.new { }) }
-        entity.shippingFee = model.shippingFee
+        entity.fulfillmentStatus = model.fulfillmentStatus
+        entity.currency = model.currency
+        entity.subtotal = model.subtotal
+        entity.shippingCost = model.shippingCost
+        entity.taxAmount = model.taxAmount
+        entity.discountAmount = model.discountAmount
         entity.totalAmount = model.totalAmount
+        entity.couponCode = model.couponCode
         entity.notes = model.notes
-        entity.tsv = "to_tsvector('english', '${entity.orderNumber} ${entity.notes}')"
-        entity.createdAt = model.createdAt
-        entity.updatedAt = model.updatedAt
-
+        entity.ipAddress = model.ipAddress
+        entity.userAgent = model.userAgent
+        entity.placedAt = model.placedAt
         return entity
     }
 }

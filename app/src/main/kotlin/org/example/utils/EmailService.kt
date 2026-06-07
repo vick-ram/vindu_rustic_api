@@ -5,27 +5,28 @@ import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.example.config.AppConfig
 import java.util.*
 
-class EmailService(private val config: EmailConfig) {
+class EmailService(private val config: AppConfig) {
     private val session: Session by lazy { createSession() }
 
     private fun createSession(): Session {
         return Session.getInstance(getSmtpProperties(), getAuthenticator())
             .apply {
-                debug = config.debugMode
+                debug = config.server.development
             }
     }
 
     private fun getSmtpProperties(): Properties {
         val properties = mapOf(
-            "mail.smtp.host" to config.smtpHost,
+            "mail.smtp.host" to config.email.smtpHost,
             "mail.smtp.auth" to "true",
             "mail.smtp.starttls.enable" to "true",
-            "mail.smtp.port" to config.smtpPort.toString(),
-            "mail.smtp.connectiontimeout" to config.timeouts.connection.toString(),
-            "mail.smtp.timeout" to config.timeouts.read.toString(),
-            "mail.smtp.writetimeout" to config.timeouts.write.toString()
+            "mail.smtp.port" to config.email.smtpPort.toString(),
+            "mail.smtp.connectiontimeout" to config.email.timeouts.connection.toString(),
+            "mail.smtp.timeout" to config.email.timeouts.read.toString(),
+            "mail.smtp.writetimeout" to config.email.timeouts.write.toString()
         )
 
         return Properties().apply {
@@ -36,7 +37,7 @@ class EmailService(private val config: EmailConfig) {
     private fun getAuthenticator(): Authenticator {
         return object : Authenticator() {
             override fun getPasswordAuthentication(): PasswordAuthentication {
-                return PasswordAuthentication(config.username, config.password)
+                return PasswordAuthentication(config.email.username, config.email.password)
             }
         }
     }
@@ -69,7 +70,7 @@ class EmailService(private val config: EmailConfig) {
         vararg cc: String
     ): MimeMessage {
         return MimeMessage(session).apply {
-            setFrom(InternetAddress(config.fromEmail))
+            setFrom(InternetAddress(config.email.fromEmail))
             setRecipient(Message.RecipientType.TO, InternetAddress(to))
 
             if (cc.isNotEmpty()) {
@@ -146,7 +147,7 @@ class EmailService(private val config: EmailConfig) {
                     <td bgcolor="#1a1a1a" align="center" 
                         style="padding:20px; font-family:Arial, sans-serif; font-size:12px; color:#aaaaaa;">
                       <p style="margin:0;">
-                        &copy; ${"$"}{java.time.Year.now()} Company Name. All rights reserved.
+                        &copy; ${java.time.Year.now()} Company Name. All rights reserved.
                       </p>
                       <p style="margin:4px 0 0;">
                         1234 Business St, City, Country

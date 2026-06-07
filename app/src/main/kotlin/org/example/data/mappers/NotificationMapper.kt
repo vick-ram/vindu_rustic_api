@@ -4,36 +4,42 @@ import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.DeviceTokenEntity
 import org.example.data.db.entities.NotificationEntity
 import org.example.data.db.entities.UserEntity
-import org.example.domain.models.AppNotification
-import org.example.domain.models.DeviceToken
+import org.example.data.db.tables.Users
+import org.example.domain.models.system.Notification
+import org.example.domain.models.system.DeviceToken
 import org.example.domain.repo.EntityMapper
 import org.example.utils.now
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import java.time.OffsetDateTime
 
-object NotificationMapper: EntityMapper<NotificationEntity, AppNotification, String> {
-    override fun toModel(entity: NotificationEntity): AppNotification {
-        return AppNotification(
+object NotificationMapper : EntityMapper<NotificationEntity, Notification, String> {
+    override fun toModel(entity: NotificationEntity): Notification {
+        return Notification(
             id = entity.id.value,
+            userId = entity.userId.value,
+            type = entity.type,
             title = entity.title,
-            message = entity.message,
-            topic = entity.topic,
-            channel = entity.channel,
-            metadata = entity.metadata,
-            createdAt = entity.createdAt
+            body = entity.body,
+            actionUrl = entity.actionUrl,
+            referenceType = entity.referenceType,
+            referenceId = entity.referenceId,
+            isRead = entity.isRead,
+            readAt = entity.readAt,
+            createdAt = entity.createdAt,
         )
     }
 
-    override fun toEntity(
-        model: AppNotification,
-        entity: NotificationEntity
-    ): NotificationEntity {
-        return entity.apply {
-            this.title = model.title
-            this.message = model.message
-            this.topic = model.topic
-            this.channel = model.channel
-            this.metadata = model.metadata
-            this.createdAt = LocalDateTime.now()
-        }
+    override fun toEntity(model: Notification, entity: NotificationEntity): NotificationEntity {
+        entity.userId = EntityID(model.userId, Users)
+        entity.type = model.type
+        entity.title = model.title
+        entity.body = model.body
+        entity.actionUrl = model.actionUrl
+        entity.referenceType = model.referenceType
+        entity.referenceId = model.referenceId
+        entity.isRead = model.isRead
+        entity.readAt = model.readAt
+        return entity
     }
 }
 
@@ -56,7 +62,7 @@ object DeviceTokenMapper : EntityMapper<DeviceTokenEntity, DeviceToken, String> 
             this.user = UserEntity[model.userId]
             this.token = model.token
             this.platform = model.platform
-            this.createdAt = LocalDateTime.now()
+            this.createdAt = OffsetDateTime.now()
         }
     }
 }

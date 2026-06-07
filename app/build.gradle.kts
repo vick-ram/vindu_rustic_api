@@ -25,13 +25,15 @@ repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
     google()
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
     // This dependency is used by the application.
-    implementation(libs.guava)
     implementation(kotlin("stdlib"))
-    //Ktor Server
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
+
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.host.common)
@@ -44,11 +46,15 @@ dependencies {
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.serialization.gson)
+    implementation(libs.swagger.core)
+    implementation(libs.ktor.swagger.ui)
 
     //Ktor client
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.pesapal.kotlin.client)
+    implementation(libs.jackson.module.kotlin)
 
     //Exposed
     implementation(libs.exposed.core)
@@ -72,6 +78,10 @@ dependencies {
     //Database
     implementation(libs.hikariCp)
     implementation(libs.postgresql)
+    implementation("com.h2database:h2:2.2.224")
+    implementation("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
+    implementation("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
 
     //Migrations
     implementation(libs.flyway.core)
@@ -85,6 +95,7 @@ dependencies {
     //Mail
     implementation(libs.jakarta.mail)
     implementation(libs.firebase.admin)
+    implementation(libs.sns.client)
 
     //DI
     implementation(libs.koin.ktor)
@@ -95,16 +106,7 @@ dependencies {
     // Test
     runtimeOnly(libs.kotest.runner)
     testImplementation(libs.kotest.assertion)
-}
-
-testing {
-    suites {
-        // Configure the built-in test suite
-        val test by getting(JvmTestSuite::class) {
-            // Use Kotlin Test test framework
-            useKotlinTest("2.0.20")
-        }
-    }
+    testImplementation(libs.ktor.kotest.assertion)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

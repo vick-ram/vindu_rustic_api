@@ -112,8 +112,7 @@
                                 <img th:src="${row.avatar}" alt="user avatar" class="w-full h-full" style="object-fit: cover;">
                             </div>
                             <div class="flex column gap-2">
-                                <a th:href="@{/admin/users/detail/{id}(id=${row.id})}" th:text="${row.name}">User name</a>
-
+                                <a href="#" data-nav="adminCustomersDetail" th:attr="data-param-id=${row.id}" th:text="${row.name}">User name</a>
                                 <small th:text="${row.email}"></small>
                             </div>
                         </div>
@@ -142,7 +141,7 @@
 
             <div class="t-table-footer">
                 <div class="t-page-info">
-                    Showing 1-10 of <span th:text="${#lists.size(users)}"></span> items
+                    Showing 1-10 of <span th:text="${#lists.size(data)}"></span> items
                 </div>
                 <div class="t-pagination">
                     <button class="t-page-btn" disabled>Previous</button>

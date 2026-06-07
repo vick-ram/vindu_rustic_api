@@ -1,14 +1,18 @@
 package org.example.data.repo
 
+import com.google.gson.reflect.TypeToken
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.KeyScanCursor
+import io.lettuce.core.ScanArgs
+import io.lettuce.core.ScanCursor
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.example.domain.repo.CrudRepository
 import org.example.utils.Json
-import org.example.utils.RedisService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class CrudCache<T: Any, ID: Any>(
+class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class) constructor(
+    private val redis: RedisCoroutinesCommands<String, String>,
     private val delegate: CrudRepository<T, ID>,
     private val clazz: Class<T>,
     private val getId: (T) -> ID,
@@ -21,52 +25,43 @@ class CrudCache<T: Any, ID: Any>(
         return "$cacheName:$id"
     }
 
-    @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun <R> withRedis(block: suspend (RedisCoroutinesCommands<String, String>) -> R): R {
-        return try {
-            block(RedisService.commands)
-        } catch (e: Exception) {
-            logger.error("Redis operation failed", e)
-            throw e
-        }
+    private fun generateCollectionCacheKey(queryParams: Map<String, String>?, offset: Int, limit: Int): String {
+        val paramsHash = queryParams?.entries
+            ?.sortedBy { it.key }
+            ?.joinToString("&") { "${it.key}=${it.value}" } ?: ""
+        return "$cacheName:collection:$paramsHash:$offset:$limit"
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun putInCache(id: ID, entity: T) {
-        withRedis { commands ->
             val key = generateCacheKey(id)
-//            val jsonValue = gson.toJson(entity)
             val jsonValue = Json.encodeToString(entity)
             if (ttl != null) {
-                commands.setex(key, ttl, jsonValue)
+                redis.setex(key, ttl, jsonValue)
             } else {
-                commands.set(key, jsonValue)
+                redis.set(key, jsonValue)
             }
-        }
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun getFromCache(id: ID): T? {
-        return withRedis { commands ->
             val key = generateCacheKey(id)
-            val jsonValue = commands.get(key)
-            jsonValue?.let {
-                try {
-//                    gson.fromJson(it, clazz)
-                    Json.decodeFromString(it)
-                } catch (e: Exception) {
-                    logger.error("Failed to deserialize cached entity for ID: $id", e)
-                    null
-                }
-            }
-        }
+            val jsonValue = redis.get(key)
+        return jsonValue?.let { deserializeEntity(it, id.toString()) }
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun removeFromCache(id: ID) {
-        withRedis { commands ->
             val key = generateCacheKey(id)
-            commands.del(key)
+            redis.del(key)
+    }
+
+    private fun deserializeEntity(jsonValue: String, id: String): T? {
+        return try {
+            Json.decodeFromString(jsonValue, clazz)
+        } catch (e: Exception) {
+            logger.error("Failed to deserialize cached entity for ID: $id", e)
+            null
         }
     }
 
@@ -74,6 +69,7 @@ class CrudCache<T: Any, ID: Any>(
         val created = delegate.create(entity)
         val id = getId(created)
         putInCache(id, created)
+        invalidateCollectionCaches()
         return created
     }
 
@@ -89,20 +85,51 @@ class CrudCache<T: Any, ID: Any>(
         return entity
     }
 
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
     override suspend fun readAll(
         offset: Int,
         limit: Int,
         queryParams: Map<String, String>?
     ): List<T> {
-        // For collections, we typically don't cache them in Redis due to complexity
-        // You could implement pattern-based caching if needed
-        return delegate.readAll(offset, limit, queryParams)
+        val cacheKey = generateCollectionCacheKey(queryParams, offset, limit)
+
+        // Try to get from cache first
+        val cachedJson = redis.get(cacheKey)
+        if (cachedJson != null) {
+            try {
+                val listType = TypeToken.getParameterized(List::class.java, clazz).type
+                return Json.decodeFromString( cachedJson, listType)
+            } catch (e: Exception) {
+                logger.error("Failed to deserialize cached collection for key: $cacheKey", e)
+                // Fall through to fetch from delegate
+            }
+        }
+
+        // Fetch from delegate
+        val entities = delegate.readAll(offset, limit, queryParams)
+
+        // Cache the result
+        if (entities.isNotEmpty()) {
+            try {
+                val jsonValue = Json.encodeToString(entities)
+                if (ttl != null) {
+                    redis.setex(cacheKey, ttl, jsonValue)
+                } else {
+                    redis.set(cacheKey, jsonValue)
+                }
+            } catch (e: Exception) {
+                logger.error("Failed to cache collection for key: $cacheKey", e)
+            }
+        }
+
+        return entities
     }
 
     override suspend fun update(id: ID, entity: T): T? {
         val updated = delegate.update(id, entity)
         if (updated != null) {
             putInCache(id, updated)
+            invalidateCollectionCaches()
         } else {
             removeFromCache(id)
         }
@@ -114,17 +141,44 @@ class CrudCache<T: Any, ID: Any>(
         if (deleted) {
             removeFromCache(id)
         }
+        invalidateCollectionCaches()
         return deleted
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     suspend fun clearCache() {
-        withRedis { commands ->
-            // This is a simple approach - for production, you might want pattern matching
-            logger.info("Clearing Redis cache for pattern: $cacheName:*")
-            // Note: Redis doesn't have a direct pattern delete in single command
-            // You might need to use SCAN + DEL in production
+        logger.info("Clearing Redis cache for pattern: $cacheName:*")
+        deleteKeysByPattern("$cacheName:*")
+    }
 
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    private suspend fun invalidateCollectionCaches() {
+        deleteKeysByPattern("$cacheName:collection:*")
+    }
+
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    private suspend fun deleteKeysByPattern(pattern: String) {
+        try {
+            val scanArgs = ScanArgs.Builder.matches(pattern).limit(100)
+            var scanCursor: KeyScanCursor<String>? = redis.scan(ScanCursor.INITIAL, scanArgs)
+            var totalDeleted = 0
+
+            while (scanCursor != null && !scanCursor.isFinished) {
+                val keys = scanCursor.keys
+                if (keys.isNotEmpty()) {
+                    redis.del(*keys.toTypedArray())
+                    totalDeleted += keys.size
+                    logger.debug("Deleted batch of ${keys.size} keys matching pattern: $pattern")
+                }
+                scanCursor = redis.scan(scanCursor, scanArgs)
+            }
+
+            if (totalDeleted > 0) {
+                logger.info("Deleted $totalDeleted keys matching pattern: $pattern")
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to delete keys by pattern: $pattern", e)
+            // Don't rethrow - cache operations shouldn't break the main flow
         }
     }
 }

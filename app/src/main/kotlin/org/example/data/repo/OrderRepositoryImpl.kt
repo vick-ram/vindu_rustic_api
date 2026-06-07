@@ -1,20 +1,19 @@
 package org.example.data.repo
 
-import kotlinx.datetime.LocalDateTime
-import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.OrderEntity
-import org.example.data.db.entities.OrderItemEntity
-import org.example.data.db.tables.CartTable
-import org.example.data.db.tables.OrderTable
+import org.example.data.db.entities.OrderStatusHistoryEntity
+import org.example.data.db.tables.Orders
+import org.example.data.db.tables.Users
 import org.example.data.mappers.OrderMapper
-import org.example.domain.models.Order
-import org.example.domain.models.OrderStatus
+import org.example.data.mappers.OrderStatusHistoryMapper
+import org.example.domain.models.sales.Order
 import org.example.domain.repo.OrderRepository
 import org.example.plugins.NotFoundException
-import org.example.utils.now
 import org.example.utils.suspendTransaction
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
-class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepositoryImpl<OrderEntity, Order>(
+class OrderRepositoryImpl(private val orderMapper: OrderMapper, private val orderStatusHistoryMapper: OrderStatusHistoryMapper) : CrudRepositoryImpl<OrderEntity, Order>(
     OrderEntity,
     Order::class
 ),
@@ -27,55 +26,54 @@ class OrderRepositoryImpl(private val orderMapper: OrderMapper) : CrudRepository
 
     override fun getId(domain: Order): String = domain.id
 
-    override suspend fun createOrder(userId: String): Order = suspendTransaction {
-        val cart = CartEntity.find { CartTable.user.eq(userId) }
-            .firstOrNull() ?: throw NotFoundException("Cart not found for user $userId")
-
-        if (cart.items.empty()) throw IllegalArgumentException("Cannot create order from empty cart")
-
-        val order = OrderEntity.new {
-            user = cart.user
-            totalAmount = cart.items.sumOf { it.product.basePrice * it.quantity.toBigDecimal() }
-            status = OrderStatus.PENDING
-        }
-
-        cart.items.forEach { cartItem ->
-            OrderItemEntity.new {
-                this.order = order
-                this.product = cartItem.product
-                this.quantity = cartItem.quantity
-                this.unitPrice = cartItem.product.basePrice
-            }
-        }
-
-        cart.items.forEach { it.delete() }
-        order.toDomain()
-    }
-
-    override suspend fun findByUserId(
-        userId: String,
-        offset: Int,
-        limit: Int
-    ): List<Order> = suspendTransaction {
-        OrderEntity.find { OrderTable.user.eq(userId) }
-            .limit(limit)
-            .offset(offset.toLong())
-            .map { it.toDomain() }
-    }
-
     override suspend fun findByOrderNumber(orderNumber: String): Order? = suspendTransaction {
-        OrderEntity.find { OrderTable.orderNumber.eq(orderNumber) }
+        OrderEntity.find { Orders.orderNumber eq orderNumber }
             .firstOrNull()
             ?.toDomain()
     }
 
-    override suspend fun updateStatus(
-        orderId: String,
-        status: OrderStatus
-    ): Order? = suspendTransaction {
-        OrderEntity.findByIdAndUpdate(orderId) { order ->
-            order.status = status
-            order.updatedAt = LocalDateTime.now()
-        }?.toDomain()
+    override suspend fun findByUserId(userId: String, offset: Int, limit: Int): List<Order> = suspendTransaction {
+        OrderEntity.find { Orders.userId eq userId }
+            .orderBy(Orders.placedAt to SortOrder.DESC)
+            .offset(offset.toLong())
+            .limit(limit)
+            .map { it.toDomain() }
+    }
+
+    override suspend fun findByStatus(status: String, offset: Int, limit: Int): List<Order> = suspendTransaction {
+        OrderEntity.find { Orders.status eq status }
+            .orderBy(Orders.placedAt to SortOrder.DESC)
+            .offset(offset.toLong())
+            .limit(limit)
+            .map { it.toDomain() }
+    }
+
+    override suspend fun updateOrderStatus(orderId: String, status: String, changedBy: String?): Boolean = suspendTransaction {
+        val order = OrderEntity.findById(orderId) ?: throw NotFoundException("Order not found")
+        val oldStatus = order.status
+        order.status = status
+
+        // Record status change
+        OrderStatusHistoryEntity.new {
+            this.orderId = order.id
+            this.oldStatus = oldStatus
+            this.newStatus = status
+            this.changedBy = changedBy?.let { EntityID(it, Users) }
+        }
+        true
+    }
+
+    override suspend fun getPendingFulfillment(): List<Map<String, Any>> = suspendTransaction {
+        exec("SELECT * FROM pending_fulfillment") { rs ->
+            val results = mutableListOf<Map<String, Any>>()
+            while (rs.next()) {
+                val row = mutableMapOf<String, Any>()
+                for (i in 1..rs.metaData.columnCount) {
+                    row[rs.metaData.getColumnName(i)] = rs.getObject(i) ?: ""
+                }
+                results.add(row)
+            }
+            results
+        } ?: emptyList()
     }
 }

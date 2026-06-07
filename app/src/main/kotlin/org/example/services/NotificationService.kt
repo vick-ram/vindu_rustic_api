@@ -1,16 +1,16 @@
 package org.example.services
 
-import org.example.domain.models.AppNotification
-import org.example.domain.models.DeviceToken
+import org.example.domain.models.system.Notification
+import org.example.domain.models.system.DeviceToken
 import org.example.domain.repo.CrudRepository
 import org.example.domain.repo.DeviceTokenRepository
 
-class NotificationService(private val crudRepo: CrudRepository<AppNotification, String>) {
-    suspend fun save(appNotification: AppNotification): AppNotification {
-        return crudRepo.create(appNotification)
+class NotificationService(private val crudRepo: CrudRepository<Notification, String>) {
+    suspend fun save(notification: Notification): Notification {
+        return crudRepo.create(notification)
     }
 
-    suspend fun getAll(offset: Int, limit: Int, queryParams: Map<String, String>): List<AppNotification> {
+    suspend fun getAll(offset: Int, limit: Int, queryParams: Map<String, String>): List<Notification> {
         return crudRepo.readAll(offset, limit, queryParams)
     }
 }

@@ -4,7 +4,7 @@ import io.ktor.server.sessions.SessionStorage
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-class RedisSessionStorage() : SessionStorage {
+class RedisSessionStorage : SessionStorage {
 
     override suspend fun invalidate(id: String) {
         RedisService.commands.del(id)

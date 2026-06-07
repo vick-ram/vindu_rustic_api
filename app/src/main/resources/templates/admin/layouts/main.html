@@ -16,6 +16,8 @@
     <link rel="stylesheet" th:href="@{/resources/styles/global/tabs.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/admin/index.css}">
     <link rel="stylesheet" th:href="@{/resources/styles/admin/table.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/admin/files.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/admin/chat.css}">
 </head>
 <body data-theme="light">
 
@@ -24,7 +26,7 @@
     <aside th:replace="~{admin/fragments/sidebar :: sidebar(currentPage=${currentPage})}"></aside>
 
     <!-- Main panel -->
-    <div class="main-content">
+    <main class="main-content" data-content>
         <!-- AppBar at the top -->
         <header th:replace="~{admin/fragments/appbar :: appbar}"></header>
 
@@ -34,7 +36,7 @@
         <!-- Footer at the bottom -->
         <footer th:replace="~{admin/fragments/footer :: footer}" class="mt-auto"></footer>
 
-    </div>
+    </main>
 </div>
 
 <script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
@@ -42,10 +44,14 @@
 <script th:src="@{/resources/js/global/drawer.js}"></script>
 <script th:src="@{/resources/js/global/toggleMenu.js}"></script>
 <script th:src="@{/resources/js/global/tabs.js}"></script>
+<script th:src="@{/resources/js/global/navigation.js}"></script>
 <script th:src="@{/resources/js/admin/index.js}"></script>
 <script th:src="@{/resources/js/admin/chart.js}"></script>
 <script th:src="@{/resources/js/admin/table.js}"></script>
 <script th:src="@{/resources/js/admin/form.js}"></script>
+<script th:src="@{/resources/js/admin/products.js}"></script>
+<script th:src="@{/resources/js/admin/files.js}"></script>
+<script th:src="@{/resources/js/admin/chat.js}"></script>
 <script>
     feather.replace();
 </script>

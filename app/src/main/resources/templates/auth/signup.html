@@ -2,7 +2,6 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{auth/index.html}">
 <head>
-    <meta charset="UTF-8">
     <title>Sign up</title>
 </head>
 <body>
@@ -15,10 +14,13 @@
                         <!-- Login Form -->
                         <form method="post" th:action="@{/signup}">
                             <div class="form-group">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control py-2" id="name" name="name"
-                                       placeholder="Enter your full name" required
-                                       th:value="${formData.name}">
+<!--                                Introduced First Name and LastName instead of just Name-->
+                                <div class="flex row gap-3 items-center sm:column">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control py-2" id="name" name="name"
+                                           placeholder="Enter your full name" required
+                                           th:value="${formData.name}">
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="email" class="form-label">Email</label>

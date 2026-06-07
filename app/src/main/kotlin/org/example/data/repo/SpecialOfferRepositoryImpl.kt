@@ -3,7 +3,7 @@ package org.example.data.repo
 import org.example.data.db.entities.SpecialOfferEntity
 import org.example.data.db.tables.SpecialOfferTable
 import org.example.data.mappers.SpecialOfferMapper
-import org.example.domain.models.SpecialOffer
+import org.example.domain.models.catalog.SpecialOffer
 import org.example.domain.repo.SpecialOfferRepository
 import org.example.utils.suspendTransaction
 

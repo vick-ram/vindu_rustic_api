@@ -1,6 +1,6 @@
 package org.example.services
 
-import org.example.domain.models.Discount
+import org.example.domain.models.catalog.Discount
 import org.example.domain.repo.DiscountRepository
 
 class DiscountService(private val discountRepository: DiscountRepository) {

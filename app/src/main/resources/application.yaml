@@ -10,15 +10,33 @@ ktor:
   serverPort: $PORT
   logLevel: $LOG_LEVEL
   development: true
-session:
-  secretEncryptionKey: $SESSION_SECRET_ENCRYPTION_KEY
-  secretSigninKey: $SESSION_SECRET_SIGN_IN_KEY
+
+cors:
+  allowedHosts:
+    - "*"
+  allowedMethods:
+    - POST
+    - GET
+    - OPTIONS
+    - DELETE
+    - PUT
+    - PATCH
+  allowedHeaders:
+    - "*"
+  allowCredentials: true
+  maxAge: 3600
+
 jwt:
   secret: $JWT_SECRET
   domain: $JWT_DOMAIN
   audience: $JWT_AUDIENCE
   realm: $JWT_REALM
   issuer: $JWT_ISSUER
+
+session:
+  encryptionKey: $SESSION_SECRET_ENCRYPTION_KEY
+  signKey: $SESSION_SECRET_SIGN_IN
+
 database:
   port: $DB_PORT
   driver: $DB_DRIVER
@@ -36,10 +54,14 @@ database:
   prepStmtCacheSqlLimit: 2048
   useServerPrepStmts: false
   runMigrations: false
+
 pesapal:
   baseUrl: $PESAPAL_BASE_URL
   consumerKey: $PESAPAL_CONSUMER_KEY
   consumerSecret: $PESAPAL_CONSUMER_SECRET
+  ipnUrl: $PESAPAL_IPN_URL
+  callbackUrl: $PESAPAL_CALLBACK_URL
+  cancellationUrl: $PESAPAL_CANCELLATION_URL
 google:
   clientID: $GOOGLE_CLIENT_ID
   clientSecret: $GOOGLE_CLIENT_SECRET
@@ -57,5 +79,10 @@ email:
 fcm:
   credentialPath: $FCM_CREDENTIAL_PATH
   projectId: $FCM_PROJECT_ID
+
+sms:
+  accessKey: $SMS_ACCESS_KEY
+  secretKey: $SMS_SECRET_KEY
+  region: $SMS_REGION
 
 

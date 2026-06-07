@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="stepper-content(steps, currentStep)" class="stepper-content-container">
+        <div th:each="step, iter : ${steps}"
+             th:classappend="${iter.index == currentStep} ? 'active' : ''"
+             class="step-content"
+             th:attr="data-step=${iter.index}">
+            <div th:replace="${step.template}"></div>
+        </div>
+    </div>
+</body>
+</html>

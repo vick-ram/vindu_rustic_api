@@ -1,7 +1,7 @@
 package org.example.services
 
-import org.example.domain.models.Order
-import org.example.domain.models.OrderStatus
+import org.example.domain.models.sales.Order
+import org.example.domain.models.sales.OrderStatus
 import org.example.domain.repo.OrderRepository
 
 class OrderService(private val orderRepository: OrderRepository) {

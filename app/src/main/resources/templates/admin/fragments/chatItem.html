@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+    <div th:fragment="chatItem(image, name, message, status, time, badgeCount)" class="chat-item">
+        <div class="chat-avatar">
+            <img th:src="${image}" alt="John Doe">
+        </div>
+        <div class="chat-info">
+            <div class="chat-name" th:text="${name}">John Doe</div>
+            <div class="chat-preview" th:text="${message}">Hey, how are you doing?</div>
+            <div class="chat-time" th:text="${time}">2 min ago</div>
+        </div>
+        <div th:if="${status == true}" class="unread-badge" th:text="${badgeCount}">0</div>
+    </div>
+</body>
+</html>

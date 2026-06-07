@@ -1,6 +1,6 @@
 package org.example.services
 
-import org.example.domain.models.SpecialOffer
+import org.example.domain.models.catalog.SpecialOffer
 import org.example.domain.repo.SpecialOfferRepository
 
 class SpecialOfferService(private val specialOfferRepository: SpecialOfferRepository) {

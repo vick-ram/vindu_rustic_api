@@ -12,7 +12,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.toMap
-import org.example.domain.models.Category
+import org.example.domain.models.catalog.Category
 import org.example.plugins.BadRequestException
 import org.example.services.CategoryService
 import org.example.utils.respondApi

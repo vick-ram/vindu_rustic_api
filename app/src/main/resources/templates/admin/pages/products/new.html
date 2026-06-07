@@ -5,15 +5,71 @@
 >
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>New Product</title>
+    <style>
+        .dynamic-list {
+            margin-top: 10px;
+        }
+
+        .dynamic-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .dynamic-item input, .dynamic-item select {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background-color: var(--color-error);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .dimension-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .dimension-group label {
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content" class="mt-1">
     <div class="flex column gap-2 md:flex-row md:items-center md:justify-between">
         <div>
             <h5 class="mb-0">Add a new product</h5>
-            <p class="mb-0">Orders placed across your store</p>
+            <p class="mb-0">Fill in the details below to add a new product to your catalog.</p>
         </div>
+
         <div class="flex row gap-3 items-center nowrap">
             <button class="btn-secondary">Discard</button>
             <button class="p-2 rounded-md bg-blue-200 text-blue-800 cursor-pointer inline-block border-0 font-medium transition"
@@ -22,36 +78,108 @@
             <button class="btn">Publish product</button>
         </div>
     </div>
+    <!-- Basic price information -->
     <div class="card mt-2">
-        <h4>Product Information</h4>
-        <form>
+        <h4>Basic Information</h4>
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="form-group">
                 <label for="name" class="label">Name</label>
                 <input type="text" placeholder="Bed" id="name">
             </div>
             <div class="form-group">
-                <label for="description">Description(optional)</label>
+                <label for="categoryId" class="label">Category</label>
+                <select class="form-select" id="categoryId" name="categoryId" required>
+                    <option value="">Select a category</option>
+                    <option value="cat1">Furniture</option>
+                    <option value="cat2">Electronics</option>
+                    <option value="cat3">Home Decor</option>
+                    <option value="cat4">Kitchen</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
                 <textarea id="description" class="h-28" placeholder="Product description"></textarea>
             </div>
-<!--            <div class="form-group">-->
-<!--                <label for="description">Description(optional)</label>-->
-<!--                <div class="border rounded-sm p-2">-->
-<!--                    <div class="toolbar">-->
-<!--                        <button onclick="formatText('bold')" title="Bold"><strong>B</strong></button>-->
-<!--                        <button onclick="formatText('underline')" title="Underline"><u>U</u></button>-->
-<!--                        <button onclick="formatText('italic')" title="Italic"><em>I</em></button>-->
-<!--                        <button onclick="formatText('strikeThrough')" title="Strikethrough"><s>S</s></button>-->
-<!--                        <button onclick="formatText('justifyLeft')" title="Align Left">⎡⎣</button>-->
-<!--                        <button onclick="formatText('justifyCenter')" title="Align Center">⎢⎢</button>-->
-<!--                        <button onclick="formatText('justifyRight')" title="Align Right">⎦⎤</button>-->
-<!--                    </div>-->
-<!--                    <div id="description" class="editor" contenteditable="true" aria-placeholder="Product description"></div>-->
-<!--                </div>-->
-<!--            </div>-->
-
+            <div class="form-group">
+                <label for="shortDescription">Short Description</label>
+                <textarea id="shortDescription" class="h-28" placeholder="Product short description"></textarea>
+            </div>
         </form>
     </div>
-    <div></div>
+    <!--  Pricing and stock  -->
+    <div class="card mt-3">
+        <h4>Pricing and stock info</h4>
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="form-group">
+                <label for="price" class="label">Base Price</label>
+                <input type="text" placeholder="0.00" id="price">
+            </div>
+            <div class="form-group">
+                <label for="availableStock" class="label">Available Stock</label>
+                <input type="number" placeholder="1" id="availableStock">
+            </div>
+            <div class="form-group">
+                <label for="lowStockThreshold" class="label">Low Stock Threshold</label>
+                <input type="number" placeholder="3" id="lowStockThreshold">
+            </div>
+        </form>
+    </div>
+    <!--    Media-->
+    <div class="card mt-3">
+        <h4>Media</h4>
+        <div class="upload-area" id="upload-area">
+            <div class="bg-gray-800 mb-4 text-white rounded-md w-10 h-10 inline-flex items-center justify-center">
+                <i data-feather="download"></i>
+            </div>
+            <div class="upload-text">Drag and Drop Your Images Here.</div>
+            <div class="upload-subtext">or</div>
+            <div class="browse-btn" id="browse-btn">Browse Images</div>
+        </div>
+
+        <input type="file" id="file-input" accept="image/*" multiple>
+
+        <div class="preview-container" id="preview-container">
+            <div class="empty-state">No files selected</div>
+        </div>
+
+        <button class="upload-btn" id="upload-btn" disabled>Upload Images</button>
+
+        <div class="success-message" id="success-msg">Images uploaded successfully!</div>
+    </div>
+    <!--    Variations-->
+    <div class="card mt-3">
+        <h4>Dimensions (Optional)</h4>
+        <form>
+            <div id="dimensionsList" class="dynamic-list">
+                <div class="dynamic-item dimension-group">
+                    <div class="form-group">
+                        <label for="width">Width</label>
+                        <input type="number" name="width" id="width" min="0" placeholder="Width">
+                    </div>
+                    <div class="form-group">
+                        <label for="height">Height</label>
+                        <input type="number" name="height" id="height" min="0" placeholder="Height">
+                    </div>
+                    <div class="form-group">
+                        <label for="depth">Depth</label>
+                        <input type="number" name="depth" id="depth" min="0" placeholder="Depth">
+                    </div>
+                    <div class="form-group">
+                        <label for="unit">Unit</label>
+                        <select name="unit" id="unit">
+                            <option value="CM">CM</option>
+                            <option value="INCH">Inch</option>
+                        </select>
+                    </div>
+                    <button type="button" class="remove-btn">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" id="addDimension" class="add-btn">+ Add Dimension</button>
+        </form>
+    </div>
 </div>
 </body>
 </html>

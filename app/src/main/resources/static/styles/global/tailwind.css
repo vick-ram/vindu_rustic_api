@@ -42,6 +42,7 @@
 .flex-grow-1 {flex-grow: 1;}
 .flex-wrap { flex-wrap: wrap; }
 .nowrap { flex-wrap: nowrap; }
+.self-center { align-self: center; }
 
 .row { flex-direction: row; }
 .row-reverse { flex-direction: row-reverse; }
@@ -299,6 +300,7 @@
 .h-72 { height: 18rem; }
 .h-80 { height: 20rem; }
 .h-96 { height: 24rem; }
+.object-cover { object-fit: cover; }
 
 /* Percentage heights */
 .h-1\/2 { height: 50%; }

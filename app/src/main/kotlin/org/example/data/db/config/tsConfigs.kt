@@ -6,8 +6,16 @@ data class TsVectorConfig(
     val searchColumns: List<String>,
     val weights: Map<String, String> = emptyMap(),
     val enumColumns: Set<String> = emptySet(),
-    val language: String = "english"
-)
+    val language: String = "english",
+    val indexName: String? = null
+) {
+    init {
+        require(searchColumns.isNotEmpty()) { "searchColumns cannot be empty" }
+        require(weights.keys.containsAll(searchColumns)) { "All searchColumns must have weights defined" }
+    }
+
+    val actualIndexName: String get() = indexName ?: "${tableName}_${tsVectorColumn}_idx"
+}
 
 val tsVectorConfigs = listOf(
     TsVectorConfig(
@@ -32,7 +40,7 @@ val tsVectorConfigs = listOf(
         tableName = "products",
         tsVectorColumn = "tsv",
         searchColumns = listOf("name", "sku", "short_description", "description"),
-        weights = mapOf("name" to "A", "sku" to "B", "shortDescription" to "C", "description" to "D")
+        weights = mapOf("name" to "A", "sku" to "B", "short_description" to "C", "description" to "D")
     ),
     TsVectorConfig(
         tableName = "product_reviews",

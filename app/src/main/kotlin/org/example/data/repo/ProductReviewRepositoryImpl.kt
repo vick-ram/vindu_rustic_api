@@ -1,9 +1,9 @@
 package org.example.data.repo
 
 import org.example.data.db.entities.ProductReviewEntity
-import org.example.data.db.tables.ProductReviewTable
+import org.example.data.db.tables.ProductReviews
 import org.example.data.mappers.ProductReviewMapper
-import org.example.domain.models.ProductReview
+import org.example.domain.models.catalog.ProductReview
 import org.example.domain.repo.ProductReviewRepository
 import org.example.utils.suspendTransaction
 
@@ -26,7 +26,7 @@ class ProductReviewRepositoryImpl(private val productReviewMapper: ProductReview
         limit: Int,
         queryParams: Map<String, String>?
     ): List<ProductReview> = suspendTransaction {
-        ProductReviewEntity.find { ProductReviewTable.product.eq(productId) }
+        ProductReviewEntity.find { ProductReviews.productId.eq(productId) }
             .offset(offset.toLong())
             .limit(limit)
             .filter { entity ->
@@ -44,7 +44,7 @@ class ProductReviewRepositoryImpl(private val productReviewMapper: ProductReview
         limit: Int,
         queryParams: Map<String, String>?
     ): List<ProductReview> = suspendTransaction {
-        ProductReviewEntity.find { ProductReviewTable.user.eq(userId) }
+        ProductReviewEntity.find { ProductReviews.userId.eq(userId) }
             .offset(offset.toLong())
             .limit(limit)
             .filter { entity ->
@@ -61,7 +61,7 @@ class ProductReviewRepositoryImpl(private val productReviewMapper: ProductReview
         limit: Int,
         queryParams: Map<String, String>?
     ): List<ProductReview> = suspendTransaction {
-        ProductReviewEntity.find { ProductReviewTable.isApproved.eq(true) }
+        ProductReviewEntity.find { ProductReviews.isVerifiedPurchase.eq(true) }
             .offset(offset.toLong())
             .limit(limit)
             .filter { entity ->

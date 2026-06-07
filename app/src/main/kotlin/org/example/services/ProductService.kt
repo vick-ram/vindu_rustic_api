@@ -1,8 +1,8 @@
 package org.example.services
 
 import io.ktor.http.content.PartData
-import org.example.domain.models.CreateProductRequest
-import org.example.domain.models.Product
+import org.example.domain.models.catalog.CreateProductRequest
+import org.example.domain.models.catalog.Product
 import org.example.domain.repo.CategoryRepository
 import org.example.domain.repo.ProductRepository
 import org.example.plugins.NotFoundException

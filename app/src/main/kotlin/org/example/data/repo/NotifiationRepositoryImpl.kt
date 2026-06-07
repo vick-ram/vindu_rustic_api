@@ -5,25 +5,25 @@ import org.example.data.db.entities.NotificationEntity
 import org.example.data.db.tables.DeviceTokenTable
 import org.example.data.mappers.DeviceTokenMapper
 import org.example.data.mappers.NotificationMapper
-import org.example.domain.models.AppNotification
-import org.example.domain.models.DeviceToken
+import org.example.domain.models.system.Notification
+import org.example.domain.models.system.DeviceToken
 import org.example.domain.repo.DeviceTokenRepository
 import org.example.utils.suspendTransaction
 
 class NotificationRepositoryImpl(private val notificationMapper: NotificationMapper) :
-    CrudRepositoryImpl<NotificationEntity, AppNotification>(
+    CrudRepositoryImpl<NotificationEntity, Notification>(
         NotificationEntity,
-        AppNotification::class
+        Notification::class
     ) {
-    override fun NotificationEntity.toDomain(): AppNotification {
+    override fun NotificationEntity.toDomain(): Notification {
         return notificationMapper.toModel(this)
     }
 
-    override fun AppNotification.toEntity(entity: NotificationEntity) {
+    override fun Notification.toEntity(entity: NotificationEntity) {
         notificationMapper.toEntity(this, entity)
     }
 
-    override fun getId(domain: AppNotification): String = domain.id
+    override fun getId(domain: Notification): String = domain.id
 }
 
 class DeviceTokenRepositoryImpl(private val deviceTokenMapper: DeviceTokenMapper) : CrudRepositoryImpl<DeviceTokenEntity, DeviceToken>(

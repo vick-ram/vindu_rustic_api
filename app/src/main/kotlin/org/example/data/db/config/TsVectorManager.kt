@@ -1,10 +1,39 @@
 package org.example.data.db.config
 
 object TsVectorManager {
-    fun createAllTriggers() {
+    fun setupFullTextSearch() {
+        createAllIndexes()
+        createAllTriggers()
+        populateExistingData()
+    }
+
+    private fun createAllIndexes() {
+        tsVectorConfigs.forEach { config ->
+            createIndex(config)
+        }
+    }
+
+    private fun createAllTriggers() {
         tsVectorConfigs.forEach { config ->
             createTriggerFunction(config)
             createTrigger(config)
+        }
+    }
+
+    private fun createIndex(config: TsVectorConfig) {
+        val conn = DatabaseFactory.datasource.connection
+        val con = DatabaseFactory.db
+        try {
+            val statement = conn.createStatement()
+            val indexSql = """
+                CREATE INDEX IF NOT EXISTS ${config.actualIndexName}
+                ON ${config.tableName} USING gin(${config.tsVectorColumn})
+            """.trimIndent()
+            statement.executeUpdate(indexSql)
+        } catch (e: Exception) {
+            println("Failed to create index: ${config.actualIndexName} on ${config.tableName}, error: ${e.message}")
+        } finally {
+            conn.close()
         }
     }
 
@@ -22,7 +51,6 @@ object TsVectorManager {
                     "coalesce(New.$column, '')"
                 }
                 "setweight(to_tsvector('${config.language}', $expr), '$weight')"
-//                "setweight(to_tsvector('${config.language}', coalesce(new.$column, '')), '$weight')"
             }
 
             val functionSql = """
@@ -93,7 +121,6 @@ object TsVectorManager {
                     "coalesce($column, '')"
                 }
                 "setweight(to_tsvector('${config.language}', $expr), '$weight')"
-//                "setweight(to_tsvector('${config.language}', coalesce($column, '')), '$weight')"
             }
 
             val updateSql = """

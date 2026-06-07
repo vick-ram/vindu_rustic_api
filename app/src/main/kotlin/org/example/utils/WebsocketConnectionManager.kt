@@ -3,7 +3,7 @@ package org.example.utils
 import io.ktor.websocket.WebSocketSession
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.example.domain.models.ChatUser
+import org.example.domain.models.identity.ChatUser
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi

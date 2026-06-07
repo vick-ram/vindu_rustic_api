@@ -1,44 +1,34 @@
 package org.example.di
 
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import org.example.controllers.backend.CategoryController
 import org.example.controllers.backend.DiscountController
 import org.example.controllers.backend.ProductController
 import org.example.controllers.backend.ProductReviewController
+import org.example.data.cache.CachedCategoryRepository
+import org.example.data.cache.CachedProductRepository
+import org.example.data.cache.CachedProductReviewRepository
 import org.example.data.mappers.CategoryMapper
-import org.example.data.mappers.DiscountMapper
-import org.example.data.mappers.MediaMapper
 import org.example.data.mappers.ProductMapper
-import org.example.data.mappers.ProductReviewMapper
-import org.example.data.mappers.SpecialOfferMapper
 import org.example.data.repo.CategoryRepositoryImpl
 import org.example.data.repo.CrudCache
-import org.example.data.repo.DiscountRepositoryImpl
-import org.example.data.repo.MediaRepositoryImpl
 import org.example.data.repo.ProductRepositoryImpl
 import org.example.data.repo.ProductReviewRepositoryImpl
-import org.example.data.repo.SpecialOfferRepositoryImpl
-import org.example.domain.models.Category
-import org.example.domain.models.Discount
-import org.example.domain.models.Media
-import org.example.domain.models.Product
-import org.example.domain.models.ProductReview
-import org.example.domain.models.SpecialOffer
-import org.example.domain.repo.*
-import org.example.services.CategoryService
-import org.example.services.DiscountService
-import org.example.services.ProductReviewService
-import org.example.services.ProductService
-import org.example.services.SpecialOfferService
+import org.example.domain.models.catalog.Category
+import org.example.domain.models.catalog.Product
+import org.example.domain.models.catalog.ProductReview
+import org.example.domain.repo.CategoryRepository
+import org.example.domain.repo.CrudRepository
+import org.example.domain.repo.ProductRepository
+import org.example.domain.repo.ProductReviewRepository
+import org.example.services.*
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
 val productModule = module {
     single { CategoryMapper }
     single { ProductMapper }
-    single { ProductReviewMapper }
-    single { DiscountMapper }
-    single { MediaMapper }
-    single { SpecialOfferMapper }
 
     single<CrudRepository<Category, String>>(named("categoryReal")) { CategoryRepositoryImpl(get()) }
     single<CategoryRepository>(named("categoryReal")) { get<CrudRepository<Category, String>>(named("categoryReal")) as CategoryRepository }
@@ -46,15 +36,10 @@ val productModule = module {
     single<ProductRepository>(named("productReal")) { get<CrudRepository<Category, String>>(named("productReal")) as ProductRepository }
     single<CrudRepository<ProductReview, String>>(named("reviewReal")) { ProductReviewRepositoryImpl(get()) }
     single<ProductReviewRepository>(named("reviewReal")) { get<CrudRepository<Category, String>>(named("reviewReal")) as ProductReviewRepository }
-    single<CrudRepository<Discount, String>>(named("discountReal")) { DiscountRepositoryImpl(get()) }
-    single<DiscountRepository>(named("discountReal")) { get<CrudRepository<Discount, String>>(named("discountReal")) as DiscountRepository }
-    single<CrudRepository<Media, String>>(named("mediaReal")) { MediaRepositoryImpl(get()) }
-    single<MediaRepository>(named("mediaReal")) { get<CrudRepository<Media, String>>(named("mediaReal")) as MediaRepository }
-    single<CrudRepository<SpecialOffer, String>>(named("specialOfferReal")) { SpecialOfferRepositoryImpl(get()) }
-    single<SpecialOfferRepository>(named("specialOfferReal")) { get<CrudRepository<SpecialOffer, String>>(named("specialOfferReal")) as SpecialOfferRepository }
 
     single<CrudRepository<Category, String>>(named("categoryCache")) {
         CrudCache(
+            redis = get(),
             delegate = get(named("categoryReal")),
             clazz = Category::class.java,
             getId = { it.id },
@@ -63,6 +48,7 @@ val productModule = module {
     }
     single<CrudRepository<Product, String>>(named("productCache")) {
         CrudCache(
+            redis = get(),
             delegate = get(named("productReal")),
             clazz = Product::class.java,
             getId = { it.id },
@@ -71,65 +57,30 @@ val productModule = module {
     }
     single<CrudRepository<ProductReview, String>>(named("reviewCache")) {
         CrudCache(
+            redis = get(),
             delegate = get(named("reviewReal")),
             clazz = ProductReview::class.java,
             getId = { it.id },
             cacheName = "product-review-cache"
         )
     }
-    single<CrudRepository<Discount, String>>(named("discountCache")) {
-        CrudCache(
-            delegate = get(named("discountReal")),
-            clazz = Discount::class.java,
-            getId = { it.id },
-            cacheName = "discount-cache"
-        )
-    }
-    single<CrudRepository<Media, String>>(named("mediaCache")) {
-        CrudCache(
-            delegate = get(named("mediaReal")),
-            clazz = Media::class.java,
-            getId = { it.id },
-            cacheName = "media-cache"
-        )
-    }
-    single<CrudRepository<SpecialOffer, String>>(named("specialOfferCache")) {
-        CrudCache(
-            delegate = get(named("specialOfferReal")),
-            clazz = SpecialOffer::class.java,
-            getId = { it.id },
-            cacheName = "special-offer-cache"
-        )
-    }
 
     single<CategoryRepository> {
-        CachedCategory(
+        CachedCategoryRepository(
             delegate = get(named("categoryReal")),
             cache = get(named("categoryCache"))
         )
     }
     single<ProductRepository> {
-        CachedProduct(
+        CachedProductRepository(
             delegate = get(named("productReal")),
             cache = get(named("productCache"))
         )
     }
     single<ProductReviewRepository> {
-        CachedProductReview(
+        CachedProductReviewRepository(
             delegate = get(named("reviewReal")),
             cache = get(named("reviewCache"))
-        )
-    }
-    single<DiscountRepository> {
-        CachedDiscountRepository(
-            delegate = get(named("discountReal")),
-            cache = get(named("discountCache"))
-        )
-    }
-    single<SpecialOfferRepository> {
-        CachedSpecialOfferRepository(
-            delegate = get(named("specialOfferReal")),
-            cache = get(named("specialOfferCache"))
         )
     }
 
@@ -139,7 +90,4 @@ val productModule = module {
     single { ProductController(get()) }
     single { ProductReviewService(get()) }
     single { ProductReviewController(get()) }
-    single { DiscountService(get()) }
-    single { DiscountController(get()) }
-    single { SpecialOfferService(get()) }
 }

@@ -4,8 +4,7 @@ import org.example.data.db.entities.MediaEntity
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.tables.MediaTable
 import org.example.data.mappers.MediaMapper
-import org.example.domain.models.Media
-import org.example.domain.repo.MediaRepository
+import org.example.domain.models.catalog.Media
 import org.example.utils.suspendTransaction
 
 class MediaRepositoryImpl(private val mediaMapper: MediaMapper) : CrudRepositoryImpl<MediaEntity, Media>(

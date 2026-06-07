@@ -5,9 +5,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import org.example.domain.models.CartRequest
-import org.example.domain.models.RemoveFromCart
-import org.example.domain.models.UpdateCartQuantity
+import org.example.domain.models.sales.CartRequest
+import org.example.domain.models.sales.RemoveFromCart
+import org.example.domain.models.sales.UpdateCartQuantity
 import org.example.services.CartService
 import org.example.utils.respondApi
 

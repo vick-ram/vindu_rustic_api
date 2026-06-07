@@ -1,12 +1,11 @@
 package org.example.data.mappers
 
 import kotlinx.datetime.LocalDateTime
-import org.example.data.db.entities.CartEntity
 import org.example.data.db.entities.CartItemEntity
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.entities.UserEntity
 import org.example.domain.models.Cart
-import org.example.domain.models.CartItem
+import org.example.domain.models.sales.CartItem
 import org.example.domain.repo.EntityMapper
 import org.example.utils.now
 

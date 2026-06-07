@@ -1,6 +1,7 @@
 package org.example.utils
 
 import io.ktor.server.application.Application
+import io.ktor.server.config.ApplicationConfigValue
 
 class EnvironmentConfig(private val application: Application) {
     /**
@@ -17,7 +18,13 @@ class EnvironmentConfig(private val application: Application) {
      * Get optional environment variable
      */
     fun getOptional(key: String): String? {
-        return application.environment.config.propertyOrNull(key)?.getString()
+        val property = application.environment.config.propertyOrNull(key) ?: return null
+        return try {
+            property.getString()
+        } catch (e: Exception) {
+            // If it's a list, getString() might fail in some implementations (like YamlConfig)
+            property.getList().firstOrNull()
+        }
     }
 
     /**
@@ -65,17 +72,28 @@ class EnvironmentConfig(private val application: Application) {
     }
 
     /**
-     * Get environment variable as a list (comma-separated)
+     * Get environment variable as a list
      */
     fun getList(key: String, default: List<String> = emptyList()): List<String> {
-        return getOptional(key)?.split(',')?.map { it.trim() }?.filter { it.isNotBlank() } ?: default
+        val property = application.environment.config.propertyOrNull(key) ?: return default
+        return try {
+            property.getList()
+        } catch (e: Exception) {
+            // Fallback: if it's a single string, try to split it by comma
+            try {
+                property.getString().split(',').map { it.trim() }.filter { it.isNotBlank() }
+            } catch (e2: Exception) {
+                default
+            }
+        }
     }
 
     /**
      * Check if environment variable exists
      */
     fun exists(key: String): Boolean {
-        return getOptional(key) != null
+        val property = application.environment.config.propertyOrNull(key)
+        return property != null
     }
 
 }

@@ -7,6 +7,7 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 object RedisService {
@@ -46,7 +47,7 @@ object RedisService {
                 lastException = e
                 retries++
                 if (retries == maxRetries) break
-                delay(1000 * retries.toLong()) // Exponential backoff
+                delay((1000 * retries.toLong()).milliseconds) // Exponential backoff
 
                 // Reset connection on failure
                 connection?.close()

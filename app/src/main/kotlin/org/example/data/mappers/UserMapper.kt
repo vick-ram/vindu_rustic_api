@@ -1,29 +1,26 @@
 package org.example.data.mappers
 
-import kotlinx.datetime.LocalDateTime
-import org.example.data.db.entities.PermissionEntity
-import org.example.data.db.entities.RoleEntity
 import org.example.data.db.entities.UserEntity
-import org.example.domain.models.Permission
-import org.example.domain.models.Role
-import org.example.domain.models.User
+import org.example.domain.models.identity.User
 import org.example.domain.repo.EntityMapper
-import org.example.utils.HashPassword
-import org.example.utils.now
-import java.io.File
 
 object UserMapper : EntityMapper<UserEntity, User, String> {
     override fun toModel(entity: UserEntity): User {
         return User(
             id = entity.id.value,
-            name = entity.name,
             email = entity.email,
             password = entity.password,
-            active = entity.active,
-            roleId = entity.role.id.value,
-            avatar = entity.avatar,
+            firstName = entity.firstName,
+            lastName = entity.lastName,
+            phoneNumber = entity.phoneNumber,
+            avatarUrl = entity.avatarUrl,
+            emailVerified = entity.emailVerified,
+            phoneVerified = entity.phoneVerified,
+            status = entity.status,
+            lastLoginAt = entity.lastLoginAt,
             createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            updatedAt = entity.updatedAt,
+            deletedAt = entity.deletedAt
         )
     }
 
@@ -32,57 +29,17 @@ object UserMapper : EntityMapper<UserEntity, User, String> {
         entity: UserEntity
     ): UserEntity {
         val userAvatar = "/resources/images/profile.jpg"
-        entity.name = model.name
         entity.email = model.email
-        entity.password = HashPassword.hashPassword(model.password)
-        entity.active = false
-        entity.role = RoleEntity[model.roleId]
-        entity.avatar = userAvatar
-        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.email}')"
-        entity.createdAt = LocalDateTime.now()
-        entity.updatedAt = LocalDateTime.now()
-
-        return entity
-    }
-}
-
-object RoleMapper : EntityMapper<RoleEntity, Role, String> {
-    override fun toModel(entity: RoleEntity): Role {
-        return Role(
-            id = entity.id.value,
-            name = entity.name,
-            description = entity.description,
-        )
-    }
-
-    override fun toEntity(
-        model: Role,
-        entity: RoleEntity
-    ): RoleEntity {
-        entity.name = model.name
-        entity.description = model.description
-        entity.tsv = "to_tsvector('english', '${entity.name} ${entity.description}')"
-
-        return entity
-    }
-}
-
-object PermissionMapper : EntityMapper<PermissionEntity, Permission, String> {
-    override fun toModel(entity: PermissionEntity): Permission {
-        return Permission(
-            id = entity.id.value,
-            name = entity.name,
-            description = entity.description
-        )
-    }
-
-    override fun toEntity(
-        model: Permission,
-        entity: PermissionEntity
-    ): PermissionEntity {
-        entity.name = model.name
-        entity.description = model.description
-
+        entity.password = model.password
+        entity.firstName = model.firstName
+        entity.lastName = model.lastName
+        entity.phoneNumber = model.phoneNumber
+        entity.avatarUrl = model.avatarUrl
+        entity.emailVerified = model.emailVerified
+        entity.phoneVerified = model.phoneVerified
+        entity.status = model.status
+        entity.lastLoginAt = model.lastLoginAt
+        entity.deletedAt = model.deletedAt
         return entity
     }
 }

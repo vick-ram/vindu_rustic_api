@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="stepper-actions(steps, currentStep)" class="stepper-actions">
+    <button type="button"
+            class="btn-prev"
+            th:if="${currentStep > 0}"
+            th:disabled="${currentStep == 0}"
+            onclick="stepperPrevious()">
+        Previous
+    </button>
+    <button type="button"
+            class="btn-next"
+            th:if="${currentStep < steps.size() - 1}"
+            th:attr="data-last=${currentStep == steps.size() - 2}"
+            th:text="${currentStep == steps.size() - 2} ? 'Complete' : 'Next'"
+            onclick="stepperNext()">
+        Next
+    </button>
+    <button type="submit"
+            class="btn-next"
+            th:if="${currentStep == steps.size() - 1}"
+            th:form="${steps[currentStep].formId}">
+        Submit Order
+    </button>
+</div>
+</body>
+</html>

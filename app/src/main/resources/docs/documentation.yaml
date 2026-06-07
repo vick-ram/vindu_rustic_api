@@ -1,0 +1,53 @@
+---
+openapi: "3.0.1"
+info:
+  title: "Vindu Rustic Lights API"
+  description: "Automatically generated from DynamicRouteFactory"
+  termsOfService: null
+  contact: null
+  license: null
+  version: "1.0.0"
+  extensions: null
+  summary: "This document was automatically generated based on registered routes."
+externalDocs: null
+servers: null
+security: null
+tags: null
+paths: null
+components:
+  schemas: null
+  responses: null
+  parameters: null
+  examples: null
+  requestBodies: null
+  headers: null
+  securitySchemes:
+    JWT:
+      type: "HTTP"
+      description: "JWT bearer authentication"
+      name: null
+      $ref: null
+      in: null
+      scheme: "bearer"
+      bearerFormat: "JWT"
+      flows: null
+      openIdConnectUrl: null
+      extensions: null
+    Session:
+      type: "APIKEY"
+      description: "Session cookie authentication"
+      name: "SESSION"
+      $ref: null
+      in: "COOKIE"
+      scheme: null
+      bearerFormat: null
+      flows: null
+      openIdConnectUrl: null
+      extensions: null
+  links: null
+  callbacks: null
+  extensions: null
+  pathItems: null
+extensions: null
+jsonSchemaDialect: null
+webhooks: null

@@ -17,8 +17,10 @@ import org.jetbrains.exposed.v1.dao.EntityClass
 import org.jetbrains.exposed.v1.dao.EntityHook
 import org.jetbrains.exposed.v1.dao.toEntity
 import org.jetbrains.exposed.v1.datetime.datetime
+import org.jetbrains.exposed.v1.datetime.timestampWithTimeZone
 import org.postgresql.util.PGobject
 import java.lang.reflect.Type
+import java.time.OffsetDateTime
 
 abstract class CustomTable(
     name: String = "",
@@ -27,13 +29,20 @@ abstract class CustomTable(
 
     private val randomUUID = varchar(columnName, length = 10)
         .clientDefault { shortUUID() }
+        .default(shortUUID())
         .uniqueIndex()
 
     override val id: Column<EntityID<String>> = randomUUID.entityId()
-    val createdAt = datetime("created_at")
-        .clientDefault { LocalDateTime.Companion.currentUtc() }
-    val updatedAt = datetime("updated_at")
-        .clientDefault { LocalDateTime.currentUtc() }
+
+    val createdAt = timestampWithTimeZone("created_at")
+        .index() // might complain due to adding idexing later
+        .clientDefault { OffsetDateTime.now() }
+        .default(OffsetDateTime.now())
+
+    val updatedAt = timestampWithTimeZone("updated_at")
+        .index()
+        .clientDefault { OffsetDateTime.now() }
+        .default(OffsetDateTime.now())
 }
 
 abstract class CustomEntity(
@@ -50,7 +59,7 @@ abstract class CustomEntityClass<E: CustomEntity>(table: CustomTable) : EntityCl
             if (action.changeType == EntityChangeType.Updated) {
                 try {
                     action.toEntity(this)?.apply {
-                        updatedAt = LocalDateTime.currentUtc()
+                        updatedAt = OffsetDateTime.now()
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -58,7 +67,7 @@ abstract class CustomEntityClass<E: CustomEntity>(table: CustomTable) : EntityCl
                 }
             } else if (action.changeType == EntityChangeType.Created) {
                 action.toEntity(this)?.apply {
-                    createdAt = LocalDateTime.currentUtc()
+                    createdAt = OffsetDateTime.now()
                 }
             }
         }

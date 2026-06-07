@@ -6,20 +6,22 @@ import org.example.data.mappers.UserMapper
 import org.example.data.repo.CrudCache
 import org.example.data.repo.DeviceTokenRepositoryImpl
 import org.example.data.repo.UserRepositoryImpl
-import org.example.domain.models.DeviceToken
-import org.example.domain.models.User
+import org.example.domain.models.system.DeviceToken
+import org.example.domain.models.identity.User
 import org.example.domain.repo.CachedUserRepository
 import org.example.domain.repo.CrudRepository
 import org.example.domain.repo.DeviceTokenRepository
 import org.example.domain.repo.UserRepository
 import org.example.services.DeviceTokenService
 import org.example.services.UserService
+import org.example.config.DynamicRouteFactory
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val userModule = module {
     single { UserMapper }
     single { DeviceTokenMapper }
+    single { DynamicRouteFactory() }
 
     // Register real repo under both CrudRepository and UserRepository
     single<CrudRepository<User, String>>(named("userReal")) { UserRepositoryImpl(get()) }

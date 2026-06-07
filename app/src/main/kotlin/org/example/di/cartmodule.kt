@@ -5,7 +5,6 @@ import org.example.data.mappers.CartItemMapper
 import org.example.data.mappers.CartMapper
 import org.example.data.repo.CartRepositoryImpl
 import org.example.domain.models.Cart
-import org.example.domain.repo.CartRepository
 import org.example.domain.repo.CrudRepository
 import org.example.services.CartService
 import org.koin.core.qualifier.named

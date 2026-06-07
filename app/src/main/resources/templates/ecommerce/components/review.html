@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="review">
+    <div class="form-card">
+        <div class="form-header">
+            <h2 class="form-title">Review Your Order</h2>
+            <p class="form-subtitle">Please verify your information before placing your order</p>
+        </div>
+
+        <!-- Order Items -->
+        <div class="review-section">
+            <h3 class="section-title">Order Items</h3>
+            <div class="order-items">
+                <div th:each="item : ${session.getOrderSummary().items}" class="order-item">
+                    <div class="item-image">
+                        <div class="image-placeholder">📦</div>
+                    </div>
+                    <div class="item-details">
+                        <h4 th:text="${item.name}">Product Name</h4>
+                        <p class="item-sku">SKU: <span th:text="${item.sku ?: 'N/A'}">SKU-001</span></p>
+                        <p class="item-quantity">Quantity: <span th:text="${item.quantity}">1</span></p>
+                    </div>
+                    <div class="item-price" th:text="'$' + ${#numbers.formatDecimal(item.price, 1, 2)}">$29.99</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="review-columns">
+            <!-- Shipping Information -->
+            <div class="review-section">
+                <div class="section-header">
+                    <h3 class="section-title">Shipping Information</h3>
+                    <a href="/checkout?step=0" class="edit-link">Edit</a>
+                </div>
+                <div class="info-card" th:if="${session.shippingInfo}">
+                    <div class="info-line">
+                        <strong th:text="${session.shippingInfo.firstName + ' ' + session.shippingInfo.lastName}">John Doe</strong>
+                    </div>
+                    <div class="info-line" th:text="${session.shippingInfo.email}">john.doe@example.com</div>
+                    <div class="info-line" th:text="${session.shippingInfo.phone}">+1 (555) 123-4567</div>
+                    <div class="info-line">
+                        <span th:text="${session.shippingInfo.address}">123 Main Street</span>
+                        <span th:if="${session.shippingInfo.address2}" th:text="', ' + ${session.shippingInfo.address2}">, Apt 4B</span>
+                    </div>
+                    <div class="info-line">
+                        <span th:text="${session.shippingInfo.city}">New York</span>,
+                        <span th:text="${session.shippingInfo.state}">NY</span>
+                        <span th:text="${session.shippingInfo.zipCode}">10001</span>
+                    </div>
+                    <div class="info-line" th:text="${session.shippingInfo.country}">United States</div>
+
+                    <div class="shipping-method">
+                        <strong>Shipping Method:</strong>
+                        <span>Standard Shipping (5-7 business days) - Free</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="review-section">
+                <div class="section-header">
+                    <h3 class="section-title">Payment Method</h3>
+                    <a href="/checkout?step=1" class="edit-link">Edit</a>
+                </div>
+                <div class="info-card" th:if="${session.paymentInfo}">
+                    <div class="payment-method-display">
+                        <div class="payment-icon">💳</div>
+                        <div class="payment-details">
+                            <div class="card-type" th:text="${session.paymentInfo.cardType ?: 'Visa'}">Visa</div>
+                            <div class="card-number" th:text="'**** ' + ${#strings.substring(session.paymentInfo.cardNumber, -4)}">**** 1234</div>
+                            <div class="card-expiry" th:text="'Expires ' + ${session.paymentInfo.expiryDate}">Expires 12/25</div>
+                        </div>
+                    </div>
+                    <div class="billing-address">
+                        <strong>Billing Address:</strong>
+                        <div>Same as shipping address</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="review-section">
+            <h3 class="section-title">Order Summary</h3>
+            <div class="order-summary-final">
+                <div class="summary-line">
+                    <span>Subtotal (2 items):</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(session.getOrderSummary().subtotal, 1, 2)}">$75.97</span>
+                </div>
+                <div class="summary-line">
+                    <span>Shipping:</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(session.getOrderSummary().shipping, 1, 2)}">$5.99</span>
+                </div>
+                <div class="summary-line">
+                    <span>Tax:</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(session.getOrderSummary().tax, 1, 2)}">$6.15</span>
+                </div>
+                <div class="summary-line total">
+                    <span>Total:</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(session.getOrderSummary().total, 1, 2)}">$88.11</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="review-section">
+            <div class="terms-agreement">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="termsAgreement" name="termsAgreement" required>
+                    <span class="checkmark"></span>
+                    I agree to the <a href="/terms" target="_blank">Terms and Conditions</a> and
+                    <a href="/privacy" target="_blank">Privacy Policy</a> *
+                </label>
+            </div>
+
+            <div class="email-optin">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="emailOptIn" name="emailOptIn" checked>
+                    <span class="checkmark"></span>
+                    Send me order updates and promotional emails
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <form id="reviewForm" th:action="@{/checkout/complete}" method="post">
+        <input type="hidden" name="termsAgreed" value="true">
+    </form>
+
+    <div class="security-assurance">
+        <div class="assurance-item">
+            <span class="assurance-icon">🔒</span>
+            <span class="assurance-text">Secure SSL Encryption</span>
+        </div>
+        <div class="assurance-item">
+            <span class="assurance-icon">💰</span>
+            <span class="assurance-text">Money Back Guarantee</span>
+        </div>
+        <div class="assurance-item">
+            <span class="assurance-icon">📞</span>
+            <span class="assurance-text">24/7 Customer Support</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const termsCheckbox = document.getElementById('termsAgreement');
+        const submitButton = document.querySelector('.btn-submit');
+
+        if (termsCheckbox && submitButton) {
+            termsCheckbox.addEventListener('change', function() {
+                // The form won't submit if required checkbox isn't checked due to HTML5 validation
+            });
+        }
+    });
+</script>
+</body>
+</html>

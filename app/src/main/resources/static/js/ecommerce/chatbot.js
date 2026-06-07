@@ -18,7 +18,7 @@ function toggleChat() {
 
 function connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = protocol + '//' + window.location.host + '/api/v1/users/support';
+    const wsUrl = protocol + '//' + window.location.host + '/api/users/support';
 
     websocket = new WebSocket(wsUrl);
 

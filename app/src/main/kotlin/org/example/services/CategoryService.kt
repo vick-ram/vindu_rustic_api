@@ -1,6 +1,6 @@
 package org.example.services
 
-import org.example.domain.models.Category
+import org.example.domain.models.catalog.Category
 import org.example.domain.repo.CategoryRepository
 
 class CategoryService(private val categoryRepository: CategoryRepository) {

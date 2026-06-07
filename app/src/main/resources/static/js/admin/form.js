@@ -47,7 +47,15 @@ document.querySelectorAll("dialog").forEach(dialog => {
         ) {
             dialog.close();
         }
-    })
+    });
+
+//    closing animation
+    dialog.addEventListener('close', function() {
+        this.classList.add('closing');
+        setTimeout(() => {
+            this.classList.remove('closing');
+        }, 200);
+    });
 });
 
 

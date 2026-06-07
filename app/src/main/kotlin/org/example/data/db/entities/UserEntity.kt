@@ -1,43 +1,31 @@
 package org.example.data.db.entities
 
-import org.example.data.db.tables.PermissionTable
-import org.example.data.db.tables.RolePermissionTable
-import org.example.data.db.tables.RoleTable
-import org.example.data.db.tables.UserTable
+import org.example.data.db.tables.Users
 import org.example.data.db.config.CustomEntity
 import org.example.data.db.config.CustomEntityClass
+import org.example.data.db.tables.Addresses
+import org.example.data.db.tables.Sessions
+import org.example.data.db.tables.UserRoles
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
-class UserEntity(id: EntityID<String>): CustomEntity(id, UserTable) {
-    companion object : CustomEntityClass<UserEntity>(UserTable)
+class UserEntity(id: EntityID<String>): CustomEntity(id, Users) {
+    companion object : CustomEntityClass<UserEntity>(Users)
 
-    var name by UserTable.name
-    var email by UserTable.email
-    var password by UserTable.password
-    var active by UserTable.active
-    var avatar by UserTable.avatar
-    var tsv by UserTable.tsv
+    var email by Users.email
+    var password by Users.password
+    var firstName by Users.firstName
+    var lastName by Users.lastName
+    var phoneNumber by Users.phoneNumber
+    var avatarUrl by Users.avatarUrl
+    var emailVerified by Users.emailVerified
+    var phoneVerified by Users.phoneVerified
+    var status by Users.status
+    var lastLoginAt by Users.lastLoginAt
+    var deletedAt by Users.deletedAt
 
-    var role by RoleEntity referencedOn UserTable.role
+    val roles by UserEntity via UserRoles
+    val addresses by AddressEntity referrersOn Addresses.userId
+    val sessions by SessionEntity referrersOn Sessions.userId
+    var tsv by Users.tsv
 
-}
-
-class RoleEntity(id: EntityID<String>): CustomEntity(id, RoleTable) {
-    companion object : CustomEntityClass<RoleEntity>(RoleTable)
-
-    var name by RoleTable.name
-    var description by RoleTable.description
-    var tsv by RoleTable.tsv
-
-    val users by UserEntity referrersOn UserTable.role
-    var permissions by PermissionEntity via RolePermissionTable
-}
-
-class PermissionEntity(id: EntityID<String>): CustomEntity(id, PermissionTable) {
-    companion object : CustomEntityClass<PermissionEntity>(PermissionTable)
-
-    var name by PermissionTable.name
-    var description by PermissionTable.description
-
-    var roles by RoleEntity via RolePermissionTable
 }

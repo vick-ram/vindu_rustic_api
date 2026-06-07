@@ -1,12 +1,12 @@
 package org.example.services
 
-import org.example.domain.models.TokenResponse
-import org.example.domain.models.User
+import org.example.domain.models.identity.TokenResponse
+import org.example.domain.models.identity.User
 import org.example.domain.repo.UserRepository
 import org.example.plugins.AuthenticationException
 import org.example.utils.HashPassword
 
-class UserService(private val userRepository: UserRepository) {
+class UserService(private val userRepository: UserRepository, tokenService: TokenService) {
 
     suspend fun createUser(user: User): User {
         return userRepository.create(user)
@@ -14,12 +14,9 @@ class UserService(private val userRepository: UserRepository) {
 
     suspend fun login(
         email: String,
-        password: String,
-        issuer: String,
-        audience: String,
-        secret: String
+        password: String
     ): TokenResponse {
-        return userRepository.login(email, password, issuer, audience, secret)
+        return userRepository.login(email, password)
     }
 
     suspend fun updateUser(id: String, user: User): User? {

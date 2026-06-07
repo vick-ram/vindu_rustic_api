@@ -1,15 +1,130 @@
 <!DOCTYPE html>
 <html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layouts/main.html}"
 >
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Help</title>
 </head>
 <body>
     <div layout:fragment="content">
-        <h5>Help page</h5>
-    </div>
+            <div class="card h-screen flex" style="padding: 0 !important;">
+                <!-- Chat List Sidebar -->
+                <div class="chat-list-sidebar" id="chatListSidebar">
+                    <div class="sidebar-header">
+                        <h2>Messages</h2>
+                        <button class="new-chat-btn" id="newChatBtn">
+                            <span class="plus-icon">+</span>
+                            New Chat
+                        </button>
+                    </div>
+
+                    <div class="chat-search-container">
+                        <input aria-label="search chat" type="text" placeholder="Search conversations..." class="chat-search-input">
+                    </div>
+
+                    <div class="chat-list">
+                        <!-- Chat list items -->
+                        <div class="chat-item active">
+                            <div class="chat-avatar">
+                                <img src="https://i.pravatar.cc/40?img=1" alt="John Doe">
+                            </div>
+                            <div class="chat-info">
+                                <div class="chat-name">John Doe</div>
+                                <div class="chat-preview">Hey, how are you doing?</div>
+                                <div class="chat-time">2 min ago</div>
+                            </div>
+                        </div>
+                        <div class="chat-list"><div th:replace="~{admin/fragments/chatItem :: chatItem(
+                            '/resources/images/profile.jpg',
+                            'Vickram Odero',
+                            'If it takes too long you can email',
+                            true,
+                            'Oct 6',
+                            1
+                            )}"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="chat-area" id="chatArea">
+                    <!-- Start Conversation View (shown when no chat is selected) -->
+                    <div class="start-conversation-view" id="startConversationView">
+                        <div class="start-conversation-content">
+                            <div class="welcome-icon">💬</div>
+                            <h2>Start a Conversation</h2>
+                            <p>Select a chat from the list or start a new conversation</p>
+                            <button class="start-chat-btn" id="startChatBtnMobile">
+                                Start New Chat
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Chat View (shown when a chat is selected) -->
+                    <div class="active-chat-view hidden" id="activeChatView">
+                        <div class="chat-header">
+                            <button class="back-button" id="backButton">
+                                <span class="back-icon">←</span>
+                            </button>
+                            <div class="chat-partner-info">
+                                <div class="partner-avatar">
+                                    <img src="https://i.pravatar.cc/40?img=1" alt="John Doe">
+                                </div>
+                                <div class="partner-details">
+                                    <div class="partner-name">John Doe</div>
+                                    <div class="partner-status">Online</div>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="action-btn">
+                                    <span class="action-icon">⋮</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="messages-container">
+                            <div class="messages">
+                                <div class="message received">
+                                    <div class="message-content">
+                                        Hey there! How are you doing?
+                                    </div>
+                                    <div class="message-time">10:30 AM</div>
+                                </div>
+
+                                <div class="message sent">
+                                    <div class="message-content">
+                                        I'm doing great! Thanks for asking. How about you?
+                                    </div>
+                                    <div class="message-time">10:31 AM</div>
+                                </div>
+
+                                <div class="message received">
+                                    <div class="message-content">
+                                        Pretty good! Just working on some projects. Want to catch up later?
+                                    </div>
+                                    <div class="message-time">10:32 AM</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message-input-container">
+                            <div class="input-group">
+                                <input aria-label="input message" type="text" placeholder="Type a message..." class="message-input">
+                                <button class="send-btn">
+                                    <span class="send-icon">↑</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Overlay Backdrop -->
+                <div class="mobile-overlay" id="mobileOverlay"></div>
+            </div>
+        </div>
 </body>
 </html>

@@ -1,15 +1,24 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>Timedelta</w>
+      <w>Ulid</w>
       <w>darkmode</w>
+      <w>endfor</w>
+      <w>envs</w>
       <w>hmac</w>
       <w>ipns</w>
+      <w>iter</w>
+      <w>ktor</w>
       <w>pbkdf</w>
       <w>pesapal</w>
+      <w>plainto</w>
+      <w>plpgsql</w>
       <w>setweight</w>
       <w>signin</w>
       <w>stmts</w>
       <w>tgname</w>
+      <w>tsquery</w>
       <w>tsvector</w>
       <w>vindu</w>
     </words>

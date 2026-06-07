@@ -11,7 +11,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.example.domain.models.UpdateOrderStatusRequest
+import org.example.domain.models.sales.UpdateOrderStatusRequest
 import org.example.services.OrderService
 import org.example.utils.respondApi
 

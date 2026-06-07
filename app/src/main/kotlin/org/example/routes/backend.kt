@@ -8,9 +8,10 @@ import org.example.controllers.backend.ProductController
 import org.example.controllers.backend.ProductReviewController
 import org.example.controllers.backend.RoleController
 import org.example.controllers.backend.UserController
+import org.example.config.DynamicRouteFactory
 import org.koin.ktor.ext.inject
 
-fun Route.backendRoutes(issuer: String, audience: String, secret: String) {
+fun Route.backendRoutes(factory: DynamicRouteFactory, issuer: String, audience: String, secret: String) {
     val userController by inject<UserController>()
     val roleController by inject<RoleController>()
     val orderController by inject<OrderController>()
@@ -19,32 +20,11 @@ fun Route.backendRoutes(issuer: String, audience: String, secret: String) {
     val categoryController by inject<CategoryController>()
     val productController by inject<ProductController>()
 
-    with(userController) {
-        routes(issuer, audience, secret)
-    }
-
-    with (roleController) {
-        routes()
-    }
-
-    with(categoryController) {
-        categoryRoutes()
-    }
-
-    with(productController) {
-        productRoutes()
-    }
-
-    with(productReviewController) {
-        routes()
-    }
-
-    with(cartController) {
-        cartRoutes()
-    }
-
-    with(orderController) {
-        orderRoutes()
-    }
-
+    with(userController) { registerUserRoutes(issuer, audience, secret, factory) }
+    with(roleController) { routes() }
+    with(categoryController) { categoryRoutes() }
+    with(productController) { registerProductRoutes(factory) }
+    with(productReviewController) { registerReviewRoutes(factory) }
+    with(cartController) { cartRoutes() }
+    with(orderController) { orderRoutes() }
 }

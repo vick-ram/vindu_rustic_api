@@ -4,39 +4,34 @@ import kotlinx.datetime.LocalDateTime
 import org.example.data.db.entities.OrderEntity
 import org.example.data.db.entities.PaymentEntity
 import org.example.data.db.entities.UserEntity
-import org.example.domain.models.Payment
+import org.example.data.db.tables.Orders
+import org.example.domain.models.payments.Payment
 import org.example.domain.repo.EntityMapper
 import org.example.utils.now
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 
 object PaymentMapper : EntityMapper<PaymentEntity, Payment, String> {
     override fun toModel(entity: PaymentEntity): Payment {
         return Payment(
             id = entity.id.value,
-            orderId = entity.order.id.value,
-            userId = entity.user.id.value,
+            orderId = entity.orderId.value,
+            provider = entity.provider,
             amount = entity.amount,
+            currency = entity.currency,
             status = entity.status,
-            method = entity.method,
-            transactionReference = entity.transactionReference,
-            paidAt = entity.paidAt,
-            createdAt = entity.createdAt
+            paymentMethod = entity.paymentMethod,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt
         )
     }
 
-    override fun toEntity(
-        model: Payment,
-        entity: PaymentEntity
-    ): PaymentEntity {
-        val order = OrderEntity[model.orderId]
-        return entity.apply {
-            this.order = order
-            this.user = UserEntity[model.userId]
-            this.amount = order.totalAmount
-            this.status = model.status
-            this.method = model.method
-            this.transactionReference = model.transactionReference
-            this.paidAt = LocalDateTime.now()
-            this.createdAt = LocalDateTime.now()
-        }
+    override fun toEntity(model: Payment, entity: PaymentEntity): PaymentEntity {
+        entity.orderId = EntityID(model.orderId, Orders)
+        entity.provider = model.provider
+        entity.amount = model.amount
+        entity.currency = model.currency
+        entity.status = model.status
+        entity.paymentMethod = model.paymentMethod
+        return entity
     }
 }

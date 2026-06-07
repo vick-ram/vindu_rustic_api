@@ -10,10 +10,17 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
+import io.grpc.internal.ReadableBuffers.readArray
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.io.IOException
 import java.lang.reflect.Type
 import java.math.BigDecimal
+import java.net.InetAddress
 
 class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
     private val formatter = LocalDateTime.Formats.ISO
@@ -83,47 +90,136 @@ class BigDecimalAdapter : JsonSerializer<BigDecimal>, JsonDeserializer<BigDecima
     }
 }
 
-class MapTypeAdapter : JsonDeserializer<Map<String, Any>>, JsonSerializer<Map<String, Any>> {
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Map<String, Any> {
-        return json.asJsonObject.entrySet().associate { (key, value) ->
-            key to when {
-                value.isJsonPrimitive -> value.asJsonPrimitive.let { primitive ->
-                    when {
-                        primitive.isBoolean -> primitive.asBoolean
-                        primitive.isNumber -> {
-                            val num = primitive.asNumber
-                            // Try to preserve integer types
-                            if (num.toDouble() == num.toLong().toDouble()) num.toLong() else num.toDouble()
-                        }
-                        else -> primitive.asString
-                    }
+class MapStringAnyAdapter : TypeAdapter<Map<String, Any>>() {
+
+    @Throws(IOException::class)
+    override fun write(
+        out: JsonWriter?,
+        value: Map<String, Any>?
+    ) {
+        if (value == null) {
+            out?.nullValue()
+            return
+        }
+        out?.beginObject()
+        for ((key, fieldValue) in value) {
+            out?.name(key)
+            writeElement(out, fieldValue)
+        }
+        out?.endObject()
+    }
+
+    private fun writeElement(out: JsonWriter?, value: Any?) {
+        when (value) {
+            null -> out?.nullValue()
+            is Boolean -> out?.value(value)
+            is Number -> out?.value(value)
+            is String -> out?.value(value)
+            is Map<*, *> -> {
+                out?.beginObject()
+                for ((k, v) in value) {
+                    out?.name(k.toString())
+                    writeElement(out, v)
                 }
-                value.isJsonObject -> context.deserialize<Map<String, Any>>(value, MAP_TYPE)
-                value.isJsonArray -> context.deserialize<List<Any>>(value, LIST_TYPE)
-                else -> null
+                out?.endObject()
             }
-        }.filterValues { it != null }
-            .mapValues { it.value!! }
+            is List<*> -> {
+                out?.beginArray()
+                for (item in value) {
+                    writeElement(out, item)
+                }
+                out?.endArray()
+            }
+            else -> out?.value(value.toString())
+        }
     }
 
-    override fun serialize(src: Map<String, Any>, typeOfT: Type, context: JsonSerializationContext): JsonElement {
-        return context.serialize(src)
+    @Throws(IOException::class)
+    override fun read(`in`: JsonReader?): Map<String, Any>? {
+        if (`in`?.peek() == JsonToken.NULL) {
+            `in`.nextNull()
+            return null
+        }
+        return readObject(`in`)
     }
 
-    companion object {
-        private val MAP_TYPE = object : TypeToken<Map<String, Any>>() {}.type
-        private val LIST_TYPE = object : TypeToken<List<Any>>() {}.type
+    private fun readObject(reader: JsonReader?): Map<String, Any> {
+        val map = LinkedHashMap<String, Any>()
+        reader?.beginObject()
+        while (reader?.hasNext() == true) {
+            val key = reader.nextName()
+            val value = readElement(reader)
+            if (value != null) {
+                map[key] = value
+            }
+        }
+        reader?.endObject()
+        return map
+    }
+
+    private fun readElement(reader: JsonReader?): Any? {
+        return when (reader?.peek()) {
+            JsonToken.BEGIN_OBJECT -> readObject(reader)
+            JsonToken.BEGIN_ARRAY -> {
+                val list = ArrayList<Any?>()
+                reader.beginArray()
+                while (reader.hasNext()) {
+                    list.add(readElement(reader))
+                }
+                reader.endArray()
+                list
+            }
+
+            JsonToken.STRING -> reader.nextString()
+            JsonToken.BOOLEAN -> reader.nextBoolean()
+            JsonToken.NUMBER -> {
+                val numberStr = reader.nextString()
+                if (numberStr.contains(".") || numberStr.contains("e") || numberStr.contains("E")) {
+                    numberStr.toDouble()
+                } else {
+                    numberStr.toLong().let { if (it in Int.MIN_VALUE..Int.MAX_VALUE) it.toInt() else it }
+                }
+            }
+
+            JsonToken.NULL -> {
+                reader.nextNull()
+                null
+            }
+            else -> throw IllegalStateException("Unexpected token type: ${reader?.peek()}")
+        }
+    }
+}
+
+class InetAddressAdapter: TypeAdapter<InetAddress>() {
+    override fun write(out: JsonWriter?, value: InetAddress?) {
+        if (value == null) {
+            out?.nullValue()
+        } else {
+            out?.value(value.hostAddress)
+        }
+    }
+
+    override fun read(`in`: JsonReader?): InetAddress? {
+        if (`in`?.peek() == JsonToken.NULL) {
+            `in`.nextNull()
+            return null
+        }
+        return InetAddress.getByName(`in`?.nextString())
     }
 }
 
 object GsonFactory {
+    val mapType = object : TypeToken<Map<String, Any>>() {}.type
     val gson: Gson by lazy {
         GsonBuilder()
             .setPrettyPrinting()
+            .serializeNulls()
+            .disableHtmlEscaping()
             .registerTypeAdapter(BigDecimal::class.java, BigDecimalAdapter())
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
             .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
-            .registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, MapTypeAdapter())
+            .registerTypeAdapter(InetAddress::class.java, InetAddressAdapter())
+            .registerTypeAdapter(mapType, MapStringAnyAdapter())
             .create()
     }
 }

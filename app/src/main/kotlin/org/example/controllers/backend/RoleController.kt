@@ -9,7 +9,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.toMap
-import org.example.domain.models.Role
+import org.example.domain.models.identity.Role
 import org.example.services.RoleService
 import org.example.utils.respondApi
 

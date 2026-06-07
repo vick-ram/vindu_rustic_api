@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="stepper-nav(steps, currentStep)" class="stepper">
+    <div th:each="step, iter : ${steps}"
+         th:classappend="${iter.index < currentStep} ? 'completed' : ''"
+         th:classappend="${iter.index == currentStep} 'active' : ''"
+         class="step"
+         th:attr="data-step=${iter.index}">
+        <div class="step-circle">
+            <span th:if="${iter.index >= currentStep}" th:text="${iter.index + 1}">1</span>
+        </div>
+        <div class="step-label" th:text="${step.label}">Step Label</div>
+    </div>
+</div>
+</body>
+</html>

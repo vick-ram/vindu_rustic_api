@@ -3,13 +3,13 @@
     <option name="myName" value="Project Default" />
     <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <Languages>
-        <language minSize="48" name="Kotlin" />
+        <language minSize="149" name="Kotlin" />
       </Languages>
     </inspection_tool>
     <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="30">
+          <list size="32">
             <item index="0" class="java.lang.String" itemvalue="th:fragment" />
             <item index="1" class="java.lang.String" itemvalue="th:text" />
             <item index="2" class="java.lang.String" itemvalue="th:src" />
@@ -40,6 +40,8 @@
             <item index="27" class="java.lang.String" itemvalue="th:with" />
             <item index="28" class="java.lang.String" itemvalue="th:name" />
             <item index="29" class="java.lang.String" itemvalue="th:onclick" />
+            <item index="30" class="java.lang.String" itemvalue="th:disabled" />
+            <item index="31" class="java.lang.String" itemvalue="th:form" />
           </list>
         </value>
       </option>
@@ -48,7 +50,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="7">
+          <list size="8">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -56,6 +58,7 @@
             <item index="4" class="java.lang.String" itemvalue="embed" />
             <item index="5" class="java.lang.String" itemvalue="script" />
             <item index="6" class="java.lang.String" itemvalue="th:block" />
+            <item index="7" class="java.lang.String" itemvalue="div" />
           </list>
         </value>
       </option>

@@ -12,10 +12,9 @@ import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.server.thymeleaf.ThymeleafContent
-import io.ktor.util.toMap
 import kotlinx.datetime.LocalDateTime
-import org.example.domain.models.LoginCredentials
-import org.example.domain.models.User
+import org.example.domain.models.identity.LoginCredentials
+import org.example.domain.models.identity.User
 import org.example.plugins.AuthSession
 import org.example.plugins.CartSession
 import org.example.services.CartService
@@ -23,7 +22,6 @@ import org.example.services.RoleService
 import org.example.services.UserService
 import org.example.utils.now
 import org.example.utils.shortUUID
-import kotlin.text.toIntOrNull
 
 class AuthController(
     private val userService: UserService,
@@ -37,9 +35,11 @@ class AuthController(
                 val roles = roleService.getRoles(0, 10, emptyMap())
 
                 val formData = User(
-                    name = "",
+                    firstName = "",
+                    lastName = "",
                     email = "",
                     password = "",
+                    phone = "",
                     roleId = "",
                     createdAt = LocalDateTime.now(),
                     updatedAt = LocalDateTime.now()

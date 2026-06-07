@@ -1,0 +1,163 @@
+.stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 0 1rem;
+    position: relative;
+}
+
+.stepper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    flex: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+    transform: scale(1.1);
+}
+
+.step.completed .step-circle {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.step.completed .step-circle::after {
+    content: '✓';
+    font-weight: bold;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    text-align: center;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-label {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.step.completed .step-label {
+    color: #28a745;
+}
+
+.step-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.step-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn-prev, .btn-next {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-prev {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-prev:hover:not(:disabled) {
+    background: #545b62;
+    transform: translateY(-1px);
+}
+
+.btn-next {
+    background: #007bff;
+    color: white;
+}
+
+.btn-next:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.btn-prev:disabled, .btn-next:disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .step-label {
+        font-size: 0.75rem;
+    }
+
+    .step-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stepper {
+        margin: 1rem 0 2rem;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .step-circle {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+}

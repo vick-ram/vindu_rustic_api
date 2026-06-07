@@ -1,8 +1,7 @@
 package org.example.services
 
 import org.example.domain.models.Cart
-import org.example.domain.models.CartItem
-import org.example.domain.repo.CartRepository
+import org.example.domain.models.sales.CartItem
 import org.example.plugins.CartSession
 
 class CartService(

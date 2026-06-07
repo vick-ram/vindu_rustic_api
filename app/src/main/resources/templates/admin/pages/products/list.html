@@ -25,12 +25,10 @@
                         <i data-feather="download"></i>
                         <span>Export</span>
                     </button>
-                    <form th:action="@{/admin/products/new}" method="get">
-                        <button class="add-btn">
-                            <i data-feather="plus"></i>
-                            <span>Add new product</span>
-                        </button>
-                    </form>
+                    <a href="#" class="add-btn" data-nav="adminProductsCreate">
+                        <i data-feather="plus"></i>
+                        <span>Add new product</span>
+                    </a>
                 </div>
             </div>
             <div class="t-table-scroller">

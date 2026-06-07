@@ -50,6 +50,7 @@ body {
 .nav-links {
     display: flex;
     list-style: none;
+    gap: 1rem;
 }
 
 .nav-links li {
@@ -61,20 +62,12 @@ body {
     text-decoration: none;
     color: #d7ccc8;
     font-weight: 500;
-    transition: color 0.3s;
+    transition: color 0.3s ease;
     position: relative;
     padding: 0.5rem 0;
 }
 
-.nav-links a:hover {
-    color: #ffab91;
-}
-
-.nav-links a.active {
-    color: #ffab91;
-}
-
-.nav-links a.active::after {
+.nav-links a::after {
     content: '';
     position: absolute;
     width: 0;
@@ -82,7 +75,23 @@ body {
     bottom: 0;
     left: 0;
     background-color: #ffab91;
-    transition: width 0.3s;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #ffab91;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.nav-links a.active {
+    color: #ffab91;
+}
+
+.nav-links a.active::after {
+    width: 100%;
 }
 
 .nav-icons {
@@ -90,7 +99,7 @@ body {
     align-items: center;
 }
 
-.nav-icons i {
+.nav-icons svg {
     margin-left: 1.2rem;
     font-size: 1.2rem;
     color: #d7ccc8;
@@ -98,7 +107,7 @@ body {
     transition: color 0.3s;
 }
 
-.nav-icons i:hover {
+.nav-icons svg:hover {
     color: #ffab91;
 }
 

@@ -5,7 +5,7 @@ import org.example.data.mappers.OrderItemMapper
 import org.example.data.mappers.OrderMapper
 import org.example.data.repo.CrudCache
 import org.example.data.repo.OrderRepositoryImpl
-import org.example.domain.models.Order
+import org.example.domain.models.sales.Order
 import org.example.domain.repo.CachedOrder
 import org.example.domain.repo.CrudRepository
 import org.example.domain.repo.OrderRepository
