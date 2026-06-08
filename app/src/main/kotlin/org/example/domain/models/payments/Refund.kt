@@ -2,13 +2,14 @@ package org.example.domain.models.payments
 
 import com.google.gson.annotations.SerializedName
 import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.utils.now
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 data class Refund(
-    val id: String,
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "payment_id")
     val paymentId: String,

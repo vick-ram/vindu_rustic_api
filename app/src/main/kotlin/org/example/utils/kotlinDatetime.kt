@@ -12,11 +12,6 @@ fun LocalDateTime.Companion.now(): LocalDateTime {
     return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
-@OptIn(ExperimentalTime::class)
-fun LocalDateTime.Companion.currentUtc(): LocalDateTime {
-    return Clock.System.now().toLocalDateTime(TimeZone.UTC)
-}
-
 fun LocalDateTime.toCustomFormat(): String {
     val day = this.date.day
     val month = this.date.month

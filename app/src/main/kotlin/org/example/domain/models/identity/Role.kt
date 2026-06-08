@@ -1,12 +1,12 @@
 package org.example.domain.models.identity
 
-import io.ktor.http.Parameters
+import io.ktor.http.*
+import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import org.example.utils.shortUUID
 import java.io.Serializable
 
 data class Role(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @field:NotBlank(message = "Name is required")
     val name: String,
@@ -16,7 +16,7 @@ data class Role(
     companion object {
         fun formParameters(parameters: Parameters): Role {
             val name = parameters["name"].toString()
-            val description = parameters["description"]?.toString()
+            val description = parameters["description"]
 
             return Role(
                 name = name,

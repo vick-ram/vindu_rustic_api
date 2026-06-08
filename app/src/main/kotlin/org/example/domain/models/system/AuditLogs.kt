@@ -1,14 +1,13 @@
 package org.example.domain.models.system
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.shortUUID
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
 data class AuditLogs(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "actor_id")
     val actorId: String? = null,

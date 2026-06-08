@@ -1,17 +1,15 @@
 package org.example.domain.models.sales
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
 import org.example.domain.validations.NotBlank
-import org.example.utils.now
-import org.example.utils.shortUUID
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 data class OrderItem(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "order_id")
     val orderId: String,
@@ -28,6 +26,7 @@ data class OrderItem(
     @field:GreaterThan(value = 0)
     val quantity: Int,
 
+    @field:GreaterThan(value = 0)
     @SerializedName(value = "unit_price")
     val unitPrice: BigDecimal,
 

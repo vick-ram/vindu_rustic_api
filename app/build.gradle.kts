@@ -103,6 +103,9 @@ dependencies {
 
     implementation(libs.skiko)
 
+    // Source: https://mvnrepository.com/artifact/com.cronutils/cron-utils
+    implementation("com.cronutils:cron-utils:9.2.1")
+
     // Test
     runtimeOnly(libs.kotest.runner)
     testImplementation(libs.kotest.assertion)

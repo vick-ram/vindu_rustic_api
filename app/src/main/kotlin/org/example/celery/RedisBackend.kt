@@ -6,9 +6,9 @@ import org.example.utils.Json
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 class RedisBackend(
-    private val prefix: String = "celery",
     private val redis: RedisCoroutinesCommands<String, String>,
-    private val json: Json
+    private val json: Json,
+    private val prefix: String = "celery"
 ): ResultBackend {
     override suspend fun storeResult(
         taskId: String,
@@ -27,12 +27,8 @@ class RedisBackend(
         return redis.get(key)?.let { json.decodeFromString(it) }
     }
 
-    override suspend fun forgetResult(taskId: String) {
-        redis.del(taskKey(taskId))
-    }
-
     override suspend fun close() {
-        TODO("Not yet implemented")
+        // Redis connection managed externally
     }
 
     private fun taskKey(taskId: String) = "$prefix:result:$taskId"

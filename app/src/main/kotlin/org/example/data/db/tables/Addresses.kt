@@ -3,7 +3,7 @@ package org.example.data.db.tables
 import org.example.data.db.config.CustomTable
 
 object Addresses: CustomTable("addresses")  {
-    val userId = reference("user_id", Users)
+    val userId = reference("user_id", Users).nullable()
     val label = varchar("label", 100).nullable()
     val recipientName = varchar("recipient_name", 255)
     val phoneNumber = varchar("phone_number", 30)

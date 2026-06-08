@@ -10,7 +10,7 @@ object AddressMapper : EntityMapper<AddressEntity, Address, String> {
     override fun toModel(entity: AddressEntity): Address {
         return Address(
             id = entity.id.value,
-            userId = entity.userId.value,
+            userId = entity.userId?.value,
             label = entity.label,
             recipientName = entity.recipientName,
             phoneNumber = entity.phoneNumber,
@@ -28,7 +28,7 @@ object AddressMapper : EntityMapper<AddressEntity, Address, String> {
     }
 
     override fun toEntity(model: Address, entity: AddressEntity): AddressEntity {
-        entity.userId = EntityID(model.userId, Users)
+        entity.userId = model.userId?.let { EntityID(it, Users) }
         entity.label = model.label
         entity.recipientName = model.recipientName
         entity.phoneNumber = model.phoneNumber

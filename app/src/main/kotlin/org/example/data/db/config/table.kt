@@ -1,22 +1,13 @@
 package org.example.data.db.config
 
 import com.google.gson.reflect.TypeToken
-import kotlinx.datetime.LocalDateTime
 import org.example.utils.GsonFactory
-import org.example.utils.Json
-import org.example.utils.currentUtc
-import org.example.utils.shortUUID
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ColumnType
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
-import org.jetbrains.exposed.v1.dao.Entity
-import org.jetbrains.exposed.v1.dao.EntityChangeType
-import org.jetbrains.exposed.v1.dao.EntityClass
-import org.jetbrains.exposed.v1.dao.EntityHook
-import org.jetbrains.exposed.v1.dao.toEntity
-import org.jetbrains.exposed.v1.datetime.datetime
+import org.jetbrains.exposed.v1.dao.*
 import org.jetbrains.exposed.v1.datetime.timestampWithTimeZone
 import org.postgresql.util.PGobject
 import java.lang.reflect.Type
@@ -27,12 +18,11 @@ abstract class CustomTable(
     columnName: String = "id",
 ) : IdTable<String>(name) {
 
-    private val randomUUID = varchar(columnName, length = 10)
-        .clientDefault { shortUUID() }
-        .default(shortUUID())
+    override val id: Column<EntityID<String>> = varchar(columnName, length = 26)
+        .clientDefault { Ulid.generate() }
+        .default(Ulid.generate())
         .uniqueIndex()
-
-    override val id: Column<EntityID<String>> = randomUUID.entityId()
+        .entityId()
 
     val createdAt = timestampWithTimeZone("created_at")
         .index() // might complain due to adding idexing later

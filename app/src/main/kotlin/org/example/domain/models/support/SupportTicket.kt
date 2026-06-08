@@ -1,13 +1,13 @@
 package org.example.domain.models.support
 
 import com.google.gson.annotations.SerializedName
+import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import org.example.utils.shortUUID
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class SupportTicket(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "user_id")
     @field:NotBlank(message = "User ID must not be blank")

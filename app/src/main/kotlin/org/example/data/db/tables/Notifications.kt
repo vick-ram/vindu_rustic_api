@@ -4,7 +4,7 @@ import org.example.data.db.config.CustomTable
 import org.example.data.db.config.gsonJsonb
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.Platform
-import org.example.utils.PGEnum
+import org.example.data.db.config.PGEnum
 import org.jetbrains.exposed.v1.datetime.timestampWithTimeZone
 
 object Notifications: CustomTable("notifications") {

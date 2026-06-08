@@ -1,16 +1,14 @@
 package org.example.domain.models.shipping
 
 import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.now
-import org.example.utils.shortUUID
+import io.ktor.http.*
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 data class Shipment(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "order_id")
     val orderId: String,
@@ -53,9 +51,9 @@ data class Shipment(
             val shippingLabelUrl = parameters["shippingLabelUrl"].toString()
             val cost = parameters["cost"]?.toBigDecimal() ?: BigDecimal.ZERO
             val serviceLevel = parameters["serviceLevel"].toString()
-            val shippedAt = parameters["shippedAt"]?.let { LocalDateTime.parse(it) } as LocalDateTime
-            val estimatedDeliveryAt = parameters["estimatedDeliveryAt"]?.let { LocalDateTime.parse(it) } as LocalDateTime
-            val deliveredAt = parameters["deliveredAt"]?.let { LocalDateTime.parse(it) } as LocalDateTime
+            val shippedAt = parameters["shippedAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
+            val estimatedDeliveryAt = parameters["estimatedDeliveryAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
+            val deliveredAt = parameters["deliveredAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
 
             return Shipment(
                 orderId = orderId,

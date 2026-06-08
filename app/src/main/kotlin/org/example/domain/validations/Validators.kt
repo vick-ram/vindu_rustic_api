@@ -6,6 +6,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toLocalDateTime
+import java.math.BigDecimal
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -250,13 +253,13 @@ class FutureDateValidator : FieldValidator<LocalDate> {
     }
 }
 
-class FutureDateTimeValidator : FieldValidator<LocalDateTime> {
+class FutureDateTimeValidator : FieldValidator<OffsetDateTime> {
     @OptIn(ExperimentalTime::class)
     override fun validate(
-        value: LocalDateTime,
+        value: OffsetDateTime,
         fieldName: String
     ): ValidationResult {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val now = OffsetDateTime.now()
         return if (value < now) {
             ValidationResult.failure("$fieldName cannot be in the past")
         } else ValidationResult.success()
@@ -293,7 +296,7 @@ class DateFormatValidator : ConstraintValidator<DateFormat, LocalDate> {
     }
 }
 
-class DateTimeFormatValidator : ConstraintValidator<DateTimeFormat, LocalDateTime> {
+class DateTimeFormatValidator : ConstraintValidator<DateTimeFormat, OffsetDateTime> {
     private var pattern: String = "yyyy-MM-dd HH:mm"
     private var customMessage: String = ""
 
@@ -304,7 +307,7 @@ class DateTimeFormatValidator : ConstraintValidator<DateTimeFormat, LocalDateTim
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     override fun validate(
-        value: LocalDateTime,
+        value: OffsetDateTime,
         fieldName: String
     ): ValidationResult {
         val message =customMessage.replace("{pattern}", pattern)
@@ -314,8 +317,9 @@ class DateTimeFormatValidator : ConstraintValidator<DateTimeFormat, LocalDateTim
             return ValidationResult.failure("$fieldName cannot be blank")
         }
 
-        val formatter = LocalDateTime.Format { byUnicodePattern(pattern) }
-        val parsed = runCatching { LocalDateTime.parse(dateTimeStr, formatter) }.getOrNull()
+//        val formatter = OffsetDateTime.Format { byUnicodePattern(pattern) }
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        val parsed = runCatching { OffsetDateTime.parse(dateTimeStr, formatter) }.getOrNull()
 
         return if (parsed == null) {
             ValidationResult.failure(message)

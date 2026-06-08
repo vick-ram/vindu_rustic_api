@@ -1,15 +1,13 @@
 package org.example.domain.models.marketing
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.now
-import org.example.utils.shortUUID
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 data class Coupon(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
     val code: String,
     val description: String? = null,
 

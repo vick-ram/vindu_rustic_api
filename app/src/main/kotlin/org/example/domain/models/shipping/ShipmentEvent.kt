@@ -1,14 +1,12 @@
 package org.example.domain.models.shipping
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.now
-import org.example.utils.shortUUID
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class ShipmentEvent(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName("shipment_id")
     val shipmentId: String,

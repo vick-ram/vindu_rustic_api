@@ -1,4 +1,4 @@
-package org.example.utils
+package org.example.data.db.config
 
 import org.postgresql.util.PGobject
 

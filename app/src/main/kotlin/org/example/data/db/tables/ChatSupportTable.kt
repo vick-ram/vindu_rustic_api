@@ -3,7 +3,7 @@ package org.example.data.db.tables
 import org.example.data.db.config.CustomTable
 import org.example.domain.models.support.MessageStatus
 import org.example.domain.models.support.MessageType
-import org.example.utils.PGEnum
+import org.example.data.db.config.PGEnum
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.datetime.datetime
 

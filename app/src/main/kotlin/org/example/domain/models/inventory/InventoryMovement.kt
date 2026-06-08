@@ -2,12 +2,13 @@ package org.example.domain.models.inventory
 
 import com.google.gson.annotations.SerializedName
 import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.utils.now
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class InventoryMovement(
-    val id: String,
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "variant_id")
     val variantId: String,

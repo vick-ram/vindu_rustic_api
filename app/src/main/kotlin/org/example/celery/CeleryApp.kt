@@ -1,24 +1,20 @@
 package org.example.celery
 
-import com.google.gson.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import java.time.Instant
-import javax.annotation.Priority
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class CeleryApp(
     val name: String = "celery-app",
-    val broker: MessageBroker,
-    val backend: ResultBackend? = null,
-    val config: CeleryConfig = CeleryConfig()
+    private val broker: MessageBroker,
+    private val backend: ResultBackend? = null
 ) {
     private val taskRegistry = TaskRegistry()
-    private val eventBus = EventBus()
-    private val monitor = FlowerMonitor(eventBus)
-    private var workers = mutableListOf<Worker>()
+    private val workers = ConcurrentLinkedQueue<Worker>()
     private var scheduler: CeleryBeatScheduler? = null
-    private val periodicTasks = mutableMapOf<String, PeriodicTask>()
+    private val periodicTasks = ConcurrentHashMap<String, PeriodicTask>()
 
-    fun task(task: CeleryTask) {
+    fun registerTask(task: CeleryTask) {
         taskRegistry.register(task)
     }
 
@@ -32,18 +28,18 @@ class CeleryApp(
         eta: Instant? = null,
         expires: Long? = null
     ): TaskMessage {
-        val taskMessage = TaskMessage(
+        val message = TaskMessage(
             taskName = taskName,
-            args = args.map { it.toJsonObject() },
-            kwargs = kwargs.mapValues { it.value.toJsonObject() },
+            args = args.map { it.toJsonElement() },
+            kwargs = kwargs.mapValues { it.value.toJsonElement() },
             queue = queue,
             priority = priority,
-            eta = eta?.toEpochMilli(),
+            eta = eta?.let { (it.epochSecond + (countdown ?: 0L)) },
             expires = expires
         )
 
-        broker.publish(taskMessage, queue, priority)
-        return taskMessage
+        broker.publish(message, queue, priority)
+        return message
     }
 
     suspend fun startWorkers(
@@ -51,7 +47,7 @@ class CeleryApp(
         queues: List<String> = listOf("default"),
         concurrency: Int = 4
     ) {
-        repeat(count) {index ->
+        repeat(count) { index ->
             val worker = Worker(
                 name = "${name}-worker-${index + 1}",
                 queues = queues,
@@ -64,31 +60,25 @@ class CeleryApp(
             worker.start()
         }
     }
-    fun addPeriodicTak(name: String, task: TaskSignature, schedule: Schedule) {
+
+    fun schedulePeriodicTask(name: String, task: TaskSignature, schedule: Schedule) {
         periodicTasks[name] = PeriodicTask(name, task, schedule)
     }
 
-    suspend fun startBeatScheduler() {
-        scheduler = CeleryBeatScheduler(periodicTasks) {_, taskSignature ->
+    suspend fun startScheduler() {
+        scheduler = CeleryBeatScheduler(periodicTasks.toMap()) { taskSignature ->
             sendTask(
-                taskName= taskSignature.taskName,
-                args = taskSignature.args.map { it },
-                kwargs = taskSignature.kwargs.mapValues { it.value},
-                queue = taskSignature.options.queue,
-                priority = taskSignature.options.priority
+                taskName = taskSignature.taskName,
+                args = taskSignature.args.map { it.toAny() },
+                kwargs = taskSignature.kwargs.mapValues { it.value.toAny() },
+                queue = taskSignature.queue,
+                priority = taskSignature.priority
             )
         }
         scheduler?.start()
     }
 
     suspend fun getResult(taskId: String): TaskResult? = backend?.getResult(taskId)
-
-    suspend fun revokeTask(taskId: String) {
-        // implementation depends on broker capabilities
-        // For Redis, you might send revoke message
-    }
-
-    fun getMonitor() = monitor
 
     suspend fun shutdown() {
         scheduler?.stop()
@@ -97,29 +87,3 @@ class CeleryApp(
         backend?.close()
     }
 }
-
-private fun Any?.toJsonObject(): JsonObject {
-    return mapOf("value" to JsonPrimitive(this.toString())).toJsonObject()
-}
-
-
-data class CeleryConfig(
-    val taskSerialization: String = "json",
-    val resultSerialization: String = "json",
-    val acceptContent: List<String> = listOf("json"),
-    val timezone: String = "UTC",
-    val enableUtc: Boolean = true,
-    val taskTrackStarted: Boolean = true,
-    val taskSendSentEvent: Boolean = true,
-    val workerMaxTasksPerChild: Int = 100,
-    val workerPrefetchMultiplier: Int = 4,
-    val taskAckLate: Boolean = true,
-    val taskRejectOnWorkerLost: Boolean = true,
-    val resultExpires: Long = 3600, // 1 hour
-    val taskDefaultQueue: String = "default",
-    val taskDefaultRoutingKey: String = "default",
-    val taskDefaultPriority: Int = 0,
-    val brokerConnectionRetry: Boolean = true,
-    val brokerConnectionMaxRetries: Int = 100,
-    val brokerConnectionTimeout: Int = 10
-)

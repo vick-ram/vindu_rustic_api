@@ -2,11 +2,12 @@ package org.example.domain.models.production
 
 import com.google.gson.annotations.SerializedName
 import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class ProductionJob(
-    val id: String,
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "order_item_id")
     val orderItemId: String,

@@ -37,7 +37,7 @@ class FlowerMonitor(private val eventBus: EventBus) {
 
     fun getStats(): MonitorStats {
         return MonitorStats(
-            activeWorkers = workers.size,
+            activeWorkers = workers.size.toLong(),
             totalTasks = totalTasks.get(),
             failedTasks = failedTasks.get(),
             workers = workers.toMap()

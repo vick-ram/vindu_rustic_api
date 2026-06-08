@@ -43,7 +43,7 @@ class UserService(private val userRepository: UserRepository, tokenService: Toke
             throw AuthenticationException("Invalid password")
         }
 
-        if (!user.active) {
+        if (user.status != "ACTIVE") {
             throw AuthenticationException("Account deactivated")
         }
 

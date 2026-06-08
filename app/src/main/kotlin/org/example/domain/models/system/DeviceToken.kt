@@ -1,14 +1,12 @@
 package org.example.domain.models.system
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.domain.models.Platform
-import org.example.utils.now
-import org.example.utils.shortUUID
 import java.time.OffsetDateTime
 
 data class DeviceToken(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "user_id")
     val userId: String,

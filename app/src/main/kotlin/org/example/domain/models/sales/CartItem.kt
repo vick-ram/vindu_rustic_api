@@ -1,15 +1,13 @@
 package org.example.domain.models.sales
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
-import org.example.utils.now
-import org.example.utils.shortUUID
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class CartItem(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "cart_id")
     val cartId: String,

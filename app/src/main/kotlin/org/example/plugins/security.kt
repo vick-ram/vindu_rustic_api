@@ -9,6 +9,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
 import org.example.domain.models.sales.CartItem
@@ -58,8 +60,10 @@ data class CartSession @OptIn(ExperimentalUuidApi::class) constructor(
 }
 
 object SecurityModule : ApplicationPlugin {
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
     override fun install(application: Application) {
-        val sessionStorage = RedisSessionStorage()
+        val redisCommands by application.inject<RedisCoroutinesCommands<String, String>>()
+        val sessionStorage = RedisSessionStorage(redisCommands)
         val config = AppConfig.load(application)
         val redirects = mutableMapOf<String, String>()
         val secretSignKey = hex(config.security.secretSignKey)

@@ -3,14 +3,8 @@ package org.example.domain.models.identity
 import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
 import io.ktor.websocket.*
-import kotlinx.datetime.LocalDateTime
-import org.example.domain.validations.Email
-import org.example.domain.validations.NotBlank
-import org.example.domain.validations.Password
-import org.example.domain.validations.Phone
-import org.example.utils.now
-import org.example.utils.shortUUID
-import org.example.utils.toCustomFormat
+import org.example.data.db.config.Ulid
+import org.example.domain.validations.*
 import java.io.Serializable
 import java.time.OffsetDateTime
 
@@ -40,7 +34,7 @@ data class LoginCredentials(
 }
 
 data class User(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "first_name")
     @field:NotBlank(message = "first name cannot be blank")
@@ -68,17 +62,19 @@ data class User(
     @SerializedName(value = "phone_verified")
     val phoneVerified: Boolean = false,
 
-    val status: String = "active",
+    val status: String = "ACTIVE",
 
     @SerializedName(value = "last_login_at")
     val lastLoginAt: OffsetDateTime? = null,
 
+    @field:DateTimeFormat
     @SerializedName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
     @SerializedName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 
+    @field:DateTimeFormat
     @SerializedName(value = "deleted_at")
     val deletedAt: OffsetDateTime? = null,
 ) : Serializable{
@@ -89,16 +85,14 @@ data class User(
             val lastName = parameters["lastName"].toString()
             val email = parameters["email"].toString()
             val password = parameters["password"].toString()
-            val phone = parameters["phone"].toString()
+            val phone = parameters["phoneNumber"].toString()
 
             return User(
                 firstName = firstName,
                 lastName = lastName,
                 email = email,
                 password = password,
-                phone = phone,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
+                phoneNumber = phone
             )
         }
 
@@ -119,11 +113,11 @@ data class User(
                     "id" to user.id,
                     "name" to "${user.firstName} ${user.lastName}",
                     "email" to user.email,
-                    "phone" to user.phone,
-                    "avatar" to user.avatar,
-                    "lastLoginAt" to user.lastLoginAt?.toCustomFormat(),
-                    "createdAt" to user.createdAt.toCustomFormat(),
-                    "updatedAt" to user.updatedAt.toCustomFormat()
+                    "phone" to user.phoneNumber,
+                    "avatar" to user.avatarUrl,
+                    "lastLoginAt" to user.lastLoginAt,
+                    "createdAt" to user.createdAt,
+                    "updatedAt" to user.updatedAt
                 )
             }
     }

@@ -21,6 +21,7 @@ import kotlinx.io.IOException
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.net.InetAddress
+import java.time.OffsetDateTime
 
 class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
     private val formatter = LocalDateTime.Formats.ISO
@@ -45,6 +46,29 @@ class LocalDateTimeAdapter : JsonSerializer<LocalDateTime>, JsonDeserializer<Loc
             throw JsonParseException("Failed to parse LocalDateTime: ${p0?.asString}", e)
         }
     }
+}
+
+class OffsetDateTimeAdapter : JsonSerializer<OffsetDateTime>, JsonDeserializer<OffsetDateTime> {
+    override fun serialize(
+        p0: OffsetDateTime,
+        p1: Type?,
+        p2: JsonSerializationContext?
+    ): JsonElement {
+        return JsonPrimitive(p0.toString())
+    }
+
+    override fun deserialize(
+        p0: JsonElement,
+        p1: Type?,
+        p2: JsonDeserializationContext?
+    ): OffsetDateTime {
+        try {
+            return OffsetDateTime.parse(p0.asString)
+        } catch (e: Exception) {
+            throw JsonParseException("Failed to parse OffsetDateTime: ${p0.asString}", e)
+        }
+    }
+
 }
 
 class LocalDateAdapter : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {

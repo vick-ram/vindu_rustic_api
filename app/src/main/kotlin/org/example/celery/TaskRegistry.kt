@@ -11,5 +11,4 @@ class TaskRegistry {
 
     fun getTask(taskName: String): CeleryTask? = tasks[taskName]
 
-    fun getRegisteredTasks(): List<String> = tasks.keys().toList()
 }

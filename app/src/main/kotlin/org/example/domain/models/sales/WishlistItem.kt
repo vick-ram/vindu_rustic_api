@@ -1,14 +1,12 @@
 package org.example.domain.models.sales
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.now
-import org.example.utils.shortUUID
+import org.example.data.db.config.Ulid
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class WishlistItem(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName("wishlist_id")
     val wishlistId: String,

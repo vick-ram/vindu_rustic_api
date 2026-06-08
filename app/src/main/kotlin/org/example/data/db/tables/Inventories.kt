@@ -12,5 +12,8 @@ object Inventories : CustomTable("inventory") {
 
     init {
         uniqueIndex(variantId, warehouseId)
+        check {
+            (availableQuantity + reservedQuantity + damagedQuantity) greaterEq 0
+        }
     }
 }

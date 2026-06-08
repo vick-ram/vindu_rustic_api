@@ -1,5 +1,7 @@
 package org.example.celery
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.*
@@ -26,112 +28,79 @@ class Worker(
 
     private val logger = LoggerFactory.getLogger("Worker[$name]")
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val semaphore = Semaphore(concurrency)
-    private val activeTasks = ConcurrentHashMap<String, Job>()
-
-    //    private val pool = WorkerPool(concurrency)
-    @Volatile
-    private var isRunning = false
+    private val activeJobs = ConcurrentHashMap<String, Job>()
 
     suspend fun start() {
-        isRunning = true
-        logger.info("Worker $name starting with concurrency $concurrency")
-        logger.info("Listening on queues: ${queues.joinToString()}")
+        logger.info("Starting worker: $name")
 
         queues.forEach { queue ->
-            broker.consume(queue).collect { record ->
-                semaphore.withPermit {
-                    executeTask(record)
+            repeat(concurrency) {
+                scope.launch {
+                    broker.consume(queue).collect { record ->
+                        val task = record.payload
+                        val celeryTask = taskRegistry.getTask(task.taskName)
+
+                        if (celeryTask == null) {
+                            logger.error("Unknown task: ${task.taskName}")
+                            broker.reject(record.deliveryTag, requeue = false)
+                            return@collect
+                        }
+
+                        try {
+                            backend?.storeResult(
+                                task.id,
+                                TaskResult(task.id, TaskState.STARTED)
+                            )
+
+                            val args = task.args.map { it.toAny() }.toTypedArray()
+                            val kwargs = task.kwargs.mapValues { it.value.toAny() }
+
+                            val result = celeryTask.run(*args, kwargs = kwargs)
+
+                            backend?.storeResult(
+                                task.id,
+                                TaskResult(
+                                    taskId = task.id,
+                                    state = TaskState.SUCCESS,
+                                    result = result.toJsonElement()
+                                )
+                            )
+
+                            broker.acknowledge(record.deliveryTag)
+                        } catch (e: Exception) {
+                            logger.error("Task ${task.taskName} failed", e)
+                            handleFailure(task, celeryTask, e, record)
+                        }
+                    }
                 }
             }
         }
-
-        while (isRunning) {
-            delay(1000.milliseconds)
-        }
     }
 
-    private fun executeTask(record: BrokerRecord<TaskMessage>) {
-        val taskMessage = record.payload
-
-        val job = scope.launch {
-            try {
-                logger.debug("Executing task: ${taskMessage.id} (${taskMessage.taskName})")
-
-                // update state STARTED
-                updateTaskState(taskMessage.id, TaskState.STARTED)
-
-                // Get task implementation from registry
-                val taskImpl = taskRegistry.getTask(taskMessage.taskName)
-                    ?: throw IllegalArgumentException("Unknown task: ${taskMessage.taskName}")
-
-                // Execute with time limits
-                val result = withTimeoutOrNull((taskMessage.timeLimit?.times(1000) ?: Long.MAX_VALUE).milliseconds) {
-                    taskImpl.run(
-                        args = taskMessage.args.toTypedArray(),
-                        kwargs = taskMessage.kwargs
-                    )
-                }
-
-                if (result == null && taskMessage.timeLimit != null) {
-                    throw TimeoutException("Task exceeded time limit of ${taskMessage.timeLimit}s")
-                }
-
-                val res = mapOf("result" to JsonPrimitive(result.toString()))
-
-                val taskResult = TaskResult(
-                    taskId = taskMessage.id,
-                    state = TaskState.SUCCESS,
-                    result = result as? JsonObject ?: res.toJsonObject(),
-                    dateDone = Instant.now(),
-                    worker = name
+    private suspend fun handleFailure(
+        task: TaskMessage,
+        celeryTask: CeleryTask,
+        exception: Exception,
+        record: BrokerRecord<TaskMessage>
+    ) {
+        if (task.retries < task.maxRetries) {
+            val retryTask = task.copy(retries = task.retries + 1)
+            broker.publish(retryTask, task.queue, task.priority)
+            broker.acknowledge(record.deliveryTag)
+        } else {
+            backend?.storeResult(
+                task.id,
+                TaskResult(
+                    taskId = task.id,
+                    state = TaskState.FAILURE,
+                    traceback = exception.stackTraceToString()
                 )
-
-                backend?.storeResult(taskMessage.id, taskResult)
-            } catch (_: CancellationException) {
-                updateTaskState(taskMessage.id, TaskState.REVOKED)
-            } catch (e: Exception) {
-                logger.error("Task ${taskMessage.id} failed", e)
-
-                // Handle retry logic
-                if (taskMessage.retries < taskMessage.maxRetries) {
-                    val retryMessage = taskMessage.copy(retries = taskMessage.retries + 1)
-                    broker.publish(retryMessage, taskMessage.queue, taskMessage.priority)
-
-                    updateTaskState(taskMessage.id, TaskState.RETRY)
-                } else {
-                    val failedResult = TaskResult(
-                        taskId = taskMessage.id,
-                        state = TaskState.FAILURE,
-                        traceback = e.stackTraceToString(),
-                        dateDone = Instant.now(),
-                        worker = name
-                    )
-
-                    backend?.storeResult(taskMessage.id, failedResult)
-                }
-                broker.reject(record.deliveryTag, false)
-            } finally {
-                activeTasks.remove(taskMessage.id)
-            }
+            )
+            broker.reject(record.deliveryTag, requeue = false)
         }
-
-        activeTasks[taskMessage.id] = job
     }
 
-    private suspend fun updateTaskState(taskId: String, state: TaskState) {
-        val result = TaskResult(
-            taskId = taskId,
-            state = state,
-            worker = name
-        )
-        backend?.storeResult(taskId, result)
-    }
-
-    suspend fun stop() {
-        isRunning = false
+    fun stop() {
         scope.cancel()
-        broker.close()
-        logger.info("Worker $name stopped")
     }
 }

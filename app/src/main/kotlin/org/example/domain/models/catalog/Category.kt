@@ -2,13 +2,13 @@ package org.example.domain.models.catalog
 
 import com.google.gson.annotations.SerializedName
 import io.ktor.http.content.*
+import org.example.data.db.config.Ulid
 import org.example.utils.saveMedia
-import org.example.utils.shortUUID
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class Category(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @SerializedName(value = "parent_id")
     val parentId: String? = null,
@@ -67,7 +67,10 @@ data class Category(
             mapOf("key" to "name", "label" to "name", "sortable" to true),
             mapOf("key" to "slug", "label" to "slug", "sortable" to true),
             mapOf("key" to "description", "label" to "slug", "sortable" to true),
-            mapOf("key" to "imageUrl", "label" to "imageUrl")
+            mapOf("key" to "imageUrl", "label" to "imageUrl"),
+            mapOf("key" to "isActive", "label" to "isActive", "sortable" to true),
+            mapOf("key" to "createdAt", "label" to "createdAt", "sortable" to true)
+
         )
 
         fun toRow(categories: List<Category>): List<Map<String, Any?>> = categories.map { category ->
@@ -76,7 +79,9 @@ data class Category(
                 "name" to category.name,
                 "slug" to category.slug,
                 "description" to category.description,
-                "imageUrl" to category.imageUrl
+                "imageUrl" to category.imageUrl,
+                "isActive" to category.isActive,
+                "createdAt" to category.createdAt
             )
         }
     }

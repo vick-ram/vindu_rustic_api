@@ -1,18 +1,18 @@
 package org.example.domain.models.support
 
 import kotlinx.datetime.LocalDateTime
+import org.example.data.db.config.Ulid
 import org.example.utils.now
-import org.example.utils.shortUUID
 
 data class Conversation(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
     val lastMessageId: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
 data class Participant(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
     val conversationId: String,
     val userId: String,
     val joinedAt: LocalDateTime = LocalDateTime.now(),
@@ -21,7 +21,7 @@ data class Participant(
 )
 
 data class Message (
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
     val conversationId: String,
     val senderId: String,
     val messageText: String,

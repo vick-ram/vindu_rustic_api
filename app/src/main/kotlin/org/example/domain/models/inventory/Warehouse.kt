@@ -1,16 +1,14 @@
 package org.example.domain.models.inventory
 
 import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
-import kotlinx.datetime.LocalDateTime
+import io.ktor.http.*
+import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import org.example.utils.now
-import org.example.utils.shortUUID
 import java.io.Serializable
 import java.time.OffsetDateTime
 
 data class Warehouse(
-    val id: String = shortUUID(),
+    val id: String = Ulid.generate(),
 
     @field:NotBlank
     val name: String,
