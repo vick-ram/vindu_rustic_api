@@ -1,26 +1,31 @@
 package org.example.domain.models.marketing
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class CouponUsage(
     val id: String = Ulid.generate(),
 
-    @SerializedName("coupon_id")
+    @SerialName("coupon_id")
     val couponId: String,
 
-    @SerializedName("order_id")
+    @SerialName("order_id")
     val orderId: String,
 
-    @SerializedName("user_id")
+    @SerialName("user_id")
     val userId: String,
 
-    @SerializedName("discount_amount")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName("discount_amount")
     val discountAmount: BigDecimal? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

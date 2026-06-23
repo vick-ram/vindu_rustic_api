@@ -16,7 +16,6 @@ class AddressEntity(id: EntityID<String>): CustomEntity(id, Addresses) {
     var countryCode by Addresses.countryCode
     var country by Addresses.country
     var city by Addresses.city
-    var stateProvince by Addresses.stateProvince
     var postalCode by Addresses.postalCode
     var addressLine1 by Addresses.addressLine1
     var addressLine2 by Addresses.addressLine2

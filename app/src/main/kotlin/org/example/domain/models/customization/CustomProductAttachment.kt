@@ -1,34 +1,35 @@
 package org.example.domain.models.customization
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.content.MultiPartData
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
-import io.ktor.utils.io.readRemaining
+import io.ktor.http.content.*
+import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
+import org.example.utils.OffsetDateTimeSerializer
 import org.example.utils.saveMedia
-import java.io.Serializable
 import java.time.OffsetDateTime
 
+@Serializable
 data class CustomProductAttachment(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "request_id")
+    @SerialName(value = "request_id")
     val requestId: String,
 
-    @SerializedName(value = "file_url")
+    @SerialName(value = "file_url")
     val fileUrl: String,
 
-    @SerializedName(value = "file_type")
+    @SerialName(value = "file_type")
     val fileType: String? = null,
 
-    @SerializedName(value = "file_size")
+    @SerialName(value = "file_size")
     val fileSize: Long? = null, // bytes
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable {
+) {
     companion object {
         suspend fun multipartForm(multipart: MultiPartData): CustomProductAttachment {
             var requestId: String? = null

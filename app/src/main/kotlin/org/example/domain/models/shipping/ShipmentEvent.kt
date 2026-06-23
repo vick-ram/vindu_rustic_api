@@ -1,26 +1,30 @@
 package org.example.domain.models.shipping
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class ShipmentEvent(
     val id: String = Ulid.generate(),
 
-    @SerializedName("shipment_id")
+    @SerialName("shipment_id")
     val shipmentId: String,
 
-    @SerializedName("event_type")
+    @SerialName("event_type")
     val eventType: String,
 
     val status: String? = null,
     val location: String? = null,
     val description: String? = null,
 
-    @SerializedName("occurred_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("occurred_at")
     val occurredAt: OffsetDateTime? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable
+)

@@ -10,7 +10,3 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 suspend fun <T> suspendTransaction(block: suspend JdbcTransaction.() -> T): T {
     return newSuspendedTransaction(context = Dispatchers.IO, db = DatabaseFactory.db, statement = block)
 }
-
-//fun <T> suspendTransaction(block: Transaction.() -> T) : T {
-//    return transaction(db = DatabaseFactory.db, statement = block)
-//}

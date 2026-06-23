@@ -42,10 +42,14 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.sessions)
+    implementation("at.favre.lib:bcrypt:0.10.2")
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.hsts)
+    implementation(libs.ktor.server.forwarded.header)
     implementation(libs.ktor.server.websockets)
-    implementation(libs.ktor.serialization.gson)
+    implementation(libs.ktor.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.properties)
     implementation(libs.swagger.core)
     implementation(libs.ktor.swagger.ui)
 
@@ -103,8 +107,7 @@ dependencies {
 
     implementation(libs.skiko)
 
-    // Source: https://mvnrepository.com/artifact/com.cronutils/cron-utils
-    implementation("com.cronutils:cron-utils:9.2.1")
+    implementation("com.github.vick-ram:kcelery:0.0.1")
 
     // Test
     runtimeOnly(libs.kotest.runner)

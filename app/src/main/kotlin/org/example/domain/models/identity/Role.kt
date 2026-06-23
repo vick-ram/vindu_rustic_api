@@ -1,10 +1,11 @@
 package org.example.domain.models.identity
 
 import io.ktor.http.*
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import java.io.Serializable
 
+@Serializable
 data class Role(
     val id: String = Ulid.generate(),
 
@@ -12,7 +13,7 @@ data class Role(
     val name: String,
 
     val description: String? = null,
-): Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): Role {
             val name = parameters["name"].toString()

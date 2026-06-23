@@ -1,24 +1,27 @@
 package org.example.domain.models.sales
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class WishlistItem(
     val id: String = Ulid.generate(),
 
-    @SerializedName("wishlist_id")
+    @SerialName("wishlist_id")
     val wishlistId: String,
 
-    @SerializedName("product_id")
+    @SerialName("product_id")
     val productId: String,
 
-    @SerializedName(value = "variant_id")
+    @SerialName(value = "variant_id")
     val variantId: String? = null,
 
     val notes: String? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

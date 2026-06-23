@@ -1,33 +1,40 @@
 package org.example.domain.models.payments
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class PaymentTransaction(
     val id: String = Ulid.generate(),
 
-    @SerializedName("payment_id")
+    @SerialName("payment_id")
     val paymentId: String,
 
-    @SerializedName("provider_transaction_id")
+    @SerialName("provider_transaction_id")
     val providerTransactionId: String? = null,
 
-    @SerializedName("transaction_type")
+    @SerialName("transaction_type")
     val transactionType: String,
 
+    @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,
     val currency: String = "kes",
     val status: String,
 
-    @SerializedName("provider_response")
+    @Serializable(with = MapStringAnySerializer::class)
+    @SerialName("provider_response")
     val providerResponse: Map<String, Any>? = null,
 
-    @SerializedName("error_message")
+    @SerialName("error_message")
     val errorMessage: String? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

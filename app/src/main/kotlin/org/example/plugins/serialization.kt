@@ -1,31 +1,27 @@
 package org.example.plugins
 
-import com.google.common.reflect.TypeToken
-import io.ktor.serialization.gson.*
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.example.config.ApplicationPlugin
-import org.example.utils.BigDecimalAdapter
-import org.example.utils.GsonFactory
-import org.example.utils.LocalDateAdapter
-import org.example.utils.LocalDateTimeAdapter
-import org.example.utils.MapTypeAdapter
-import java.math.BigDecimal
+import org.example.utils.InetAddressSerializer
+import org.example.utils.OffsetDateTimeSerializer
 
 object SerializationModule : ApplicationPlugin {
     override fun install(application: Application) {
         application.install(ContentNegotiation) {
-            gson {
-//                serializeNulls()
-//                setPrettyPrinting()
-//                registerTypeAdapter(BigDecimal::class.java, BigDecimalAdapter())
-//                registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
-//                registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
-//                registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, MapTypeAdapter())
-                GsonFactory.gson
-            }
+            json(Json {
+                prettyPrint = true
+                isLenient = true
+                ignoreUnknownKeys = true
+                serializersModule = SerializersModule {
+                    contextual(OffsetDateTimeSerializer)
+                    contextual(InetAddressSerializer)
+                }
+            })
         }
     }
 }

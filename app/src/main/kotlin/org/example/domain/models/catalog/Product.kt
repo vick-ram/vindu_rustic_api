@@ -1,21 +1,23 @@
 package org.example.domain.models.catalog
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.Parameters
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class Product(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "category_id")
+    @SerialName(value = "category_id")
     val categoryId: String? = null,
 
     val title: String,
     val slug: String,
 
-    @SerializedName(value = "short_description")
+    @SerialName(value = "short_description")
     val shortDescription: String? = null,
 
     val description: String? = null,
@@ -24,28 +26,31 @@ data class Product(
 
     val brand: String? = null,
 
-    @SerializedName(value = "is_customizable")
+    @SerialName(value = "is_customizable")
     val isCustomizable: Boolean = false,
 
 
-    @SerializedName(value = "is_featured")
+    @SerialName(value = "is_featured")
     val isFeatured: Boolean = false,
 
-    @SerializedName(value = "seo_title")
+    @SerialName(value = "seo_title")
     val seoTitle: String? =null,
 
-    @SerializedName(value = "seo_description")
+    @SerialName(value = "seo_description")
     val seoDescription: String? = null,
 
-    @SerializedName(value = "created_at")
+    @SerialName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "updated_at")
+    @SerialName(value = "updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "deleted_at")
+    @SerialName(value = "deleted_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
     val deletedAt: OffsetDateTime? = null
-): Serializable {
+) {
     companion object {
 
         fun formParameters(parameters: Parameters): Product {

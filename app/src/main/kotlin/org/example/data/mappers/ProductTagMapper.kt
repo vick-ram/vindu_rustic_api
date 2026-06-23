@@ -1,23 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.ProductTagEntity
-import org.example.data.db.tables.Products
-import org.example.data.db.tables.Tags
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.catalog.ProductTag
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object ProductTagMapper : EntityMapper<ProductTagEntity, ProductTag, String> {
-    override fun toModel(entity: ProductTagEntity): ProductTag {
-        return ProductTag(
-            productId = entity.productId.value,
-            tagId = entity.tagId.value,
-        )
+object ProductTagMapper : RowMapper<Row, ProductTag> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): ProductTag {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: ProductTag, entity: ProductTagEntity): ProductTagEntity {
-        entity.productId = EntityID(model.productId, Products)
-        entity.tagId = EntityID(model.tagId, Tags)
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: ProductTag): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: ProductTag): Any =  model.productId
+
 }

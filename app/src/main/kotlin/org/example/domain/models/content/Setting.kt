@@ -1,24 +1,32 @@
 package org.example.domain.models.content
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
-import io.ktor.util.toMap
+import io.ktor.http.*
+import io.ktor.util.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class Setting(
     val id: String = Ulid.generate(),
     val key: String,
+
+    @Serializable(with = MapStringAnySerializer::class)
     val value: Map<String, Any>,
+
     val description: String? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName("updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable {
+) {
     companion object {
 
         fun formParameters(parameters: Parameters): Setting {

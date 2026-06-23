@@ -1,29 +1,35 @@
 package org.example.domain.models.identity
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.InetAddressSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
+@Serializable
 data class Session(
     val id: String = Ulid.generate(),
 
-    @SerializedName("user_id")
+    @SerialName("user_id")
     val userId: String,
 
-    @SerializedName("refresh_token")
+    @SerialName("refresh_token")
     val refreshToken: String, // hashed
 
-    @SerializedName("ip_address")
+    @Serializable(with = InetAddressSerializer::class)
+    @SerialName("ip_address")
     val ipAddress: InetAddress? = null,
 
-    @SerializedName("user_agent")
+    @SerialName("user_agent")
     val userAgent: String? = null,
 
-    @SerializedName("expires_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("expires_at")
     val expiresAt: OffsetDateTime,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

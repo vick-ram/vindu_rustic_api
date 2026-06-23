@@ -1,7 +1,6 @@
-package org.example.utils
+package org.example.config
 
 import io.ktor.server.application.Application
-import io.ktor.server.config.ApplicationConfigValue
 
 class EnvironmentConfig(private val application: Application) {
     /**

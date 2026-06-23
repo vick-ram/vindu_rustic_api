@@ -17,6 +17,7 @@ object Users : CustomTable("users") {
     val emailVerified = bool("email_verified").default(false)
     val phoneVerified = bool("phone_verified").default(false)
     val status = varchar("status", 15).default("active")
+    val enable2FA = bool("enable_two_factor").default(false)
     val lastLoginAt = timestampWithTimeZone("last_login_at").nullable()
     val deletedAt = timestampWithTimeZone("deleted_at").nullable()
     val tsv = tsVector("tsv")

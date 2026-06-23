@@ -1,12 +1,15 @@
 package org.example.domain.models.identity
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
 import io.ktor.websocket.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.*
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
+
 
 data class TokenResponse(
     val type: String,
@@ -14,6 +17,7 @@ data class TokenResponse(
     val refreshToken: String,
 )
 
+@Serializable
 data class LoginCredentials(
     @field:Email
     val email: String,
@@ -33,14 +37,15 @@ data class LoginCredentials(
 
 }
 
+@Serializable
 data class User(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "first_name")
+    @SerialName(value = "first_name")
     @field:NotBlank(message = "first name cannot be blank")
     val firstName: String? = null,
 
-    @SerializedName(value = "last_name")
+    @SerialName(value = "last_name")
     @field:NotBlank
     val lastName: String? = null,
 
@@ -51,33 +56,44 @@ data class User(
     val password: String,
 
     @field:Phone
-    @SerializedName("phone_number")
+    @SerialName("phone_number")
     val phoneNumber: String? = null,
 
     val avatarUrl: String? = null,
 
-    @SerializedName(value = "email_verified")
+    @SerialName(value = "email_verified")
     val emailVerified: Boolean = false,
 
-    @SerializedName(value = "phone_verified")
+    @SerialName(value = "phone_verified")
     val phoneVerified: Boolean = false,
 
     val status: String = "ACTIVE",
 
-    @SerializedName(value = "last_login_at")
+    @SerialName("two_factor_enabled")
+    val twoFactorEnabled : Boolean = false,
+
+    @SerialName("two_factor_method")
+    val twoFactorMethod: String? = null, // "app", "sms", "email"
+
+    @SerialName("notification_preferences")
+    val notificationPreferences: NotificationPreferences = NotificationPreferences(),
+
+    @Contextual
+    @SerialName(value = "last_login_at")
     val lastLoginAt: OffsetDateTime? = null,
 
-    @field:DateTimeFormat
-    @SerializedName(value = "created_at")
+    @Contextual
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "updated_at")
+    @Contextual
+    @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @field:DateTimeFormat
-    @SerializedName(value = "deleted_at")
+    @Contextual
+    @SerialName(value = "deleted_at")
     val deletedAt: OffsetDateTime? = null,
-) : Serializable{
+) {
 
     companion object {
         fun formParameters(parameters: Parameters): User {
@@ -123,6 +139,28 @@ data class User(
     }
 }
 
+@Serializable
+data class NotificationPreferences(
+    @SerialName("email_enabled")
+    val emailEnabled: Boolean = true,
+
+    @SerialName("sms_enabled")
+    val smsEnabled: Boolean = true,
+
+    @SerialName("push_enabled")
+    val pushEnabled: Boolean = true,
+
+    @SerialName("in_app_enabled")
+    val inAppEnabled: Boolean = true,
+
+    @SerialName("security_alerts")
+    val securityAlerts: Boolean = true,
+
+    @SerialName("marketing_emails")
+    val marketingEmails: Boolean = false
+)
+
+@Serializable
 data class ChatUser(
     val userId: String,
     val sessionId: String,

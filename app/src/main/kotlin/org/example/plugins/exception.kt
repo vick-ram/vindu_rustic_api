@@ -23,6 +23,7 @@ import org.postgresql.util.PSQLException
 import org.thymeleaf.exceptions.TemplateInputException
 import org.thymeleaf.exceptions.TemplateProcessingException
 import java.sql.SQLException
+import java.time.OffsetDateTime
 
 object StatusPagesModule : ApplicationPlugin {
     override fun install(application: Application) {
@@ -78,6 +79,7 @@ class ForbiddenException(override val message: String?) : Exception(message)
 class BadRequestException(message: String) : Exception(message)
 class AlreadyExistsException(message: String) : Exception(message)
 class ConflictException(message: String) : Exception(message)
+class TokenExpiredException(message: String, expiresAt: OffsetDateTime) : Exception(message)
 class ValidationException(
     val fieldErrors: List<ValidationError>
 ) : Exception() {

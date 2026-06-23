@@ -1,31 +1,35 @@
 package org.example.domain.models.inventory
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class InventoryReservation(
     val id: String = Ulid.generate(),
 
-    @SerializedName("variant_id")
+    @SerialName("variant_id")
     val variantId: String,
 
-    @SerializedName("warehouse_id")
+    @SerialName("warehouse_id")
     val warehouseId: String,
 
-    @SerializedName("cart_id")
+    @SerialName("cart_id")
     val cartId: String? = null,
 
-    @SerializedName("order_id")
+    @SerialName("order_id")
     val orderId: String? = null,
 
     val quantity: Int,
     val status: String = "active",
 
-    @SerializedName("expires_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("expires_at")
     val expiresAt: OffsetDateTime,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt:OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

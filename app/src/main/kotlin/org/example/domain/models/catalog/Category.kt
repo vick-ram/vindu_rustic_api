@@ -1,34 +1,37 @@
 package org.example.domain.models.catalog
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.content.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
+import org.example.utils.OffsetDateTimeSerializer
 import org.example.utils.saveMedia
-import java.io.Serializable
 import java.time.OffsetDateTime
 
+@Serializable
 data class Category(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "parent_id")
+    @SerialName(value = "parent_id")
     val parentId: String? = null,
 
     val name: String,
     val slug: String,
     val description: String? = null,
 
-    @SerializedName(value = "image_url")
+    @SerialName(value = "image_url")
     val imageUrl: String? = null,
 
-    @SerializedName(value = "is_active")
+    @SerialName(value = "is_active")
     val isActive: Boolean = false,
 
-    @SerializedName(value = "sort_order")
+    @SerialName(value = "sort_order")
     val sortOrder: Int = 0,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable {
+) {
     companion object {
 
         suspend fun multipartFormData(multipart: MultiPartData): Category {

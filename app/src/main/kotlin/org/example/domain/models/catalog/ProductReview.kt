@@ -1,22 +1,24 @@
 package org.example.domain.models.catalog
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.Between
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class ProductReview(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "product_id")
+    @SerialName(value = "product_id")
     val productId: String,
 
-    @SerializedName(value = "user_id")
+    @SerialName(value = "user_id")
     val userId: String,
 
-    @SerializedName(value = "order_item_id")
+    @SerialName(value = "order_item_id")
     val orderItemId: String,
 
     @field:Between(min = 1, max = 5)
@@ -24,12 +26,13 @@ data class ProductReview(
     val title: String,
     val review: String,
 
-    @SerializedName(value = "is_verified_purchase")
+    @SerialName(value = "is_verified_purchase")
     val isVerifiedPurchase: Boolean = false,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-) : Serializable {
+) {
 
     companion object {
         fun formParameters(parameters: Parameters): ProductReview {

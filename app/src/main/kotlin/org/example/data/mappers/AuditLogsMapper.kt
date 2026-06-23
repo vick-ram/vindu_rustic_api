@@ -1,38 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.AuditLogsEntity
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.system.AuditLogs
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object AuditLogsMapper : EntityMapper<AuditLogsEntity, AuditLogs, String> {
-    override fun toModel(entity: AuditLogsEntity): AuditLogs {
-        return AuditLogs(
-            id = entity.id.value,
-            actorId = entity.actorId?.value,
-            actorType = entity.actorType,
-            action = entity.action,
-            entityType = entity.entityType,
-            entityId = entity.entityId,
-            changes = entity.changes,
-            metadata = entity.metadata,
-            ipAddress = entity.ipAddress,
-            userAgent = entity.userAgent,
-            createdAt = entity.createdAt,
-        )
+object AuditLogsMapper : RowMapper<Row, AuditLogs> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): AuditLogs {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: AuditLogs, entity: AuditLogsEntity): AuditLogsEntity {
-        entity.actorId = model.actorId?.let { EntityID(it, Users) }
-        entity.actorType = model.actorType
-        entity.action = model.action
-        entity.entityType = model.entityType
-        entity.entityId = model.entityId
-        entity.changes = model.changes
-        entity.metadata = model.metadata
-        entity.ipAddress = model.ipAddress
-        entity.userAgent = model.userAgent
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: AuditLogs): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: AuditLogs): Any = model.id
 }

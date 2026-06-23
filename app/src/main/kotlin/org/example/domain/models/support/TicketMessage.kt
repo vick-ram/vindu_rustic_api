@@ -1,26 +1,31 @@
 package org.example.domain.models.support
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class TicketMessage(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "ticket_id")
+    @SerialName(value = "ticket_id")
     val ticketId: String,
 
-    @SerializedName("sender_id")
+    @SerialName("sender_id")
     val senderId: String,
 
     val message: String,
 
-    @SerializedName("is_internal")
+    @SerialName("is_internal")
     val isInternal: Boolean = false,
 
+    @Serializable(with = MapStringAnySerializer::class)
     val attachments: Map<String, Any>? = null,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

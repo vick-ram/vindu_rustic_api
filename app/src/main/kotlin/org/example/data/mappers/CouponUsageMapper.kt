@@ -1,30 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.CouponUsageEntity
-import org.example.data.db.tables.Coupons
-import org.example.data.db.tables.Orders
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.marketing.CouponUsage
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object CouponUsageMapper : EntityMapper<CouponUsageEntity, CouponUsage, String> {
-    override fun toModel(entity: CouponUsageEntity): CouponUsage {
-        return CouponUsage(
-            id = entity.id.value,
-            couponId = entity.couponId.value,
-            orderId = entity.orderId.value,
-            userId = entity.userId.value,
-            discountAmount = entity.discountAmount,
-            createdAt = entity.createdAt,
-        )
+object CouponUsageMapper : RowMapper<Row, CouponUsage> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): CouponUsage {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: CouponUsage, entity: CouponUsageEntity): CouponUsageEntity {
-        entity.couponId = EntityID(model.couponId, Coupons)
-        entity.orderId = EntityID(model.orderId, Orders)
-        entity.userId = EntityID(model.userId, Users)
-        entity.discountAmount = model.discountAmount
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: CouponUsage): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: CouponUsage): Any = model.id
+
 }

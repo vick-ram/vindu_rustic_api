@@ -1,26 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.WishlistEntity
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.sales.Wishlist
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object WishlistMapper : EntityMapper<WishlistEntity, Wishlist, String> {
-    override fun toModel(entity: WishlistEntity): Wishlist {
-        return Wishlist(
-            id = entity.id.value,
-            userId = entity.userId.value,
-            name = entity.name,
-            isPublic = entity.isPublic,
-            createdAt = entity.createdAt,
-        )
+object WishlistMapper : RowMapper<Row, Wishlist> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Wishlist {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Wishlist, entity: WishlistEntity): WishlistEntity {
-        entity.userId = EntityID(model.userId, Users)
-        entity.name = model.name
-        entity.isPublic = model.isPublic
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Wishlist): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Wishlist): Any = model.id
 }

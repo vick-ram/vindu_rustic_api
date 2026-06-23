@@ -1,26 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.WarehouseEntity
-import org.example.data.db.tables.Addresses
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.inventory.Warehouse
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object WarehouseMapper : EntityMapper<WarehouseEntity, Warehouse, String> {
-    override fun toModel(entity: WarehouseEntity): Warehouse {
-        return Warehouse(
-            id = entity.id.value,
-            name = entity.name,
-            addressId = entity.addressId?.value,
-            isActive = entity.isActive,
-            createdAt = entity.createdAt,
-        )
+object WarehouseMapper : RowMapper<Row, Warehouse> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Warehouse {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Warehouse, entity: WarehouseEntity): WarehouseEntity {
-        entity.name = model.name
-        entity.addressId = model.addressId?.let { EntityID(it, Addresses) }
-        entity.isActive = model.isActive
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Warehouse): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Warehouse): Any = model.id
 }

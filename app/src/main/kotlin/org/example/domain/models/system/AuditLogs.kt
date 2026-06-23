@@ -1,35 +1,43 @@
 package org.example.domain.models.system
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.InetAddressSerializer
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
+@Serializable
 data class AuditLogs(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "actor_id")
+    @SerialName(value = "actor_id")
     val actorId: String? = null,
 
-    @SerializedName(value = "actor_type")
+    @SerialName(value = "actor_type")
     val actorType: String,
 
     val action: String,
 
-    @SerializedName(value = "entity_type")
+    @SerialName(value = "entity_type")
     val entityType: String,
 
-    @SerializedName(value = "entity_id")
+    @SerialName(value = "entity_id")
     val entityId: String,
 
+    @Serializable(with = MapStringAnySerializer::class)
     val changes: Map<String, Any>? = null, // old and new
 
+    @Serializable(with = MapStringAnySerializer::class)
     val metadata: Map<String, Any>? = null,
 
+    @Serializable(with = InetAddressSerializer::class)
     val ipAddress: InetAddress? = null,
     val userAgent: String? = null,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable
+)

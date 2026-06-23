@@ -1,18 +1,19 @@
 package org.example.domain.models.identity
 
-import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
-import org.example.utils.now
-import java.io.Serializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class UserRole(
-    @SerializedName(value = "user_id")
+    @SerialName(value = "user_id")
     val userId: String,
 
-    @SerializedName(value = "role_id")
+    @SerialName(value = "role_id")
     val roleId: String,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

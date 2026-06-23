@@ -1,7 +1,6 @@
 package org.example.config
 
 import io.ktor.server.application.Application
-import org.example.utils.EnvironmentConfig
 
 data class AppConfig(
     val database: DatabaseConfig,
@@ -105,13 +104,23 @@ data class AppConfig(
     }
 }
 
+data class OAuthProvider(
+    val clientId: String,
+    val clientSecret: String,
+    val authorizeUrl: String,
+    val tokenUrl: String,
+    val userInfoUrl: String,
+    val scopes: List<String>
+)
+
 data class SecurityConfig(
     val secret: String,
     val issuer: String,
     val audience: String,
     val realm: String,
-    val clientID: String,
-    val clientSecret: String,
+    val accessExpiry: Long = 15 * 60 * 1000L,
+    val refreshExpiry: Long = 7 * 24 * 60 * 60 * 1000L,
+    val oauthConfig: OAuthProvider,
     val secretEncryptionKey: String,
     val secretSignKey: String
 )

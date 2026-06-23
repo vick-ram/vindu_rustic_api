@@ -7,7 +7,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
 import org.example.domain.repo.NotificationRepository
-import org.example.utils.EmailService
 import org.example.utils.EnvironmentConfig
 import org.example.utils.notifications.DatabaseNotificationService
 import org.example.utils.notifications.EmailNotificationService

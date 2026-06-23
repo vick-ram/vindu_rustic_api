@@ -1,33 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.InventoryEntity
-import org.example.data.db.tables.ProductVariants
-import org.example.data.db.tables.Warehouses
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.inventory.Inventory
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object InventoryMapper : EntityMapper<InventoryEntity, Inventory, String> {
-    override fun toModel(entity: InventoryEntity): Inventory {
-        return Inventory(
-            id = entity.id.value,
-            variantId = entity.variantId.value,
-            warehouseId = entity.warehouseId.value,
-            availableQuantity = entity.availableQuantity,
-            reservedQuantity = entity.reservedQuantity,
-            damagedQuantity = entity.damagedQuantity,
-            lowStockThreshold = entity.lowStockThreshold,
-            updatedAt = entity.updatedAt
-        )
+object InventoryMapper : RowMapper<Row, Inventory> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Inventory {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Inventory, entity: InventoryEntity): InventoryEntity {
-        entity.variantId = EntityID(model.variantId, ProductVariants)
-        entity.warehouseId = EntityID(model.warehouseId, Warehouses)
-        entity.availableQuantity = model.availableQuantity
-        entity.reservedQuantity = model.reservedQuantity
-        entity.damagedQuantity = model.damagedQuantity
-        entity.lowStockThreshold = model.lowStockThreshold
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Inventory): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Inventory): Any = model.id
+
 }

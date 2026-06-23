@@ -1,35 +1,38 @@
 package org.example.domain.models.inventory
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class Inventory(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "variant_id")
+    @SerialName(value = "variant_id")
     val variantId: String,
 
     val warehouseId: String,
 
     @field:GreaterThan(value = 0)
-    @SerializedName(value = "availability_quantity")
+    @SerialName(value = "availability_quantity")
     val availableQuantity: Int = 0,
 
-    @SerializedName(value = "reserved_quantity")
+    @SerialName(value = "reserved_quantity")
     val reservedQuantity: Int = 0,
 
     @field:GreaterThan(value = 0)
-    @SerializedName(value = "damaged_quantity")
+    @SerialName(value = "damaged_quantity")
     val damagedQuantity: Int = 0,
 
     val lowStockThreshold: Int? = null,
 
-    @SerializedName(value = "updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable {
+) {
     companion object {
 
         val columns: List<Map<String, Any>> = listOf(

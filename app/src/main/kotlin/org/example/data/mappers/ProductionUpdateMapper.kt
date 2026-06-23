@@ -1,33 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.ProductionUpdateEntity
-import org.example.data.db.tables.ProductionJobs
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.production.ProductionUpdate
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object ProductionUpdateMapper : EntityMapper<ProductionUpdateEntity, ProductionUpdate, String> {
-    override fun toModel(entity: ProductionUpdateEntity): ProductionUpdate {
-        return ProductionUpdate(
-            id = entity.id.value,
-            jobId = entity.jobId.value,
-            status = entity.status,
-            stageName = entity.stageName,
-            description = entity.description,
-            imageUrl = entity.imageUrl,
-            postedBy = entity.postedBy.value,
-            createdAt = entity.createdAt,
-        )
+object ProductionUpdateMapper : RowMapper<Row, ProductionUpdate> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): ProductionUpdate {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: ProductionUpdate, entity: ProductionUpdateEntity): ProductionUpdateEntity {
-        entity.jobId = EntityID(model.jobId, ProductionJobs)
-        entity.status = model.status
-        entity.stageName = model.stageName
-        entity.description = model.description
-        entity.imageUrl = model.imageUrl
-        entity.postedBy = EntityID(model.postedBy, Users)
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: ProductionUpdate): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: ProductionUpdate): Any =  model.id
+
 }

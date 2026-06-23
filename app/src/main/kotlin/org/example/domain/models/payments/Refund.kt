@@ -1,35 +1,40 @@
 package org.example.domain.models.payments
 
-import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import org.example.utils.now
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class Refund(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "payment_id")
+    @SerialName(value = "payment_id")
     val paymentId: String,
 
-    @SerializedName("transaction_id")
+    @SerialName("transaction_id")
     val transactionId: String? = null,
 
+    @Serializable(with = BigDecimalSerializer::class)
     val amount: BigDecimal,
+
     val reason: String? = null,
     val status: String = "requested",
 
-    @SerializedName("requested_by")
+    @SerialName("requested_by")
     val requestedBy: String? = null,
 
-    @SerializedName("processed_by")
+    @SerialName("processed_by")
     val processedBy: String? = null,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "processed_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "processed_at")
     val processedAt: OffsetDateTime? = null
-): Serializable
+)

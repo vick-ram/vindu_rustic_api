@@ -1,37 +1,27 @@
 package org.example.data.mappers
 
-import kotlinx.datetime.LocalDateTime
-import org.example.data.db.entities.OrderEntity
-import org.example.data.db.entities.PaymentEntity
-import org.example.data.db.entities.UserEntity
-import org.example.data.db.tables.Orders
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.payments.Payment
-import org.example.domain.repo.EntityMapper
-import org.example.utils.now
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object PaymentMapper : EntityMapper<PaymentEntity, Payment, String> {
-    override fun toModel(entity: PaymentEntity): Payment {
-        return Payment(
-            id = entity.id.value,
-            orderId = entity.orderId.value,
-            provider = entity.provider,
-            amount = entity.amount,
-            currency = entity.currency,
-            status = entity.status,
-            paymentMethod = entity.paymentMethod,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
-        )
+object PaymentMapper : RowMapper<Row, Payment> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Payment {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Payment, entity: PaymentEntity): PaymentEntity {
-        entity.orderId = EntityID(model.orderId, Orders)
-        entity.provider = model.provider
-        entity.amount = model.amount
-        entity.currency = model.currency
-        entity.status = model.status
-        entity.paymentMethod = model.paymentMethod
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Payment): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Payment): Any = model.id
+
 }

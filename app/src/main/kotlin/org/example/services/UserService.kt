@@ -4,9 +4,8 @@ import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
 import org.example.domain.repo.UserRepository
 import org.example.plugins.AuthenticationException
-import org.example.utils.HashPassword
 
-class UserService(private val userRepository: UserRepository, tokenService: TokenService) {
+class UserService(private val userRepository: UserRepository) {
 
     suspend fun createUser(user: User): User {
         return userRepository.create(user)
@@ -58,7 +57,7 @@ class UserService(private val userRepository: UserRepository, tokenService: Toke
         return userRepository.delete(id)
     }
 
-    suspend fun logout(token: String): Boolean {
-        return userRepository.logout(token)
+    suspend fun logout(userId: String ,accessToken: String): Boolean {
+        return userRepository.logout(userId, accessToken)
     }
 }

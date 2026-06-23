@@ -1,30 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.WishlistItemEntity
-import org.example.data.db.tables.ProductVariants
-import org.example.data.db.tables.Products
-import org.example.data.db.tables.Wishlists
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.sales.WishlistItem
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object WishlistItemMapper : EntityMapper<WishlistItemEntity, WishlistItem, String> {
-    override fun toModel(entity: WishlistItemEntity): WishlistItem {
-        return WishlistItem(
-            id = entity.id.value,
-            wishlistId = entity.wishlistId.value,
-            productId = entity.productId.value,
-            variantId = entity.variantId?.value,
-            notes = entity.notes,
-            createdAt = entity.createdAt,
-        )
+object WishlistItemMapper : RowMapper<Row, WishlistItem> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): WishlistItem {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: WishlistItem, entity: WishlistItemEntity): WishlistItemEntity {
-        entity.wishlistId = EntityID(model.wishlistId, Wishlists)
-        entity.productId = EntityID(model.productId, Products)
-        entity.variantId = model.variantId?.let { EntityID(it, ProductVariants) }
-        entity.notes = model.notes
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: WishlistItem): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: WishlistItem): Any = model.id
 }

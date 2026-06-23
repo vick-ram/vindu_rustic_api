@@ -33,4 +33,5 @@ object DeviceTokenTable: CustomTable("device_tokens") {
         sql = "Platform",
         fromDb = { value -> Platform.valueOf(value as String) },
         toDb = { PGEnum("Platform", it) })
+    val isActive = bool("is_active").default(true)
 }

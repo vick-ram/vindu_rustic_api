@@ -1,74 +1,83 @@
 package org.example.domain.models.sales
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import org.example.domain.validations.DateTimeFormat
 import org.example.domain.validations.Email
-import org.example.utils.toCustomFormat
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.InetAddressSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
+@Serializable
 data class Order(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "order_number")
+    @SerialName(value = "order_number")
     val orderNumber: String,
 
-    @SerializedName(value = "user_id")
+    @SerialName(value = "user_id")
     val userId: String? = null,
 
     @field:Email
     val email: String,
 
-    @SerializedName("shopping_address_id")
+    @SerialName("shopping_address_id")
     val shippingAddressId: String,
 
-    @SerializedName("billing_address_id")
+    @SerialName("billing_address_id")
     val billingAddressId: String? = null,
 
     val status: String = "pending",
 
-    @SerializedName(value = "payment_status")
+    @SerialName(value = "payment_status")
     val paymentStatus: String = "pending",
 
-    @SerializedName(value = "fulfillment_status")
+    @SerialName(value = "fulfillment_status")
     val fulfillmentStatus: String = "unfulfilled",
 
     val currency: String = "kes",
+
+    @Serializable(with = BigDecimalSerializer::class)
     val subtotal: BigDecimal = BigDecimal.ZERO,
 
-    @SerializedName(value = "shipping_cost")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "shipping_cost")
     val shippingCost: BigDecimal,
 
+    @Serializable(with = BigDecimalSerializer::class)
     val taxAmount: BigDecimal,
 
-    @SerializedName(value = "discount_amount")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "discount_amount")
     val discountAmount: BigDecimal = BigDecimal.ZERO,
 
-    @SerializedName(value = "total_amount")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "total_amount")
     val totalAmount: BigDecimal,
 
-    @SerializedName("coupon_code")
+    @SerialName("coupon_code")
     val couponCode: String? = null,
 
     val notes: String? = null,
 
-    @SerializedName("ip_address")
+    @Serializable(with = InetAddressSerializer::class)
+    @SerialName("ip_address")
     val ipAddress: InetAddress? = null,
 
-    @SerializedName("user_agent")
+    @SerialName("user_agent")
     val userAgent: String? = null,
 
-    @field:DateTimeFormat
-    @SerializedName(value = "placed_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "placed_at")
     val placedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @field:DateTimeFormat
-    @SerializedName(value = "updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable {
+) {
     companion object {
 
         val columns: List<Map<String, Any>> = listOf(

@@ -1,40 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.ShipmentEntity
-import org.example.data.db.tables.Orders
-import org.example.data.db.tables.Warehouses
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.shipping.Shipment
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object ShipmentMapper : EntityMapper<ShipmentEntity, Shipment, String> {
-    override fun toModel(entity: ShipmentEntity): Shipment {
-        return Shipment(
-            id = entity.id.value,
-            orderId = entity.orderId.value,
-            warehouseId = entity.warehouseId?.value,
-            courier = entity.courier,
-            serviceLevel = entity.serviceLevel,
-            trackingNumber = entity.trackingNumber,
-            trackingUrl = entity.trackingUrl,
-            shippingLabelUrl = entity.shippingLabelUrl,
-            cost = entity.cost,
-            estimatedDeliveryAt = entity.estimatedDeliveryAt,
-            shippedAt = entity.createdAt,
-            deliveredAt = entity.updatedAt
-        )
+object ShipmentMapper : RowMapper<Row, Shipment> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Shipment {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Shipment, entity: ShipmentEntity): ShipmentEntity {
-        entity.orderId = EntityID(model.orderId, Orders)
-        entity.warehouseId = model.warehouseId?.let { EntityID(it, Warehouses) }
-        entity.courier = model.courier
-        entity.serviceLevel = model.serviceLevel
-        entity.trackingNumber = model.trackingNumber
-        entity.trackingUrl = model.trackingUrl
-        entity.shippingLabelUrl = model.shippingLabelUrl
-        entity.cost = model.cost
-        entity.estimatedDeliveryAt = model.estimatedDeliveryAt
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Shipment): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Shipment): Any = model.id
 }

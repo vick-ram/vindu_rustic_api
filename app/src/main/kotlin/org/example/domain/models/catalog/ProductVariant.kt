@@ -1,46 +1,58 @@
 package org.example.domain.models.catalog
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.example.data.db.config.Ulid
-import org.example.utils.Json
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class ProductVariant(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "product_id")
+    @SerialName(value = "product_id")
     val productId: String,
 
     val sku: String,
     val title: String? = null,
+    @Serializable(with = BigDecimalSerializer::class)
     val price: BigDecimal,
 
-    @SerializedName(value = "compare_at_price")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "compare_at_price")
     val compareAtPrice: BigDecimal? = null,
 
-    @SerializedName(value = "cost_price")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "cost_price")
     val costPrice: BigDecimal? = null,
 
     val currency: String = "kes",
 
-    @SerializedName(value = "weight_grams")
+    @SerialName(value = "weight_grams")
     val weightGrams: Int? = null,
 
+    @Serializable(with = MapStringAnySerializer::class)
     val dimensions: Map<String, Any> = emptyMap(),
+
+    @Serializable(with = MapStringAnySerializer::class)
     val attributes: Map<String, Any> = emptyMap(),
 
-    @SerializedName(value = "is_active")
+    @SerialName(value = "is_active")
     val isActive: Boolean = true,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable {
+) {
     companion object {
 
         val columns: List<Map<String, Any>>

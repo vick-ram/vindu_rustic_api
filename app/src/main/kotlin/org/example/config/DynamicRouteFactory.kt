@@ -251,17 +251,6 @@ class DynamicRouteFactory {
         }
     }
 
-//    fun printRoutes() {
-//        println("=== Registered Routes ===")
-//        if (dynamicRoutes.isEmpty()) {
-//            println("No routes registered")
-//            return
-//        }
-//        getAllRoutes().forEach { route ->
-//            println("${route.methods.joinToString()} ${route.path} [Auth=${route.requiresAuth}]")
-//        }
-//    }
-
     fun printRoutes() {
         println("=== Registered Routes ===")
         if (dynamicRoutes.isEmpty()) {

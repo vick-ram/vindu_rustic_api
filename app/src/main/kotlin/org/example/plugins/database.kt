@@ -5,22 +5,7 @@ import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
 import org.example.data.db.config.DatabaseFactory
 import org.example.data.db.config.TsVectorManager
-import org.example.data.db.tables.AddressTable
-import org.example.data.db.tables.CartItemTable
-import org.example.data.db.tables.CartTable
-import org.example.data.db.tables.CategoryTable
-import org.example.data.db.tables.DimensionTable
-import org.example.data.db.tables.DiscountTable
-import org.example.data.db.tables.MediaTable
-import org.example.data.db.tables.OrderItemTable
-import org.example.data.db.tables.OrderTable
-import org.example.data.db.tables.PermissionTable
-import org.example.data.db.tables.ProductReviewTable
-import org.example.data.db.tables.ProductTable
-import org.example.data.db.tables.RolePermissionTable
 import org.example.data.db.tables.Roles
-import org.example.data.db.tables.SpecialOfferProductTable
-import org.example.data.db.tables.SpecialOfferTable
 import org.example.data.db.tables.Users
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
@@ -39,22 +24,7 @@ object DatabaseModule : ApplicationPlugin {
         val tables = arrayOf(
             Users,
             Roles,
-            RolePermissionTable,
-            PermissionTable,
-            CategoryTable,
-            ProductTable,
-            MediaTable,
-            DiscountTable,
-            SpecialOfferTable,
-            SpecialOfferProductTable,
-            ProductReviewTable,
-            DimensionTable,
-            OrderTable,
-            OrderItemTable,
-            AddressTable,
-            PaymentTable,
-            CartTable,
-            CartItemTable
+
         )
 
         //    Initialize connection pool

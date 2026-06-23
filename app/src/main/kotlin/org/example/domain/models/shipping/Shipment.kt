@@ -1,46 +1,53 @@
 package org.example.domain.models.shipping
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class Shipment(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "order_id")
+    @SerialName(value = "order_id")
     val orderId: String,
 
-    @SerializedName("warehouse_id")
+    @SerialName("warehouse_id")
     val warehouseId: String? = null,
 
     val courier: String? = null,
 
-    @SerializedName("service_level")
+    @SerialName("service_level")
     val serviceLevel: String? = null,
 
-    @SerializedName(value = "tracking_number")
+    @SerialName(value = "tracking_number")
     val trackingNumber: String? = null,
 
-    @SerializedName("tracking_number")
+    @SerialName("tracking_url")
     val trackingUrl: String? = null,
 
-    @SerializedName("shipping_label_url")
+    @SerialName("shipping_label_url")
     val shippingLabelUrl: String? = null,
 
+    @Serializable(with = BigDecimalSerializer::class)
     val cost: BigDecimal? = null,
 
-    @SerializedName(value = "estimated_delivery_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "estimated_delivery_at")
     val estimatedDeliveryAt: OffsetDateTime? = null,
 
-    @SerializedName(value = "shipped_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "shipped_at")
     val shippedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "delivered_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "delivered_at")
     val deliveredAt: OffsetDateTime
-): Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): Shipment {
             val orderId = parameters["orderId"].toString()

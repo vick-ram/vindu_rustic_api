@@ -45,4 +45,12 @@ class DeviceTokenRepositoryImpl(private val deviceTokenMapper: DeviceTokenMapper
         DeviceTokenEntity.find { DeviceTokenTable.user.eq(userId) }
             .map { it.toDomain() }
     }
+
+    override suspend fun deactivateToken(tokenId: String) {
+        suspendTransaction {
+            DeviceTokenEntity[tokenId].apply {
+                isActive = false
+            }
+        }
+    }
 }

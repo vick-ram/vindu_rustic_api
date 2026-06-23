@@ -26,4 +26,5 @@ class DeviceTokenEntity(id: EntityID<String>) : CustomEntity(id, DeviceTokenTabl
     var user by UserEntity referencedOn DeviceTokenTable.user
     var token by DeviceTokenTable.token
     var platform by DeviceTokenTable.platform
+    var isActive by DeviceTokenTable.isActive
 }

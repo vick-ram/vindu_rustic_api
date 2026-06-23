@@ -3,56 +3,126 @@ package org.example.utils.notifications
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
-import com.google.firebase.messaging.*
+import com.google.firebase.messaging.AndroidConfig
+import com.google.firebase.messaging.ApnsConfig
+import com.google.firebase.messaging.Aps
+import com.google.firebase.messaging.BatchResponse
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingException
+import com.google.firebase.messaging.Message
+import com.google.firebase.messaging.MessagingErrorCode
+import com.google.firebase.messaging.MulticastMessage
+import com.google.firebase.messaging.TopicManagementResponse
+import com.google.firebase.messaging.Notification as FCMNotification
 import org.example.config.AppConfig
+import org.example.domain.models.NotificationChannel
+import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
+import org.example.domain.repo.DeviceTokenRepository
 import org.example.domain.repo.NotificationRepository
-import org.example.services.DeviceTokenService
+import org.slf4j.LoggerFactory
 import java.io.File
 
-class FcmNotificationService(private val config: AppConfig, private val deviceTokenService: DeviceTokenService) :
+class FcmNotificationService(private val config: AppConfig, private val deviceTokenRepository: DeviceTokenRepository) :
     NotificationRepository {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val firebaseMessaging = FirebaseMessaging.getInstance()
 
     init {
         initializeFirebase()
     }
 
-    override suspend fun send(notification: Notification) {
-        when {
-            notification.topic != null -> {
-                sendToTopic(
+    override suspend fun markAsRead(notificationId: String, userId: String) {
+        // FCM doesn't support marking as read - this is a no-op
+        logger.debug("FCM does not support markAsRead")
+    }
+
+    override suspend fun getUnreadCount(userId: String): Long = 0
+
+    override suspend fun send(notification: Notification, email: String?, phoneNumber: String?): DispatchResult {
+       require(notification.channel == NotificationChannel.FCM) {
+           "FCM service only handles FCM channel"
+       }
+
+        val tokens = deviceTokenRepository.findUserDeviceTokens(notification.userId)
+            .filter { it.isActive }
+            .map { it.token }
+
+        if (tokens.isEmpty()) {
+            logger.warn("No active device tokens for user ${notification.userId}")
+            throw NoDeviceTokensException(notification.userId)
+        }
+
+        return try {
+            val result = if (tokens.size == 1) {
+                val messageId = sendToDevice(
+                    token = tokens[0],
                     title = notification.title,
-                    body = notification.body,
-                    topic = notification.topic,
-                    data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                    imageUrl = notification.imageUrl
+                    body = notification.body ?: "",
+                    data = buildNotificationData(notification),
+                    imageUrl = notification.metadata["imageUrl"]
+                )
+
+                DispatchResult(
+                    notificationId = notification.id,
+                    channel = NotificationChannel.FCM,
+                    success = true,
+                    message = "Sent to single device",
+                    externalId = messageId
+                )
+            } else {
+                val batchResponse = sendToMultiple(
+                    tokens = tokens,
+                    title = notification.title,
+                    body = notification.body ?: "",
+                    data = buildNotificationData(notification),
+                    imageUrl = notification.metadata["imageUrl"]
+                )
+
+                val failureCount = batchResponse.failureCount
+
+                // Deactivate invalid tokens
+                if (failureCount > 0) {
+                    batchResponse.responses.forEachIndexed { index, response ->
+                        if (!response.isSuccessful) {
+                            val failedToken = tokens[index]
+                            logger.warn("Failed to send to token: $failedToken")
+                            // Deactivate invalid tokens
+                            if (response.exception is FirebaseMessagingException) {
+                                val fcmError = response.exception as FirebaseMessagingException
+                                if (fcmError.messagingErrorCode == MessagingErrorCode.UNREGISTERED) {
+                                    deviceTokenRepository.deactivateToken(failedToken)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                DispatchResult(
+                    notificationId = notification.id,
+                    channel = NotificationChannel.FCM,
+                    success = failureCount < tokens.size,
+                    message = "Sent to ${tokens.size - failureCount}/${tokens.size} devices",
+                    externalId = batchResponse.responses.firstOrNull { it.isSuccessful }?.messageId ?: ""
                 )
             }
+            result
+        } catch (e: Exception) {
+            logger.error("Failed to send notification ${notification.id}", e)
+            throw e
+        }
+    }
 
-            else -> {
-                val userId = notification.metadata?.get("userId").toString()
-                val deviceTokens =
-                    deviceTokenService.getUserDeviceTokens(userId)
-                val tokens = deviceTokens.map { it.token }
-                if (tokens.size > 1) {
-                    sendToMultiple(
-                        tokens = tokens,
-                        title = notification.title,
-                        body = notification.body,
-                        data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                        imageUrl = notification.imageUrl
-                    )
-                } else if (tokens.isNotEmpty()) {
-                    sendToDevice(
-                        token = tokens.first(),
-                        title = notification.title,
-                        body = notification.body,
-                        data = notification.metadata?.mapValues { it.value.toString() } ?: emptyMap(),
-                        imageUrl = notification.imageUrl
-                    )
-                }
-            }
+    private fun buildNotificationData(notification: Notification): Map<String, String> {
+        return mutableMapOf(
+            "notification_id" to notification.id,
+            "type" to notification.type,
+            "action_url" to (notification.actionUrl ?: ""),
+            "reference_type" to (notification.referenceType ?: ""),
+            "reference_id" to (notification.referenceId ?: "")
+        ).apply {
+            putAll(notification.metadata.filterKeys { it != "imageUrl" })
         }
     }
 
@@ -140,7 +210,7 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
     ): Message {
         val builder = Message.builder()
             .setNotification(
-                Notification.builder()
+                FCMNotification.builder()
                     .setTitle(title)
                     .setBody(body)
                     .setImage(imageUrl)
@@ -173,7 +243,7 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
     ): MulticastMessage {
         return MulticastMessage.builder()
             .setNotification(
-                Notification.builder()
+                FCMNotification.builder()
                     .setTitle(title)
                     .setBody(body)
                     .setImage(imageUrl)
@@ -193,5 +263,4 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
             )
             .build()
     }
-
 }

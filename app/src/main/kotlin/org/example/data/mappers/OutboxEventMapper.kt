@@ -1,34 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.OutboxEventEntity
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.system.OutboxEvent
-import org.example.domain.repo.EntityMapper
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object OutboxEventMapper : EntityMapper<OutboxEventEntity, OutboxEvent, String> {
-    override fun toModel(entity: OutboxEventEntity): OutboxEvent {
-        return OutboxEvent(
-            id = entity.id.value,
-            aggregateType = entity.aggregateType,
-            aggregateId = entity.aggregateId,
-            eventType = entity.eventType,
-            payload = entity.payload,
-            processed = entity.processed,
-            processedAt = entity.processedAt,
-            attempts = entity.attempts,
-            errorMessage = entity.errorMessage,
-            createdAt = entity.createdAt,
-        )
+object OutboxEventMapper : RowMapper<Row, OutboxEvent> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): OutboxEvent {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: OutboxEvent, entity: OutboxEventEntity): OutboxEventEntity {
-        entity.aggregateType = model.aggregateType
-        entity.aggregateId = model.aggregateId
-        entity.eventType = model.eventType
-        entity.payload = model.payload
-        entity.processed = model.processed
-        entity.processedAt = model.processedAt
-        entity.attempts = model.attempts
-        entity.errorMessage = model.errorMessage
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: OutboxEvent): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: OutboxEvent): Any= model.id
+
 }

@@ -1,54 +1,61 @@
 package org.example.domain.models.identity
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
+import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class Address(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "user_id")
+    @SerialName(value = "user_id")
     val userId: String? = null,
 
     val label: String? = null,
 
     @field:NotBlank(message = "Name cannot be blank")
-    @SerializedName("recipient_name")
+    @SerialName("recipient_name")
     val recipientName: String,
 
     @field:NotBlank(message = "Phone cannot be blank")
-    @SerializedName("phone_number")
+    @SerialName("phone_number")
     val phoneNumber: String,
 
-    @SerializedName(value = "country_code")
+    @SerialName(value = "country_code")
     val countryCode: String = "+254",
 
     val country: String = "kenya",
     val city: String? = null,
     val state: String? = null,
 
-    @SerializedName(value = "postal_code")
+    @SerialName(value = "postal_code")
     val postalCode: String? = null,
 
-    @SerializedName(value = "address_line1")
+    @SerialName(value = "address_line1")
     val addressLine1: String,
 
-    @SerializedName(value = "address_line2")
+    @SerialName(value = "address_line2")
     val addressLine2: String? = null,
 
+    @Serializable(with = BigDecimalSerializer::class)
     val latitude: BigDecimal? = null,
+
+    @Serializable(with = BigDecimalSerializer::class)
     val longitude: BigDecimal? = null,
 
-    @SerializedName(value = "is_default")
+    @SerialName(value = "is_default")
     val isDefault: Boolean = false,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-) : Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): Address {
             val userId = parameters["user_id"].toString()

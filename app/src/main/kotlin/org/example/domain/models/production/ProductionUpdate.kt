@@ -1,29 +1,32 @@
 package org.example.domain.models.production
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class ProductionUpdate(
     val id: String = Ulid.generate(),
 
-    @SerializedName("job_id")
+    @SerialName("job_id")
     val jobId: String,
 
     val status: String,
 
-    @SerializedName("stage_name")
+    @SerialName("stage_name")
     val stageName: String? = null,
 
     val description: String? = null,
 
-    @SerializedName("image_url")
+    @SerialName("image_url")
     val imageUrl: String? = null,
 
-    @SerializedName("posted_by")
+    @SerialName("posted_by")
     val postedBy: String,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

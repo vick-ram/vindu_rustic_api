@@ -1,39 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.ProductReviewEntity
-import org.example.data.db.tables.Products
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.catalog.ProductReview
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object ProductReviewMapper: EntityMapper<ProductReviewEntity, ProductReview, String> {
-    override fun toModel(entity: ProductReviewEntity): ProductReview {
-        return ProductReview(
-            id = entity.id.value,
-            productId = entity.productId.value,
-            userId = entity.userId.value,
-            orderItemId = entity.orderItemId.value,
-            rating = entity.rating,
-            title = entity.title,
-            review = entity.review,
-            isVerifiedPurchase = entity.isVerifiedPurchase,
-            createdAt = entity.createdAt
-        )
+object ProductReviewMapper : RowMapper<Row, ProductReview> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): ProductReview {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(
-        model: ProductReview,
-        entity: ProductReviewEntity
-    ): ProductReviewEntity {
-        return entity.apply {
-            productId = EntityID(model.productId, Products)
-            userId = EntityID(model.userId, Users)
-            orderItemId = EntityID(model.orderItemId, Products)
-            rating = model.rating
-            title = model.title
-            review = model.review
-            isVerifiedPurchase = model.isVerifiedPurchase
-        }
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: ProductReview): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: ProductReview): Any = model.id
+
 }

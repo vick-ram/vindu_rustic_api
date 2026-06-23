@@ -1,47 +1,28 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.*
-import org.example.domain.models.*
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.catalog.Product
-import org.example.domain.repo.EntityMapper
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object ProductMapper : EntityMapper<ProductEntity, Product, String> {
-    override fun toModel(entity: ProductEntity): Product {
-        return Product(
-            id = entity.id.value,
-            categoryId = entity.categoryId?.value,
-            title = entity.title,
-            slug = entity.slug,
-            shortDescription = entity.shortDescription,
-            description = entity.description,
-            status = entity.status,
-            productType = entity.productType,
-            brand = entity.brand,
-            isCustomizable = entity.isCustomizable,
-            isFeatured = entity.isFeatured,
-            seoTitle = entity.seoTitle,
-            seoDescription = entity.seoDescription,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
-            deletedAt = entity.deletedAt
-        )
+object ProductMapper : RowMapper<Row, Product> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Product {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Product, entity: ProductEntity): ProductEntity {
-        entity.categoryId = model.categoryId?.let { EntityID(it, Categories) }
-        entity.title = model.title
-        entity.slug = model.slug
-        entity.shortDescription = model.shortDescription
-        entity.description = model.description
-        entity.status = model.status
-        entity.productType = model.productType
-        entity.brand = model.brand
-        entity.isCustomizable = model.isCustomizable
-        entity.isFeatured = model.isFeatured
-        entity.seoTitle = model.seoTitle
-        entity.seoDescription = model.seoDescription
-        entity.deletedAt = model.deletedAt
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Product): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Product): Any = model.id
+
 }
 

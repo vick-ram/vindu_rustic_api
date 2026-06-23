@@ -1,16 +1,17 @@
 package org.example.domain.models.catalog
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
-import java.io.Serializable
+import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ProductTag(
-    @SerializedName("product_id")
+    @SerialName("product_id")
     val productId: String,
 
-    @SerializedName("tag_id")
+    @SerialName("tag_id")
     val tagId: String,
-): Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): ProductTag {
             val productId = parameters["productId"].toString()

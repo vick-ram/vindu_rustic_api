@@ -6,62 +6,75 @@ import io.lettuce.core.KeyScanCursor
 import io.lettuce.core.ScanArgs
 import io.lettuce.core.ScanCursor
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import org.example.domain.repo.CrudRepository
-import org.example.utils.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+interface CacheConfig {
+    val cacheName: String
+    val ttl: Long?
+}
 
 class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class) constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val delegate: CrudRepository<T, ID>,
-    private val clazz: Class<T>,
     private val getId: (T) -> ID,
-    private val cacheName: String? = null,
-    private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java),
-    private val ttl: Long? = null
+    private val serializer: KSerializer<T>,
+    private val config: CacheConfig
 ): CrudRepository<T, ID> {
 
+    private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java)
+
+    private val collectionSerializer = ListSerializer(serializer)
+
     private fun generateCacheKey(id: ID): String {
-        return "$cacheName:$id"
+        return "${config.cacheName}:$id"
     }
 
     private fun generateCollectionCacheKey(queryParams: Map<String, String>?, offset: Int, limit: Int): String {
         val paramsHash = queryParams?.entries
             ?.sortedBy { it.key }
             ?.joinToString("&") { "${it.key}=${it.value}" } ?: ""
-        return "$cacheName:collection:$paramsHash:$offset:$limit"
+        return "${config.cacheName}:collection:$paramsHash:$offset:$limit"
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun putInCache(id: ID, entity: T) {
+        try {
             val key = generateCacheKey(id)
-            val jsonValue = Json.encodeToString(entity)
-            if (ttl != null) {
-                redis.setex(key, ttl, jsonValue)
+            val jsonValue = Json.encodeToString(serializer, entity)
+            if (config.ttl != null) {
+                redis.setex(key, config.ttl!!, jsonValue)
             } else {
                 redis.set(key, jsonValue)
             }
+        } catch (e: Exception) {
+            logger.error("Failed to cache entity with ID: $id", e)
+        }
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun getFromCache(id: ID): T? {
+        return try {
             val key = generateCacheKey(id)
             val jsonValue = redis.get(key)
-        return jsonValue?.let { deserializeEntity(it, id.toString()) }
+            jsonValue?.let { Json.decodeFromString(serializer, it) }
+        } catch (e: Exception) {
+            logger.error("Failed to get entity from cache for ID: $id", e)
+            null
+        }
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun removeFromCache(id: ID) {
+        try {
             val key = generateCacheKey(id)
             redis.del(key)
-    }
-
-    private fun deserializeEntity(jsonValue: String, id: String): T? {
-        return try {
-            Json.decodeFromString(jsonValue, clazz)
         } catch (e: Exception) {
-            logger.error("Failed to deserialize cached entity for ID: $id", e)
-            null
+            logger.error("Failed to remove entity from cache for ID: $id", e)
         }
     }
 
@@ -74,15 +87,9 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
     }
 
     override suspend fun read(id: ID): T? {
-        val cached = getFromCache(id)
-        if (cached != null) {
-            return cached
-        }
-        val entity = delegate.read(id)
-        if (entity != null) {
+        return getFromCache(id) ?: delegate.read(id)?.also { entity ->
             putInCache(id, entity)
         }
-        return entity
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
@@ -93,27 +100,25 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
     ): List<T> {
         val cacheKey = generateCollectionCacheKey(queryParams, offset, limit)
 
-        // Try to get from cache first
+        // Try cache first
         val cachedJson = redis.get(cacheKey)
         if (cachedJson != null) {
             try {
-                val listType = TypeToken.getParameterized(List::class.java, clazz).type
-                return Json.decodeFromString( cachedJson, listType)
+                return Json.decodeFromString(collectionSerializer, cachedJson)
             } catch (e: Exception) {
                 logger.error("Failed to deserialize cached collection for key: $cacheKey", e)
-                // Fall through to fetch from delegate
             }
         }
 
         // Fetch from delegate
         val entities = delegate.readAll(offset, limit, queryParams)
 
-        // Cache the result
+        // Cache non-empty results
         if (entities.isNotEmpty()) {
             try {
-                val jsonValue = Json.encodeToString(entities)
-                if (ttl != null) {
-                    redis.setex(cacheKey, ttl, jsonValue)
+                val jsonValue = Json.encodeToString(collectionSerializer, entities)
+                if (config.ttl != null) {
+                    redis.setex(cacheKey, config.ttl!!, jsonValue)
                 } else {
                     redis.set(cacheKey, jsonValue)
                 }
@@ -129,10 +134,10 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
         val updated = delegate.update(id, entity)
         if (updated != null) {
             putInCache(id, updated)
-            invalidateCollectionCaches()
         } else {
             removeFromCache(id)
         }
+        invalidateCollectionCaches()
         return updated
     }
 
@@ -140,20 +145,20 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
         val deleted = delegate.delete(id)
         if (deleted) {
             removeFromCache(id)
+            invalidateCollectionCaches()
         }
-        invalidateCollectionCaches()
         return deleted
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     suspend fun clearCache() {
-        logger.info("Clearing Redis cache for pattern: $cacheName:*")
-        deleteKeysByPattern("$cacheName:*")
+        logger.info("Clearing Redis cache for pattern: ${config.cacheName}:*")
+        deleteKeysByPattern("${config.cacheName}:*")
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun invalidateCollectionCaches() {
-        deleteKeysByPattern("$cacheName:collection:*")
+        deleteKeysByPattern("${config.cacheName}:collection:*")
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
@@ -163,13 +168,15 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
             var scanCursor: KeyScanCursor<String>? = redis.scan(ScanCursor.INITIAL, scanArgs)
             var totalDeleted = 0
 
-            while (scanCursor != null && !scanCursor.isFinished) {
+            while (scanCursor != null) {
                 val keys = scanCursor.keys
                 if (keys.isNotEmpty()) {
                     redis.del(*keys.toTypedArray())
                     totalDeleted += keys.size
                     logger.debug("Deleted batch of ${keys.size} keys matching pattern: $pattern")
                 }
+                if (scanCursor.isFinished) break
+
                 scanCursor = redis.scan(scanCursor, scanArgs)
             }
 

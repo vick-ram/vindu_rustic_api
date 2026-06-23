@@ -1,32 +1,40 @@
 package org.example.domain.models.system
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class OutboxEvent(
     val id: String = Ulid.generate(),
 
-    @SerializedName("aggregate_type")
+    @SerialName("aggregate_type")
     val aggregateType: String,
 
-    @SerializedName("aggregate_id")
+    @SerialName("aggregate_id")
     val aggregateId: String,
 
-    @SerializedName("event_type")
+    @SerialName("event_type")
     val eventType: String,
 
+    @Serializable(with = MapStringAnySerializer::class)
     val payload: Map<String, Any>,
+
     val processed: Boolean = false,
 
-    @SerializedName("processed_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("processed_at")
     val processedAt: OffsetDateTime? = null,
+
     val attempts: Int = 0,
 
-    @SerializedName("error_message")
+    @SerialName("error_message")
     val errorMessage: String? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

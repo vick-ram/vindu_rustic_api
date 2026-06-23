@@ -1,9 +1,10 @@
 package org.example.domain.models.support
 
-import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import org.example.utils.now
+import java.time.LocalDateTime
 
+@Serializable
 data class Conversation(
     val id: String = Ulid.generate(),
     val lastMessageId: String? = null,
@@ -11,6 +12,7 @@ data class Conversation(
     val updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
+@Serializable
 data class Participant(
     val id: String = Ulid.generate(),
     val conversationId: String,
@@ -20,6 +22,7 @@ data class Participant(
     val isActive: Boolean = false
 )
 
+@Serializable
 data class Message (
     val id: String = Ulid.generate(),
     val conversationId: String,

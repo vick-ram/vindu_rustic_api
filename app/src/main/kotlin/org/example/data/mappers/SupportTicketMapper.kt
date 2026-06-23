@@ -1,38 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.SupportTicketEntity
-import org.example.data.db.tables.Orders
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.support.SupportTicket
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object SupportTicketMapper : EntityMapper<SupportTicketEntity, SupportTicket, String> {
-    override fun toModel(entity: SupportTicketEntity): SupportTicket {
-        return SupportTicket(
-            id = entity.id.value,
-            userId = entity.userId.value,
-            orderId = entity.orderId?.value,
-            subject = entity.subject,
-            status = entity.status,
-            priority = entity.priority,
-            ticketType = entity.ticketType,
-            assignedTo = entity.assignedTo?.value,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
-            resolvedAt = entity.resolvedAt
-        )
+object SupportTicketMapper : RowMapper<Row, SupportTicket> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): SupportTicket {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: SupportTicket, entity: SupportTicketEntity): SupportTicketEntity {
-        entity.userId = EntityID(model.userId, Users)
-        entity.orderId = model.orderId?.let { EntityID(it, Orders) }
-        entity.subject = model.subject
-        entity.status = model.status
-        entity.priority = model.priority
-        entity.ticketType = model.ticketType
-        entity.assignedTo = model.assignedTo?.let { EntityID(it, Users) }
-        entity.resolvedAt = model.resolvedAt
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: SupportTicket): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: SupportTicket): Any = model.id
+
 }

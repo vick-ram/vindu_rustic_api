@@ -1,30 +1,27 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.SessionEntity
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.identity.Session
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object SessionMapper : EntityMapper<SessionEntity, Session, String> {
-    override fun toModel(entity: SessionEntity): Session {
-        return Session(
-            id = entity.id.value,
-            userId = entity.userId.value,
-            refreshToken = entity.refreshTokenHash,
-            ipAddress = entity.ipAddress,
-            userAgent = entity.userAgent,
-            expiresAt = entity.expiresAt,
-            createdAt = entity.createdAt
-        )
+object SessionMapper : RowMapper<Row, Session> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Session {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Session, entity: SessionEntity): SessionEntity {
-        entity.userId = EntityID(model.userId, Users)
-        entity.refreshTokenHash = model.refreshToken
-        entity.ipAddress = model.ipAddress
-        entity.userAgent = model.userAgent
-        entity.expiresAt = model.expiresAt
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Session): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Session): Any = model.id
+
 }

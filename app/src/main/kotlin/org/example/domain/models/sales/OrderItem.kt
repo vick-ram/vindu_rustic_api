@@ -1,23 +1,27 @@
 package org.example.domain.models.sales
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
 import org.example.domain.validations.NotBlank
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.MapStringAnySerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class OrderItem(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "order_id")
+    @SerialName(value = "order_id")
     val orderId: String,
 
-    @SerializedName(value = "product_id")
+    @SerialName(value = "product_id")
     val productId: String,
 
-    @SerializedName(value = "variant_id")
+    @SerialName(value = "variant_id")
     val variantId: String,
 
     val warehouseId: String? = null,
@@ -26,19 +30,23 @@ data class OrderItem(
     @field:GreaterThan(value = 0)
     val quantity: Int,
 
-    @field:GreaterThan(value = 0)
-    @SerializedName(value = "unit_price")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "unit_price")
     val unitPrice: BigDecimal,
 
-    @SerializedName(value = "total_price")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName(value = "total_price")
     val totalPrice: BigDecimal,
 
-    @SerializedName(value = "customization_snapshot")
+    @Serializable(with = MapStringAnySerializer::class)
+    @SerialName(value = "customization_snapshot")
     val customizationSnapshot: Map<String, Any>? = null,
 
-    @SerializedName(value = "product_snapshot")
+    @Serializable(with = MapStringAnySerializer::class)
+    @SerialName(value = "product_snapshot")
     val productSnapshot: Map<String, Any>,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable
+)

@@ -1,21 +1,22 @@
 package org.example.domain.models.production
 
-import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class ProductionJob(
     val id: String = Ulid.generate(),
 
-    @SerializedName(value = "order_item_id")
+    @SerialName(value = "order_item_id")
     val orderItemId: String,
 
-    @SerializedName(value = "product_id")
+    @SerialName(value = "product_id")
     val productId: String,
 
-    @SerializedName("assigned_to")
+    @SerialName("assigned_to")
     val assignedTo: String? = null,
 
     val status: String = "QUEUED",
@@ -25,18 +26,23 @@ data class ProductionJob(
 
     val notes: String? = null,
 
-    @SerializedName(value = "started_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "started_at")
     val startedAt: OffsetDateTime? = null,
 
-    @SerializedName(value = "completed_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "completed_at")
     val completedAt: OffsetDateTime? = null,
 
-    @SerializedName(value = "estimated_completion_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "estimated_completion_at")
     val estimatedCompletionAt: OffsetDateTime? = null,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName(value = "updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable
+)

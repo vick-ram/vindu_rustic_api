@@ -1,31 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.TicketMessageEntity
-import org.example.data.db.tables.SupportTickets
-import org.example.data.db.tables.Users
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.support.TicketMessage
-import org.example.domain.repo.EntityMapper
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object TicketMessageMapper : EntityMapper<TicketMessageEntity, TicketMessage, String> {
-    override fun toModel(entity: TicketMessageEntity): TicketMessage {
-        return TicketMessage(
-            id = entity.id.value,
-            ticketId = entity.ticketId.value,
-            senderId = entity.senderId.value,
-            message = entity.message,
-            isInternal = entity.isInternal,
-            attachments = entity.attachments,
-            createdAt = entity.createdAt,
-        )
+object TicketMessageMapper : RowMapper<Row, TicketMessage> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): TicketMessage {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: TicketMessage, entity: TicketMessageEntity): TicketMessageEntity {
-        entity.ticketId = EntityID(model.ticketId, SupportTickets)
-        entity.senderId = EntityID(model.senderId, Users)
-        entity.message = model.message
-        entity.isInternal = model.isInternal
-        entity.attachments = model.attachments
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: TicketMessage): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: TicketMessage): Any = model.id
 }

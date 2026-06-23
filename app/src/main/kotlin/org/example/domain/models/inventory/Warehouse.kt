@@ -1,12 +1,14 @@
 package org.example.domain.models.inventory
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class Warehouse(
     val id: String = Ulid.generate(),
 
@@ -14,15 +16,16 @@ data class Warehouse(
     val name: String,
 
     @field:NotBlank
-    @SerializedName("address_id")
+    @SerialName("address_id")
     val addressId: String? = null,
 
-    @SerializedName("is_active")
+    @SerialName("is_active")
     val isActive: Boolean = true,
 
-    @SerializedName(value = "created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
-): Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): Warehouse {
             val name = parameters["name"] as String

@@ -6,14 +6,20 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
+import io.ktor.server.plugins.hsts.HSTS
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import kotlinx.serialization.Serializable
 import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
+import org.example.config.security.JwtConfig
 import org.example.domain.models.sales.CartItem
+import org.example.domain.validations.validate
 import org.example.services.CustomJwtPrincipal
 import org.example.utils.*
 import org.koin.ktor.ext.inject
@@ -21,47 +27,10 @@ import java.math.BigDecimal
 import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 
-data class AuthSession(
-    val userId: String,
-    val email: String,
-    val lastAccess: Long = System.currentTimeMillis()
-)
-
-data class CartSession @OptIn(ExperimentalUuidApi::class) constructor(
-    val sessionId: String = shortUUID(),
-    val userId: String? = null,
-    val items: MutableList<CartItem> = mutableListOf(),
-    val lastUpdated: Long = System.currentTimeMillis(),
-    var total: BigDecimal = BigDecimal.ZERO
-) {
-    fun calculateTotal() {
-        total = items.sumOf { it.total }
-    }
-
-    fun addItem(newItem: CartItem) {
-        val existingItem = items.find { it.productId == newItem.productId }
-        if (existingItem != null) {
-            existingItem.quantity += newItem.quantity
-        } else {
-            items.add(newItem)
-        }
-        calculateTotal()
-    }
-
-    fun removeItem(productId: String) {
-        items.removeAll { it.productId == productId }
-        calculateTotal()
-    }
-
-    fun updateQuantity(productId: String, quantity: Int) {
-        items.find { it.productId == productId }?.quantity = quantity
-        calculateTotal()
-    }
-}
-
 object SecurityModule : ApplicationPlugin {
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     override fun install(application: Application) {
+        val jwtConfig by application.inject<JwtConfig>()
         val redisCommands by application.inject<RedisCoroutinesCommands<String, String>>()
         val sessionStorage = RedisSessionStorage(redisCommands)
         val config = AppConfig.load(application)
@@ -69,90 +38,65 @@ object SecurityModule : ApplicationPlugin {
         val secretSignKey = hex(config.security.secretSignKey)
         val secretEncryptionKey = hex(config.security.secretEncryptionKey)
 
-        application.install(Sessions) {
-            val gson by application.inject<Gson>()
-            cookie<AuthSession>("auth-session", storage = sessionStorage) {
-                cookie.extensions["SameSite"] = "lax"
-                cookie.path = "/"
-                cookie.maxAgeInSeconds = 7 * 24 * 60 * 60 // A week
-                cookie.httpOnly = true
-//            cookie.secure = environment
-                serializer = GsonSessionSerializer(gson, AuthSession::class.java)
-                transform(SessionTransportTransformerEncrypt(secretEncryptionKey, secretSignKey))
-            }
+        application.install(XForwardedHeaders)
 
-            cookie<CartSession>("cart_session") {
-                cookie.extensions["SameSite"] = "lax"
+        application.install(HSTS) {
+            maxAgeInSeconds = 365 * 24 * 60 * 50
+            includeSubDomains = true
+            preload = true
+        }
+
+        application.install(CORS) {
+            config.cors.allowedMethods.forEach { method ->
+                allowMethod(HttpMethod.parse(method))
+            }
+            config.cors.allowedHeaders.forEach { header ->
+                allowHeader(header)
+            }
+            allowCredentials = config.cors.allowCredentials
+            allowNonSimpleContentTypes = true
+            maxAgeInSeconds = config.cors.maxAgeSeconds
+            anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+        }
+
+        application.install(Sessions) {
+            cookie<AuthSession>("auth_session") {
                 cookie.path = "/"
-                cookie.secure = config.server.development
-                cookie.maxAgeInSeconds = 3600 * 24 * 30 // A week
-                serializer = GsonSessionSerializer(gson, CartSession::class.java)
-                transform(SessionTransportTransformerEncrypt(secretEncryptionKey, secretSignKey))
+                cookie.maxAgeInSeconds = 7 * 24 * 60 * 60
+                cookie.httpOnly = true
+                cookie.secure = true
+                cookie.sameSite = SameSite.Lax
             }
         }
 
         application.authentication {
-            val httpClient by application.inject<HttpClient>()
-//        Session Authentication
-            session<AuthSession>("auth-session") {
-                validate { it.takeIf { session -> session.userId.isNotBlank() } }
-                challenge {
-                    call.respond(UnauthorizedResponse())
-                }
-            }
-
-//        JWT authentication
             jwt("auth-jwt") {
-                realm = config.security.realm
-                verifyJwt(secret = config.security.secret, issuer = config.security.issuer, audience = config.security.audience)?.let {
-                    verifier(
-                        it
-                    )
-                }
+                verifier(jwtConfig.verifier)
                 validate { credential ->
-                    if (isTokenBlacklisted(credential.payload.id)) {
-                        return@validate null
-                    }
-
-                    // Check expiration
-                    if (credential.payload.expiresAt.before(Date())) {
-                        return@validate null
-                    }
-
-                    return@validate CustomJwtPrincipal(
-                        userId = credential.payload.subject,
-                        email = credential.payload.getClaim("email").asString(),
-                        jti = credential.payload.id,
-                        expiresAt = credential.payload.expiresAt,
-                    )
+                    if (credential.payload.getClaim("userId").asString() != null) {
+                        JWTPrincipal(credential.payload)
+                    } else null
                 }
-
                 challenge { _, _ ->
-                    throw AuthenticationException("Token is not valid or has expired")
+                    call.respond(HttpStatusCode.Unauthorized)
                 }
             }
-
-            oauth("auth-oauth-google") {
-                urlProvider = { "http://localhost:8000/users/auth/callback" }
-                providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings(
-                        name = "google",
-                        authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
-                        accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
-                        requestMethod = HttpMethod.Post,
-                        clientId = config.security.clientID,
-                        clientSecret = config.security.clientSecret,
-                        defaultScopes = listOf("https://www.googleapis.com/auth/userinfo.profile"),
-                        extraAuthParameters = listOf("access_type" to "offline"),
-                        onStateCreated = { call, state ->
-                            call.request.queryParameters["redirectUrl"]?.let {
-                                redirects[state] = it
-                            }
-                        }
-                    )
+            session<AuthSession>("auth-session") {
+                validate { session ->
+                    if (session.userId.isNotEmpty()) {
+                        session
+                    } else null
                 }
-                client = httpClient
+                challenge { _ ->
+                    call.respond(HttpStatusCode.Unauthorized)
+                }
             }
         }
     }
 }
+
+@Serializable
+data class AuthSession(
+    val userId: String,
+    val email: String
+)

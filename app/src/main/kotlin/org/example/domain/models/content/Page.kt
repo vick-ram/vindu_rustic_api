@@ -1,37 +1,42 @@
 package org.example.domain.models.content
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
+import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
+@Serializable
 data class Page(
     val id: String = Ulid.generate(),
     val title: String,
     val slug: String,
     val content: String? = null,
 
-    @SerializedName("meta_title")
+    @SerialName("meta_title")
     val metaTitle: String? = null,
 
-    @SerializedName("meta_description")
+    @SerialName("meta_description")
     val metaDescription: String? = null,
 
     val status: String = "draft",
 
-    @SerializedName("created_by")
+    @SerialName("created_by")
     val createdBy: String? = null,
 
-    @SerializedName("published_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("published_at")
     val publishedAt: OffsetDateTime? = null,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName("updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
-): Serializable {
+) {
     companion object {
 
         fun formParameters(parameters: Parameters): Page {

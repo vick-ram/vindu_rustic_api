@@ -12,9 +12,9 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.FileTemplateResolver
 
 private class KtorLinkBuilder : ILinkBuilder {
-    override fun getName(): String? = "KtorLinkBuilder"
+    override fun getName(): String = "KtorLinkBuilder"
 
-    override fun getOrder(): Int? = 1
+    override fun getOrder(): Int = 1
 
     override fun buildLink(context: IExpressionContext?, base: String?, parameters: Map<String?, Any?>?): String? {
         if (base == null) return null

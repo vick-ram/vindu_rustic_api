@@ -9,6 +9,8 @@ import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
 import org.example.config.AppConfig
 import org.example.config.DatabaseConfig
+import org.example.data.db.tables.Orders
+import org.example.data.db.tables.ProductVariants
 import org.example.data.db.tables.Users
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -20,165 +22,119 @@ object DatabaseFactory {
     lateinit var datasource: HikariDataSource
     lateinit var db: Database
 
+    lateinit var connectionFactory: ConnectionFactory
+
     fun init(config: AppConfig) {
         datasource = hikariDataSource(config)
-        db = Database.connect(datasource).apply { createEnums() } //Postgres requires u to reate enums before u assign it as a type
+        db = Database.connect(datasource)
+        connectionFactory = createConnectionPool(config)
+    }
+
+    private fun createConnectionPool(config: AppConfig): ConnectionPool {
+        return ConnectionPool(
+            ConnectionPoolConfiguration.builder()
+                .connectionFactory(
+                    ConnectionFactories.get(
+                        ConnectionFactoryOptions.builder()
+                            .option(ConnectionFactoryOptions.DRIVER, "postgresql")
+                            .option(ConnectionFactoryOptions.HOST, config.database.dbHost)
+                            .option(ConnectionFactoryOptions.PORT, config.database.dbPort)
+                            .option(ConnectionFactoryOptions.DATABASE, config.database.dbName)
+                            .option(ConnectionFactoryOptions.USER, config.database.user)
+                            .option(ConnectionFactoryOptions.PASSWORD, config.database.password)
+                            .build()
+                    )
+                )
+                .maxSize(config.database.poolSize)
+                .maxIdleTime(Duration.ofMinutes(30))
+                .validationQuery("SELECT 1")
+                .build()
+        )
+    }
+
+    fun hikariDataSource(config: AppConfig): HikariDataSource {
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = "jdbc:postgresql://localhost:${config.database.dbPort}/${config.database.dbName}"
+            driverClassName = "org.postgresql.Driver"
+            username = config.database.user
+            password = config.database.password
+            // Connection pool settings
+            maximumPoolSize = config.database.poolSize
+            minimumIdle = config.database.minimumIdle
+            connectionTimeout = config.database.connectionTimeout
+            idleTimeout = config.database.idleTimeout
+            maxLifetime = config.database.maxLifetime
+            leakDetectionThreshold = config.database.leakDetectionThreshold
+            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            // Performance optimizations
+            addDataSourceProperty("cachePrepStmts", config.database.cachePrepStmts.toString())
+            addDataSourceProperty("prepStmtCacheSize", config.database.prepStmtCacheSize.toString())
+            addDataSourceProperty("prepStmtCacheSqlLimit", config.database.prepStmtCacheSqlLimit.toString())
+            addDataSourceProperty("useServerPrepStmts", config.database.useServerPrepStmts.toString())
+            // Additional optimizations for PostgreSQL
+            addDataSourceProperty("useLocalSessionState", "true")
+            addDataSourceProperty("rewriteBatchedStatements", "true")
+            addDataSourceProperty("cacheResultSetMetadata", "true")
+            addDataSourceProperty("cacheServerConfiguration", "true")
+            addDataSourceProperty("elideSetAutoCommits", "true")
+            addDataSourceProperty("maintainTimeStats", "false")
+            // Connection testing
+            connectionTestQuery = "SELECT 1"
+            // Enable metrics collection
+            metricsTrackerFactory = null  // Default metrics tracker
+            validate()
+        }
+
+        return HikariDataSource(hikariConfig)
+    }
+
+    fun createViews(dataSource: HikariDataSource) {
+        val lowStockAlert = """
+                CREATE OR REPLACE VIEW low_stock_products AS
+                SELECT
+                    pv.variant_id,
+                    pv.sku,
+                    p.title AS product_title,
+                    pv.title AS variant_title,
+                    COALESCE(SUM(i.available_quantity), 0) AS total_available,
+                    COALESCE(SUM(i.reserved_quantity), 0) AS total_reserved,
+                    pv.quantity_in_stock
+                FROM ${ProductVariants.tableName} pv
+                JOIN products p ON p.product_id = pv.product_id
+                LEFT JOIN inventory i ON i.variant_id = pv.variant_id
+                WHERE pv.is_active = TRUE AND p.deleted_at IS NULL
+                GROUP BY pv.variant_id, pv.sku, p.title, pv.title, pv.quantity_in_stock
+                HAVING COALESCE(SUM(i.available_quantity), 0) <= pv.quantity_in_stock * 0.2;
+            """.trimIndent()
+
+        val orderFulfillmentSummary = """
+        CREATE OR REPLACE VIEW pending_fulfillment AS
+        SELECT 
+            o.order_id,
+            o.order_number,
+            o.status,
+            o.fulfillment_status,
+            COUNT(oi.order_item_id) AS total_items,
+            COUNT(pj.job_id) FILTER (WHERE pj.status = 'QUEUED') AS queued_jobs,
+            COUNT(pj.job_id) FILTER (WHERE pj.status = 'IN_PROGRESS') AS in_progress_jobs,
+            COUNT(pj.job_id) FILTER (WHERE pj.status = 'COMPLETED') AS completed_jobs,
+            o.placed_at
+        FROM ${Orders.tableName} o
+        JOIN order_items oi ON oi.order_id = o.order_id
+        LEFT JOIN production_jobs pj ON pj.order_item_id = oi.order_item_id
+        WHERE o.fulfillment_status IN ('UNFULFILLED', 'PARTIAL')
+        GROUP BY o.order_id, o.order_number, o.status, o.fulfillment_status, o.placed_at;
+    """.trimIndent()
+
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { statement ->
+                statement.executeUpdate(lowStockAlert)
+                statement.executeUpdate(orderFulfillmentSummary)
+            }
+        }
     }
 
     fun close() {
         datasource.close()
     }
 }
-
-fun hikariDataSource(config: AppConfig): HikariDataSource {
-    val hikariConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://localhost:${config.database.dbPort}/${config.database.dbName}"
-        driverClassName = "org.postgresql.Driver"
-        username = config.database.user
-        password = config.database.password
-        // Connection pool settings
-        maximumPoolSize = config.database.poolSize
-        minimumIdle = config.database.minimumIdle
-        connectionTimeout = config.database.connectionTimeout
-        idleTimeout = config.database.idleTimeout
-        maxLifetime = config.database.maxLifetime
-        leakDetectionThreshold = config.database.leakDetectionThreshold
-        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-        // Performance optimizations
-        addDataSourceProperty("cachePrepStmts", config.database.cachePrepStmts.toString())
-        addDataSourceProperty("prepStmtCacheSize", config.database.prepStmtCacheSize.toString())
-        addDataSourceProperty("prepStmtCacheSqlLimit", config.database.prepStmtCacheSqlLimit.toString())
-        addDataSourceProperty("useServerPrepStmts", config.database.useServerPrepStmts.toString())
-        // Additional optimizations for PostgreSQL
-        addDataSourceProperty("useLocalSessionState", "true")
-        addDataSourceProperty("rewriteBatchedStatements", "true")
-        addDataSourceProperty("cacheResultSetMetadata", "true")
-        addDataSourceProperty("cacheServerConfiguration", "true")
-        addDataSourceProperty("elideSetAutoCommits", "true")
-        addDataSourceProperty("maintainTimeStats", "false")
-        // Connection testing
-        connectionTestQuery = "SELECT 1"
-        // Enable metrics collection
-        metricsTrackerFactory = null  // Default metrics tracker
-        validate()
-    }
-
-    return HikariDataSource(hikariConfig)
-}
-
-fun createEnums() {
-//    transaction {
-//        enums.forEach { (typeName, values) ->
-//            val valuesList = values.joinToString(", ") { "'$it'" }
-//            exec(
-//                """
-//                DO $$
-//                BEGIN
-//                    CREATE TYPE $typeName AS ENUM ($valuesList);
-//                EXCEPTION
-//                    WHEN duplicate_object THEN null;
-//                END $$
-//            """.trimIndent()
-//            )
-//        }
-//    }
-}
-
-//class DatabaseFactory(
-//    private val config: DatabaseConfig
-//) {
-//    // JDBC - For Exposed DSL and complex operations
-//    val jdbcDataSource: HikariDataSource by lazy {
-//        createHikariDataSource()
-//    }
-//
-//    val jdbcDatabase: Database by lazy {
-//        Database.connect(jdbcDataSource).apply {
-//            // Setup schema on connection
-//            TransactionManager.manager.defaultIsolationLevel =
-//                java.sql.Connection.TRANSACTION_READ_COMMITTED
-//            setupSchema()
-//        }
-//    }
-//
-//    // R2DBC - For reactive operations
-//    val r2dbcConnectionFactory: ConnectionFactory by lazy {
-//        createR2dbcConnectionFactory()
-//    }
-//
-//    val r2dbcPool: ConnectionPool by lazy {
-//        ConnectionPool(
-//            ConnectionPoolConfiguration.builder()
-//                .connectionFactory(r2dbcConnectionFactory)
-//                .maxSize(config.poolSize)
-//                .maxIdleTime(Duration.ofMinutes(30))
-//                .validationQuery(if (config.isDevMode) "SELECT 1" else "SELECT 1")
-//                .build()
-//        )
-//    }
-//
-//    private fun createHikariDataSource(): HikariDataSource {
-//        return HikariDataSource(HikariConfig().apply {
-//            jdbcUrl = config.jdbcUrl
-//            username = config.user
-//            password = config.password
-//            driverClassName = when {
-//                config.driver == "h2" -> "org.h2.Driver"
-//                else -> "org.postgresql.Driver"
-//            }
-//            maximumPoolSize = config.poolSize
-//            minimumIdle = 5
-//            idleTimeout = 30000
-//            connectionTimeout = 10000
-//            maxLifetime = 1800000
-//
-//            // H2 specific
-//            if (config.driver == "h2") {
-//                addDataSourceProperty("MODE", "PostgreSQL")
-//                addDataSourceProperty("DB_CLOSE_DELAY", "-1")
-//            }
-//        })
-//    }
-//
-//    private fun createR2dbcConnectionFactory(): ConnectionFactory {
-//        return if (config.driver == "h2") {
-//            // H2 R2DBC
-//            ConnectionFactories.get(
-//                ConnectionFactoryOptions.builder()
-//                    .option(ConnectionFactoryOptions.DRIVER, "h2")
-//                    .option(ConnectionFactoryOptions.PROTOCOL, "mem")
-//                    .option(ConnectionFactoryOptions.DATABASE, config.dbName)
-//                    .option(ConnectionFactoryOptions.HOST, "")
-//                    .build()
-//            )
-//        } else {
-//            // PostgreSQL R2DBC
-//            ConnectionFactories.get(
-//                ConnectionFactoryOptions.builder()
-//                    .option(ConnectionFactoryOptions.DRIVER, "postgresql")
-//                    .option(ConnectionFactoryOptions.HOST, config.dbHost)
-//                    .option(ConnectionFactoryOptions.PORT, config.dbPort)
-//                    .option(ConnectionFactoryOptions.USER, config.user)
-//                    .option(ConnectionFactoryOptions.PASSWORD, config.password)
-//                    .option(ConnectionFactoryOptions.DATABASE, config.dbName)
-//                    .build()
-//            )
-//        }
-//    }
-//
-//    private fun setupSchema() {
-//        // Only for H2 - auto create schema
-//        if (config.driver == "h2") {
-//            transaction(jdbcDatabase) {
-//                SchemaUtils.create(
-//                    Users
-//                )
-//            }
-//        }
-//    }
-//
-//    fun close() {
-//        jdbcDataSource.close()
-//        r2dbcPool.dispose()
-//    }
-//}

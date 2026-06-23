@@ -20,11 +20,12 @@ class UserEntity(id: EntityID<String>): CustomEntity(id, Users) {
     var emailVerified by Users.emailVerified
     var phoneVerified by Users.phoneVerified
     var status by Users.status
+    var enable2FA by Users.enable2FA
     var lastLoginAt by Users.lastLoginAt
     var deletedAt by Users.deletedAt
 
     val roles by UserEntity via UserRoles
-    val addresses by AddressEntity referrersOn Addresses.userId
+    val addresses by AddressEntity optionalReferrersOn Addresses.userId
     val sessions by SessionEntity referrersOn Sessions.userId
     var tsv by Users.tsv
 

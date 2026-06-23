@@ -1,40 +1,47 @@
 package org.example.domain.models.customization
 
-import com.google.gson.annotations.SerializedName
-import io.ktor.http.Parameters
+import io.ktor.http.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.io.Serializable
+import org.example.utils.BigDecimalSerializer
+import org.example.utils.OffsetDateTimeSerializer
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
+@Serializable
 data class CustomProductQuote(
     val id: String = Ulid.generate(),
 
-    @SerializedName("request_id")
+    @SerialName("request_id")
     val requestId: String,
 
-    @SerializedName("quoted_price")
+    @Serializable(with = BigDecimalSerializer::class)
+    @SerialName("quoted_price")
     val quotedPrice: BigDecimal,
 
     val currency: String = "kes",
 
-    @SerializedName("production_timeline")
+    @SerialName("production_timeline")
     val productionTimeline: Int? = null,
 
     val description: String? = null,
 
-    @SerializedName("valid_until")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("valid_until")
     val validUntil: OffsetDateTime? = null,
 
     val status: String = "sent",
     val createdBy: String,
 
-    @SerializedName("created_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @SerializedName("updated_at")
+    @Serializable(with = OffsetDateTimeSerializer::class)
+    @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
-) : Serializable {
+) {
     companion object {
         fun formParameters(parameters: Parameters): CustomProductQuote {
             val requestId = parameters["request_id"].toString()

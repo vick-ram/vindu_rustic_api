@@ -1,22 +1,26 @@
 package org.example.data.mappers
 
-import org.example.data.db.entities.TagEntity
+import io.r2dbc.spi.Row
+import io.r2dbc.spi.RowMetadata
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.encodeToMap
 import org.example.domain.models.catalog.Tag
-import org.example.domain.repo.EntityMapper
+import org.example.domain.repo.RowMapper
+import org.example.domain.repo.toModel
 
-object TagMapper : EntityMapper<TagEntity, Tag, String> {
-    override fun toModel(entity: TagEntity): Tag {
-        return Tag(
-            id = entity.id.value,
-            name = entity.name,
-            slug = entity.slug,
-            createdAt = entity.createdAt,
-        )
+object TagMapper : RowMapper<Row, Tag> {
+    override fun toModel(
+        row: Row,
+        metadata: RowMetadata
+    ): Tag {
+        return row.toModel(metadata)
     }
 
-    override fun toEntity(model: Tag, entity: TagEntity): TagEntity {
-        entity.name = model.name
-        entity.slug = model.slug
-        return entity
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun toRow(model: Tag): Map<String, Any?> {
+        return Properties.encodeToMap(model)
     }
+
+    override fun getId(model: Tag): Any = model.id
 }
