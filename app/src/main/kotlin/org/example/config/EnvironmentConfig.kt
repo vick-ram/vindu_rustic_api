@@ -20,7 +20,7 @@ class EnvironmentConfig(private val application: Application) {
         val property = application.environment.config.propertyOrNull(key) ?: return null
         return try {
             property.getString()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // If it's a list, getString() might fail in some implementations (like YamlConfig)
             property.getList().firstOrNull()
         }
@@ -77,11 +77,11 @@ class EnvironmentConfig(private val application: Application) {
         val property = application.environment.config.propertyOrNull(key) ?: return default
         return try {
             property.getList()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Fallback: if it's a single string, try to split it by comma
             try {
                 property.getString().split(',').map { it.trim() }.filter { it.isNotBlank() }
-            } catch (e2: Exception) {
+            } catch (_: Exception) {
                 default
             }
         }

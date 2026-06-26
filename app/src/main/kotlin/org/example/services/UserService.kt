@@ -1,63 +1,52 @@
 package org.example.services
 
+import org.example.data.cache.UserCache
+import org.example.data.repo.CrudCache
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
-import org.example.domain.repo.UserRepository
-import org.example.plugins.AuthenticationException
+import java.net.InetAddress
 
-class UserService(private val userRepository: UserRepository) {
+class UserService(private val userCache: UserCache) {
 
     suspend fun createUser(user: User): User {
-        return userRepository.create(user)
+        return userCache.create(user)
     }
 
     suspend fun login(
         email: String,
-        password: String
+        password: String,
+        ipAddress: InetAddress? = null,
+        deviceInfo: String? = null,
     ): TokenResponse {
-        return userRepository.login(email, password)
+        return userCache.login(email, password, ipAddress, deviceInfo)
     }
 
     suspend fun updateUser(id: String, user: User): User? {
-        return userRepository.update(id, user)
+        return userCache.update(id, user)
     }
 
     suspend fun getUsers(offset: Int = 0, limit: Int = 10, queryParams: Map<String, String>?): List<User> {
-        return userRepository.readAll(offset, limit, queryParams)
+        return userCache.readAll(offset, limit, queryParams)
     }
 
     suspend fun getUser(id: String): User? {
-        return userRepository.read(id)
+        return userCache.read(id)
     }
 
     suspend fun getUserByEmail(email: String): User? {
-        return userRepository.findByEmail(email)
-    }
-
-    suspend fun authenticate(email: String, password: String): User? {
-        val user = this.getUserByEmail(email)
-            ?: throw AuthenticationException("User not found")
-
-        if (!HashPassword.verifyPassword(password, user.password)) {
-            throw AuthenticationException("Invalid password")
-        }
-
-        if (user.status != "ACTIVE") {
-            throw AuthenticationException("Account deactivated")
-        }
-
-        return user
+        return userCache.readByEmail(email)
     }
 
     suspend fun searchUsers(query: String, offset: Int, limit: Int): List<User> {
-        return userRepository.searchUsers(query, offset, limit)
+        return userCache.searchUsers(query, offset, limit)
     }
 
     suspend fun deleteUser(id: String): Boolean {
-        return userRepository.delete(id)
+        return userCache.delete(id)
     }
 
     suspend fun logout(userId: String ,accessToken: String): Boolean {
-        return userRepository.logout(userId, accessToken)
+        userCache.logout(userId, accessToken)
+        return true
     }
 }

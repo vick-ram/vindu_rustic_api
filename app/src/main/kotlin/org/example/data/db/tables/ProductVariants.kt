@@ -1,7 +1,7 @@
 package org.example.data.db.tables
 
+import kotlinx.serialization.json.Json
 import org.example.data.db.config.CustomTable
-import org.example.data.db.config.gsonJsonb
 import org.jetbrains.exposed.v1.json.jsonb
 
 object ProductVariants : CustomTable("product_variants") {
@@ -15,8 +15,8 @@ object ProductVariants : CustomTable("product_variants") {
     val quantityInStock = integer("quantity_in_stock").default(0)
     val reservedQuantity = integer("reserved_quantity").default(0)
     val weightGrams = integer("weight_grams").nullable()
-    val dimensions = gsonJsonb<Map<String, Any>>("dimensions").default(emptyMap())
-    val attributes = gsonJsonb<Map<String, Any>>("attributes").default(emptyMap())
+    val dimensions = jsonb<Map<String, Any>>("dimensions", Json).default(emptyMap())
+    val attributes = jsonb<Map<String, Any>>("attributes", Json).default(emptyMap())
     val barcode = varchar("barcode", 255).nullable()
     val isActive = bool("is_active").default(true)
 }

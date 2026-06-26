@@ -1,11 +1,12 @@
 package org.example.data.db.tables
 
+import kotlinx.serialization.json.Json
 import org.example.data.db.config.CustomTable
-import org.example.data.db.config.gsonJsonb
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.Platform
 import org.example.data.db.config.PGEnum
 import org.jetbrains.exposed.v1.datetime.timestampWithTimeZone
+import org.jetbrains.exposed.v1.json.jsonb
 
 object Notifications: CustomTable("notifications") {
     val userId = reference("user_id", Users)
@@ -22,7 +23,7 @@ object Notifications: CustomTable("notifications") {
         sql = "NotificationChannel",
         fromDb = { value -> NotificationChannel.valueOf(value as String) },
         toDb = { PGEnum("NotificationChannel", it) })
-    val metadata = gsonJsonb<Map<String, Any>>("metadata").nullable()
+    val metadata = jsonb<Map<String, Any>>("metadata", Json).nullable()
 }
 
 object DeviceTokenTable: CustomTable("device_tokens") {

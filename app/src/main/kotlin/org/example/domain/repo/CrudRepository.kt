@@ -1,13 +1,13 @@
 package org.example.domain.repo
 
-interface CrudRepository<T, ID> {
-    suspend fun create(entity: T): T
-    suspend fun read(id: ID): T?
+interface CrudRepository_<Model, ID> {
+    suspend fun create(model: Model): Model
+    suspend fun read(id: ID): Model?
     suspend fun readAll(
         offset: Int,
         limit: Int,
         queryParams: Map<String, String>?,
-    ): List<T>
-    suspend fun update(id: ID, entity: T): T?
+    ): List<Model>
+    suspend fun update(id: ID, model: Model): Model?
     suspend fun delete(id: ID): Boolean
 }

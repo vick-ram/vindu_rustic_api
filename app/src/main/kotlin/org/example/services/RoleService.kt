@@ -1,7 +1,6 @@
 package org.example.services
 
 import org.example.domain.models.identity.Role
-import org.example.domain.repo.RoleRepository
 
 class RoleService(private val roleRepository: RoleRepository) {
     suspend fun createRole(role: Role): Role? {

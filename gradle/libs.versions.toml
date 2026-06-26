@@ -1,26 +1,29 @@
 [versions]
-kotlin = "2.2.0"
-exposed = "1.0.0-beta-5"
-ktor = "3.1.3"
-hikariCp = "5.1.0"
+kotlin = "2.4.0"
+exposed = "1.0.0"
+ktor = "3.5.0"
 flyway = "11.9.1"
-postgresql = "42.7.7"
-logback = "1.5.19"
-koin = "4.1.0"
-lattuce = "6.7.1.RELEASE"
+postgres = "42.7.11"
+r2-postgresql = "1.1.1.RELEASE"
+pool = "1.0.2.RELEASE"
+migration = "1.3.0"
+logback = "1.5.34"
+koin = "4.2.2"
+lattuce = "7.6.0.RELEASE"
 thymeleaf = "3.4.0"
-jakarta = "2.0.1"
+jakarta = "2.0.2"
 locator = "0.50"
 kotest = "6.0.0.M4"
 firebase-admin = "9.9.0"
 skiko = "0.9.22"
-coroutines-reactive = "1.10.2"
+coroutines-reactive = "1.11.0"
 feather = "4.29.2"
 tabler = "1.35.0"
-swagger = "2.2.38"
+swagger = "2.2.49"
 pesapal-client = "v1.0.3"
-jackson = "2.15.2"
 sns = "2.21.0"
+bcrypt = "0.10.2"
+ksp = "2.3.9"
 
 [libraries]
 #Ktor server
@@ -42,7 +45,6 @@ kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-ser
 ktor-swagger-ui = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
 swagger-core = { module = "io.swagger.core.v3:swagger-core", version.ref = "swagger" }
 pesapal-kotlin-client = { module = "com.github.vick-ram:pesapal-kotlin-client", version.ref = "pesapal-client" }
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
 #Ktor client
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -51,8 +53,6 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 
 #Exposed
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
-exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
-exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 
@@ -69,13 +69,15 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 
 #Database
-hikariCp = { module = "com.zaxxer:HikariCP", version.ref = "hikariCp" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+r2dbc = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2-postgresql" }
+postgresql-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "pool" }
 
 #Migrations
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
-exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
+exposed-migration-core = { module = "org.jetbrains.exposed:exposed-migration-core", version.ref = "migration" }
+exposed-migration-r2 = { module = "org.jetbrains.exposed:exposed-migration-r2dbc", version.ref = "migration" }
 
 #Redis
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "coroutines-reactive" }
@@ -88,6 +90,8 @@ sns-client = { module = "software.amazon.awssdk:sns", version.ref = "sns" }
 
 #DI
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin" }
+koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin" }
 koin-logger = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin" }
 kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertion = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
@@ -96,5 +100,8 @@ ktor-kotest-assertion = { module = "io.kotest.extensions:kotest-assertions-ktor"
 # Image processing
 skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
 
+bcrypt-hashing = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

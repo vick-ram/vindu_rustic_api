@@ -3,7 +3,7 @@ package org.example.utils.notifications
 import org.example.data.db.entities.NotificationEntity
 import org.example.data.db.tables.Notifications
 import org.example.data.mappers.NotificationMapper
-import org.example.data.repo.CrudRepositoryImpl
+import org.example.data.repo.CrudRepository
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
@@ -13,7 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 
-class DatabaseNotificationService(private val notificationMapper: NotificationMapper): CrudRepositoryImpl<NotificationEntity, Notification>(
+class DatabaseNotificationService(private val notificationMapper: NotificationMapper): CrudRepository<NotificationEntity, Notification>(
     NotificationEntity,
     Notification::class
 ), NotificationRepository {

@@ -1,8 +1,10 @@
 package org.example.plugins
 
 import io.ktor.server.application.*
+import kotlinx.coroutines.launch
 import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
+import org.example.data.db.config.CustomTable
 import org.example.data.db.config.DatabaseFactory
 import org.example.data.db.config.TsVectorManager
 import org.example.data.db.tables.Roles
@@ -10,12 +12,11 @@ import org.example.data.db.tables.Users
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.core.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.migration.MigrationUtils
+import org.jetbrains.exposed.v1.migration.r2dbc.MigrationUtils
+import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import java.io.File
 
-const val MIGRATION_DIRECTORY = "app/src/main/resources/migrations"
+const val MIGRATION_DIRECTORY = "src/main/resources/migrations"
 
 object DatabaseModule : ApplicationPlugin {
     override fun install(application: Application) {
@@ -31,17 +32,20 @@ object DatabaseModule : ApplicationPlugin {
         DatabaseFactory.init(config)
 
         if (config.server.development) {
-            transaction {
-                // Create tables if they don't exist
-                SchemaUtils.create(*tables)
+            application.monitor.subscribe(ApplicationStarted) { app ->
+                app.launch {
+                    val activeTables = CustomTable.tables
 
-                // Generate migration file
-                if (config.database.runMigrations) {
-                    generateMigrationFile(*tables)
+                    SchemaUtils.create(*activeTables)
+
+                    // Generate migration file
+                    if (config.database.runMigrations) {
+                        generateMigrationFile(*tables)
+                    }
+
+                    // Create TSVECTOR triggers and populate data
+                    TsVectorManager.setupFullTextSearch()
                 }
-
-                // Create TSVECTOR triggers and populate data
-                TsVectorManager.setupFullTextSearch()
             }
         } else {
             // Run Flyway migrations (this will handle production)
@@ -67,7 +71,7 @@ private fun configureFlyaway(config: AppConfig) {
 }
 
 @OptIn(ExperimentalDatabaseMigrationApi::class)
-private fun generateMigrationFile(vararg tables: Table) {
+private suspend fun generateMigrationFile(vararg tables: Table) {
     val migrationDir = File(MIGRATION_DIRECTORY).apply { mkdirs() }
 
     // Find the next migration version

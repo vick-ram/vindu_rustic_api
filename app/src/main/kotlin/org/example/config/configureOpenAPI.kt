@@ -12,7 +12,7 @@ fun configureOpenAPI() {
     val openAPI = openApiGenerator.generateOpenApi()
     val yaml = objectMapper.writeValueAsString(openAPI)
 
-    val folder = File("app/src/main/resources/docs")
+    val folder = File("src/main/resources/docs")
     if (!folder.exists()) {
         folder.mkdirs()
     }

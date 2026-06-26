@@ -1,45 +1,161 @@
 package org.example.data.repo
 
-import org.example.data.db.entities.ProductVariantEntity
-import org.example.data.db.tables.ProductVariants
+import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ProductVariantMapper
 import org.example.domain.models.catalog.ProductVariant
-import org.example.domain.repo.ProductVariantRepository
-import org.example.plugins.NotFoundException
-import org.example.utils.suspendTransaction
-import org.jetbrains.exposed.v1.core.and
+import java.math.BigDecimal
+import java.time.OffsetDateTime
 
-class ProductVariantRepositoryImpl(private val variantMapper: ProductVariantMapper) :
-    CrudRepositoryImpl<ProductVariantEntity, ProductVariant>(ProductVariantEntity, ProductVariant::class),
-    ProductVariantRepository {
+class ProductVariantRepository(
+    connectionFactory: ConnectionFactory,
+    productVariantMapper: ProductVariantMapper,
+) : CrudRepository<ProductVariant, String>(
+    connectionFactory = connectionFactory,
+    tableName = "product_variants",
+    mapper = productVariantMapper
+) {
+    override val generatedColumns = listOf("id", "created_at", "updated_at")
 
-    override suspend fun findByProductId(productId: String): List<ProductVariant> = suspendTransaction {
-        ProductVariantEntity.find { ProductVariants.productId eq productId }
-            .map { it.toDomain() }
+    // Override update to handle updated_at
+    override suspend fun update(id: String, model: ProductVariant): ProductVariant? {
+        validateVariant(model)
+        return super.update(id, model)
     }
 
-    override suspend fun findBySku(sku: String): ProductVariant? = suspendTransaction {
-        ProductVariantEntity.find { ProductVariants.sku eq sku }
-            .firstOrNull()
-            ?.toDomain()
+    // Get variants for a product
+    suspend fun findByProductId(productId: String): List<ProductVariant> {
+        val sql = """
+            SELECT * FROM $tableName 
+            WHERE product_id = :productId AND is_active = true 
+            ORDER BY created_at ASC
+        """.trimIndent()
+
+        return executeQuery(sql, mapOf("productId" to productId))
     }
 
-    override suspend fun findActiveByProductId(productId: String): List<ProductVariant> = suspendTransaction {
-        ProductVariantEntity.find {
-            (ProductVariants.productId eq productId) and (ProductVariants.isActive eq true)
-        }.map { it.toDomain() }
+    // Find variant by SKU
+    suspend fun findBySku(sku: String): ProductVariant? {
+        val sql = "SELECT * FROM $tableName WHERE sku = :sku"
+
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .bind("sku", sku)
+                .execute()
+                .awaitSingle()
+                .map(rowMapper)
+                .awaitFirstOrNull()
+        }
     }
 
-    override suspend fun updateStock(variantId: String, quantity: Int): Boolean = suspendTransaction {
-        val variant = ProductVariantEntity.findById(variantId)
-            ?: throw NotFoundException("Variant not found")
-        variant.quantityInStock = quantity
-        true
+    // Search variants by price range
+    suspend fun findByPriceRange(
+        minPrice: BigDecimal,
+        maxPrice: BigDecimal,
+        offset: Int = 0,
+        limit: Int = 20
+    ): List<ProductVariant> {
+        val sql = """
+            SELECT * FROM $tableName 
+            WHERE price >= :minPrice AND price <= :maxPrice AND is_active = true 
+            ORDER BY price ASC 
+            LIMIT :limit OFFSET :offset
+        """.trimIndent()
+
+        return executeQuery(sql, mapOf(
+            "minPrice" to minPrice,
+            "maxPrice" to maxPrice,
+            "limit" to limit,
+            "offset" to offset.toLong()
+        ))
     }
 
-    override fun ProductVariantEntity.toDomain(): ProductVariant = variantMapper.toModel(this)
-    override fun ProductVariant.toEntity(entity: ProductVariantEntity) {
-        variantMapper.toEntity(this, entity)
+    // Deactivate a variant
+    suspend fun deactivate(id: String): Boolean {
+        val sql = """
+            UPDATE $tableName 
+            SET is_active = false, updated_at = :updatedAt 
+            WHERE id = :id
+        """.trimIndent()
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createStatement(sql)
+                .bind("id", id)
+                .bind("updatedAt", OffsetDateTime.now())
+                .execute()
+                .awaitSingle()
+                .rowsUpdated
+                .awaitSingle() > 0
+        }
     }
-    override fun getId(domain: ProductVariant): String = domain.id
+
+    // Bulk update prices (e.g., for sales)
+    suspend fun bulkUpdatePrices(
+        productId: String,
+        priceMultiplier: BigDecimal
+    ): Int {
+        val sql = """
+            UPDATE $tableName 
+            SET price = price * :multiplier, 
+                updated_at = :updatedAt 
+            WHERE product_id = :productId
+        """.trimIndent()
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createStatement(sql)
+                .bind("productId", productId)
+                .bind("multiplier", priceMultiplier)
+                .bind("updatedAt", OffsetDateTime.now())
+                .execute()
+                .awaitSingle()
+                .rowsUpdated
+                .awaitSingle() as Int
+        }
+    }
+
+    // Get inventory statistics
+    suspend fun getPriceStats(productId: String): PriceStats? {
+        val sql = """
+            SELECT 
+                MIN(price) as min_price,
+                MAX(price) as max_price,
+                AVG(price) as avg_price,
+                COUNT(*) as variant_count
+            FROM $tableName 
+            WHERE product_id = :productId AND is_active = true
+        """.trimIndent()
+
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .bind("productId", productId)
+                .execute()
+                .awaitSingle()
+                .map { row, _ ->
+                    PriceStats(
+                        minPrice = row.get("min_price", BigDecimal::class.java)!!,
+                        maxPrice = row.get("max_price", BigDecimal::class.java)!!,
+                        avgPrice = row.get("avg_price", BigDecimal::class.java)!!,
+                        variantCount = row.get("variant_count", Long::class.java)!!.toInt()
+                    )
+                }
+                .awaitFirstOrNull()
+        }
+    }
+
+    private fun validateVariant(variant: ProductVariant) {
+        if (variant.sku.isBlank()) {
+            throw IllegalArgumentException("SKU cannot be blank")
+        }
+        if (variant.price <= BigDecimal.ZERO) {
+            throw IllegalArgumentException("Price must be greater than zero")
+        }
+    }
 }
+
+data class PriceStats(
+    val minPrice: BigDecimal,
+    val maxPrice: BigDecimal,
+    val avgPrice: BigDecimal,
+    val variantCount: Int
+)

@@ -2,7 +2,6 @@ package org.example.services
 
 import org.example.domain.models.sales.Order
 import org.example.domain.models.sales.OrderStatus
-import org.example.domain.repo.OrderRepository
 
 class OrderService(private val orderRepository: OrderRepository) {
     suspend fun createOrder(userId: String): Order {

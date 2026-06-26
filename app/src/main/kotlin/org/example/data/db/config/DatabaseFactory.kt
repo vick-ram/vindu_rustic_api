@@ -1,36 +1,24 @@
 package org.example.data.db.config
 
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
+import kotlinx.coroutines.reactive.awaitSingle
 import org.example.config.AppConfig
-import org.example.config.DatabaseConfig
 import org.example.data.db.tables.Orders
 import org.example.data.db.tables.ProductVariants
-import org.example.data.db.tables.Users
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 import java.time.Duration
 
+@Module
 object DatabaseFactory {
-    lateinit var datasource: HikariDataSource
-    lateinit var db: Database
 
-    lateinit var connectionFactory: ConnectionFactory
-
-    fun init(config: AppConfig) {
-        datasource = hikariDataSource(config)
-        db = Database.connect(datasource)
-        connectionFactory = createConnectionPool(config)
-    }
-
-    private fun createConnectionPool(config: AppConfig): ConnectionPool {
+    @Single
+    private fun connectionFactory(config: AppConfig): ConnectionPool {
         return ConnectionPool(
             ConnectionPoolConfiguration.builder()
                 .connectionFactory(
@@ -52,43 +40,7 @@ object DatabaseFactory {
         )
     }
 
-    fun hikariDataSource(config: AppConfig): HikariDataSource {
-        val hikariConfig = HikariConfig().apply {
-            jdbcUrl = "jdbc:postgresql://localhost:${config.database.dbPort}/${config.database.dbName}"
-            driverClassName = "org.postgresql.Driver"
-            username = config.database.user
-            password = config.database.password
-            // Connection pool settings
-            maximumPoolSize = config.database.poolSize
-            minimumIdle = config.database.minimumIdle
-            connectionTimeout = config.database.connectionTimeout
-            idleTimeout = config.database.idleTimeout
-            maxLifetime = config.database.maxLifetime
-            leakDetectionThreshold = config.database.leakDetectionThreshold
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-            // Performance optimizations
-            addDataSourceProperty("cachePrepStmts", config.database.cachePrepStmts.toString())
-            addDataSourceProperty("prepStmtCacheSize", config.database.prepStmtCacheSize.toString())
-            addDataSourceProperty("prepStmtCacheSqlLimit", config.database.prepStmtCacheSqlLimit.toString())
-            addDataSourceProperty("useServerPrepStmts", config.database.useServerPrepStmts.toString())
-            // Additional optimizations for PostgreSQL
-            addDataSourceProperty("useLocalSessionState", "true")
-            addDataSourceProperty("rewriteBatchedStatements", "true")
-            addDataSourceProperty("cacheResultSetMetadata", "true")
-            addDataSourceProperty("cacheServerConfiguration", "true")
-            addDataSourceProperty("elideSetAutoCommits", "true")
-            addDataSourceProperty("maintainTimeStats", "false")
-            // Connection testing
-            connectionTestQuery = "SELECT 1"
-            // Enable metrics collection
-            metricsTrackerFactory = null  // Default metrics tracker
-            validate()
-        }
-
-        return HikariDataSource(hikariConfig)
-    }
-
-    fun createViews(dataSource: HikariDataSource) {
+    suspend fun createViews(connection: Connection) {
         val lowStockAlert = """
                 CREATE OR REPLACE VIEW low_stock_products AS
                 SELECT
@@ -126,15 +78,7 @@ object DatabaseFactory {
         GROUP BY o.order_id, o.order_number, o.status, o.fulfillment_status, o.placed_at;
     """.trimIndent()
 
-        dataSource.connection.use { conn ->
-            conn.createStatement().use { statement ->
-                statement.executeUpdate(lowStockAlert)
-                statement.executeUpdate(orderFulfillmentSummary)
-            }
-        }
-    }
-
-    fun close() {
-        datasource.close()
+        connection.createStatement(lowStockAlert).execute().awaitSingle().rowsUpdated.awaitSingle()
+        connection.createStatement(orderFulfillmentSummary).execute().awaitSingle().rowsUpdated.awaitSingle()
     }
 }

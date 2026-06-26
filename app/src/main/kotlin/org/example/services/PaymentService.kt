@@ -4,7 +4,6 @@ import com.pesapal.sdk.PesapalClient
 import org.example.data.db.entities.UserEntity
 import org.example.domain.models.payments.Payment
 import org.example.domain.models.sales.PaymentStatus
-import org.example.domain.repo.PaymentRepository
 
 class PaymentService(private val paymentRepository: PaymentRepository, private val pesapalClient: PesapalClient) {
     suspend fun initiatePayment(payment: Payment): Payment {

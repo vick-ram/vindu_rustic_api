@@ -1,40 +1,67 @@
 package org.example.domain.models.support
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 @Serializable
 data class Conversation(
     val id: String = Ulid.generate(),
-    val lastMessageId: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val participants: List<Participant> = emptyList(),
+
+    @SerialName("last_message")
+    val lastMessage: Message? = null,
+
+    @Contextual
+    @SerialName("created_at")
+    val createdAt: OffsetDateTime = OffsetDateTime.now(),
+
+    @Contextual
+    @SerialName("updated_at")
+    val updatedAt: OffsetDateTime = OffsetDateTime.now()
 )
 
 @Serializable
 data class Participant(
     val id: String = Ulid.generate(),
-    val conversationId: String,
+
+    @SerialName("user_id")
     val userId: String,
-    val joinedAt: LocalDateTime = LocalDateTime.now(),
-    val leftAt: LocalDateTime = LocalDateTime.now(),
+
+    @SerialName("conversation_id")
+    val conversationId: String,
+
+    @Contextual
+    @SerialName("joined_at")
+    val joinedAt: OffsetDateTime = OffsetDateTime.now(),
+
+    @Contextual
+    @SerialName("left_at")
+    val leftAt: OffsetDateTime? = null,
     val isActive: Boolean = false
 )
 
 @Serializable
 data class Message (
     val id: String = Ulid.generate(),
+
+    @SerialName("conversation_id")
     val conversationId: String,
+
+    @SerialName("sender_id")
     val senderId: String,
     val messageText: String,
     val messageType: MessageType,
-    val status: MessageStatus = MessageStatus.SENT,
+    val status: MessageStatus? = null,
     val parentMessageId: String? = null, // For self reply
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val fileUrl: String?,
-    val fileName: String?,
-    val fileSize: Long?
+
+    @Contextual
+    val createdAt: OffsetDateTime = OffsetDateTime.now(),
+    val fileUrl: String? = null,
+    val fileName: String? = null,
+    val fileSize: Long? = null
 )
 
 enum class MessageType { TEXT, IMAGE, VIDEO, FILE }

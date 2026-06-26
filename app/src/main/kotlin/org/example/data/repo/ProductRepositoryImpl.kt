@@ -4,15 +4,13 @@ import io.ktor.http.content.*
 import io.ktor.server.plugins.*
 import org.example.data.db.entities.ProductEntity
 import org.example.data.db.tables.Products
-import org.example.data.mappers.ProductMapper
 import org.example.domain.models.MediaType
 import org.example.domain.models.catalog.Product
-import org.example.domain.repo.ProductRepository
 import org.example.utils.suspendTransaction
 import org.jetbrains.exposed.v1.core.and
 import java.time.OffsetDateTime
 
-class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepositoryImpl<ProductEntity, Product>(
+class ProductRepositoryImpl(private val productMapper: ProductMapper) : CrudRepository<ProductEntity, Product>(
     ProductEntity,
     Product::class
 ), ProductRepository {

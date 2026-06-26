@@ -2,8 +2,10 @@ package org.example.config.security
 
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import org.koin.core.annotation.Single
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Single
 class TokenService(private val redis: RedisCoroutinesCommands<String, String>) {
     suspend fun blacklistToken(token: String, expirationMs: Long) {
         redis.setex("blacklist:$token", expirationMs / 1000,"blacklisted")

@@ -1,6 +1,5 @@
 package org.example.data.repo
 
-import com.google.gson.reflect.TypeToken
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.KeyScanCursor
 import io.lettuce.core.ScanArgs
@@ -9,7 +8,6 @@ import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import org.example.domain.repo.CrudRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -18,13 +16,14 @@ interface CacheConfig {
     val ttl: Long?
 }
 
-class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class) constructor(
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+open class CrudCache<Model: Any, ID: Any>(
     private val redis: RedisCoroutinesCommands<String, String>,
-    private val delegate: CrudRepository<T, ID>,
-    private val getId: (T) -> ID,
-    private val serializer: KSerializer<T>,
+    private val delegate: CrudRepository<Model, ID>,
+    private val getId: (Model) -> ID,
+    private val serializer: KSerializer<Model>,
     private val config: CacheConfig
-): CrudRepository<T, ID> {
+) {
 
     private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java)
 
@@ -42,7 +41,7 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun putInCache(id: ID, entity: T) {
+    private suspend fun putInCache(id: ID, entity: Model) {
         try {
             val key = generateCacheKey(id)
             val jsonValue = Json.encodeToString(serializer, entity)
@@ -57,7 +56,7 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun getFromCache(id: ID): T? {
+    private suspend fun getFromCache(id: ID): Model? {
         return try {
             val key = generateCacheKey(id)
             val jsonValue = redis.get(key)
@@ -78,26 +77,26 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
         }
     }
 
-    override suspend fun create(entity: T): T {
-        val created = delegate.create(entity)
+    suspend fun create(model: Model): Model {
+        val created = delegate.create(model)
         val id = getId(created)
         putInCache(id, created)
         invalidateCollectionCaches()
         return created
     }
 
-    override suspend fun read(id: ID): T? {
+    suspend fun read(id: ID): Model? {
         return getFromCache(id) ?: delegate.read(id)?.also { entity ->
             putInCache(id, entity)
         }
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    override suspend fun readAll(
+    suspend fun readAll(
         offset: Int,
         limit: Int,
         queryParams: Map<String, String>?
-    ): List<T> {
+    ): List<Model> {
         val cacheKey = generateCollectionCacheKey(queryParams, offset, limit)
 
         // Try cache first
@@ -130,7 +129,7 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
         return entities
     }
 
-    override suspend fun update(id: ID, entity: T): T? {
+    suspend fun update(id: ID, entity: Model): Model? {
         val updated = delegate.update(id, entity)
         if (updated != null) {
             putInCache(id, updated)
@@ -141,7 +140,7 @@ class CrudCache<T: Any, ID: Any> @OptIn(ExperimentalLettuceCoroutinesApi::class)
         return updated
     }
 
-    override suspend fun delete(id: ID): Boolean {
+    suspend fun delete(id: ID): Boolean {
         val deleted = delegate.delete(id)
         if (deleted) {
             removeFromCache(id)

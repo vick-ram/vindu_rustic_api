@@ -1,7 +1,8 @@
 package org.example.data.db.tables
 
+import kotlinx.serialization.json.Json
 import org.example.data.db.config.CustomTable
-import org.example.data.db.config.gsonJsonb
+import org.jetbrains.exposed.v1.json.jsonb
 
 object OrderItems : CustomTable("order_items",) {
     val orderId = reference("order_id", Orders)
@@ -11,6 +12,6 @@ object OrderItems : CustomTable("order_items",) {
     val quantity = integer("quantity").check { it greater 0 }
     val unitPrice = decimal("unit_price", 12, 2)
     val totalPrice = decimal("total_price", 12, 2)
-    val customizationSnapshot = gsonJsonb<Map<String, Any>>("customization_snapshot").nullable()
-    val productSnapshot = gsonJsonb<Map<String, Any>>("product_snapshot")
+    val customizationSnapshot = jsonb<Map<String, Any>>("customization_snapshot", Json).nullable()
+    val productSnapshot = jsonb<Map<String, Any>>("product_snapshot", Json)
 }

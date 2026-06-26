@@ -1,7 +1,8 @@
 package org.example.data.db.tables
 
+import kotlinx.serialization.json.Json
 import org.example.data.db.config.CustomTable
-import org.example.data.db.config.gsonJsonb
+import org.jetbrains.exposed.v1.json.jsonb
 
 object PaymentTransactions : CustomTable("payment_transactions") {
     val paymentId = reference("payment_id", Payments)
@@ -10,6 +11,6 @@ object PaymentTransactions : CustomTable("payment_transactions") {
     val amount = decimal("amount", 12, 2)
     val currency = varchar("currency", 10).default("KES")
     val status = varchar("status", 50)
-    val providerResponse = gsonJsonb<Map<String, Any>>("provider_response").nullable()
+    val providerResponse = jsonb<Map<String, Any>>("provider_response", Json).nullable()
     val errorMessage = text("error_message").nullable()
 }

@@ -1,6 +1,8 @@
 package org.example.config
 
 import io.ktor.server.application.Application
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
 data class AppConfig(
     val database: DatabaseConfig,
@@ -11,7 +13,8 @@ data class AppConfig(
     val fcm: FcmConfig,
     val sms: SMSConfig,
     val payment: PaymentConfig,
-    val server: ServerConfig
+    val server: ServerConfig,
+    val redis: RedisConfig
 ) {
     companion object {
         fun load(application: Application) : AppConfig {
@@ -41,10 +44,36 @@ data class AppConfig(
                     issuer = env.getRequired("jwt.issuer"),
                     audience = env.getRequired("jwt.audience"),
                     realm = env.getRequired("jwt.realm"),
-                    clientID = env.getRequired("google.clientID"),
-                    clientSecret = env.getRequired("google.clientSecret"),
+                    accessExpiry = env.getLong("jwt.accessExpiry", 900000L),
+                    refreshExpiry = env.getLong("jwt.refreshExpiry", 604800000L),
+                    oauthConfig = mapOf(
+                        "google" to OAuthProvider(
+                            clientId = env.getRequired("oauth.google.clientId"),
+                            clientSecret = env.getRequired("oauth.google.clientSecret"),
+                            authorizeUrl = env.get("oauth.google.authorizeUrl", "https://accounts.google.com/o/oauth2/v2/auth"),
+                            tokenUrl = env.get("oauth.google.tokenUrl", "https://oauth2.googleapis.com/token"),
+                            userInfoUrl = env.get("oauth.google.userInfoUrl", "https://www.googleapis.com/oauth2/v3/userinfo"),
+                            scopes = env.getList("oauth.google.scopes", listOf("openid", "email", "profile"))
+                        ),
+                        "instagram" to OAuthProvider(
+                            clientId = env.getRequired("oauth.instagram.clientId"),
+                            clientSecret = env.getRequired("oauth.instagram.clientSecret"),
+                            authorizeUrl = env.get("oauth.instagram.authorizeUrl", "https://api.instagram.com/oauth/authorize"),
+                            tokenUrl = env.get("oauth.instagram.tokenUrl", "https://api.instagram.com/oauth/access_token"),
+                            userInfoUrl = env.get("oauth.instagram.userInfoUrl", "https://graph.instagram.com/me?fields=id,username"),
+                            scopes = env.getList("oauth.instagram.scopes", listOf("user_profile", "user_media"))
+                        ),
+                        "apple" to OAuthProvider(
+                            clientId = env.getRequired("oauth.apple.clientId"), // Typically your Service ID
+                            clientSecret = env.getRequired("oauth.apple.clientSecret"), // Generated ES256 Client Secret JWT
+                            authorizeUrl = env.get("oauth.apple.authorizeUrl", "https://appleid.apple.com/auth/authorize"),
+                            tokenUrl = env.get("oauth.apple.tokenUrl", "https://appleid.apple.com/auth/token"),
+                            userInfoUrl = env.get("oauth.apple.userInfoUrl", ""), // Apple returns identity tokens in the token response payload instead of a separate endpoint
+                            scopes = env.getList("oauth.apple.scopes", listOf("name", "email"))
+                        )
+                    ),
                     secretEncryptionKey = env.getRequired("session.encryptionKey"),
-                    secretSignKey = env.getRequired("session.signKey")
+                    secretSignKey = env.getRequired("session.secretKey"),
                 ),
                 cors = CorsConfig(
                     allowedHosts = env.getList("cors.allowedHosts", listOf("*")),
@@ -98,6 +127,11 @@ data class AppConfig(
                         keyStorePassword = env.getOptional("server.ssl.keyStorePassword"),
                         privateKeyPassword = env.getOptional("server.ssl.privateKeyPassword")
                     )
+                ),
+                redis = RedisConfig(
+                    host = env.get("redis.host", "localhost"),
+                    port = env.getInt("redis.port", 6379),
+                    database = env.get("redis.database", "0")
                 )
             )
         }
@@ -120,7 +154,7 @@ data class SecurityConfig(
     val realm: String,
     val accessExpiry: Long = 15 * 60 * 1000L,
     val refreshExpiry: Long = 7 * 24 * 60 * 60 * 1000L,
-    val oauthConfig: OAuthProvider,
+    val oauthConfig: Map<String, OAuthProvider> = emptyMap(),
     val secretEncryptionKey: String,
     val secretSignKey: String
 )
@@ -216,8 +250,25 @@ data class ServerConfig(
     val ssl: SslConfig
 )
 
+data class RedisConfig(
+    val host: String,
+    val port: Int,
+    val database: String
+)
+
 data class SMSConfig(
     val accessKey: String,
     val secretKey: String,
     val region: String
 )
+
+
+@Module
+class ConfigModule(private val application: Application) {
+
+    @Single
+    fun provideAppConfig(): AppConfig {
+        // Automatically reads from your Ktor Application Hocon environment configuration files on boot
+        return AppConfig.load(application)
+    }
+}

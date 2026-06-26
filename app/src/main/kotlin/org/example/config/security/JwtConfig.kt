@@ -3,12 +3,15 @@ package org.example.config.security
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import org.example.config.AppConfig
 import org.example.config.SecurityConfig
-import java.security.SecureRandom
-import java.util.Date
-import java.util.UUID
+import org.koin.core.annotation.Single
+import java.util.*
 
-class JwtConfig(private val config: SecurityConfig) {
+@Single
+class JwtConfig(private val appConfig: AppConfig) {
+    private val config = appConfig.security
+
     val verifier: JWTVerifier = JWT
         .require(Algorithm.HMAC256(config.secret))
         .withIssuer(config.issuer)
@@ -26,6 +29,7 @@ class JwtConfig(private val config: SecurityConfig) {
     }
 
     fun generateRefreshToken(userId: String): String {
-        return UUID.randomUUID().toString() + "." + SecureRandom().nextLong()
+        val randomPart = UUID.randomUUID().toString().replace("-", "")
+        return "$userId.$randomPart"
     }
 }

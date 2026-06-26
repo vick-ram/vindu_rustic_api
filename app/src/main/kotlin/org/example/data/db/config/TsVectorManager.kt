@@ -1,48 +1,47 @@
 package org.example.data.db.config
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+
 object TsVectorManager {
-    fun setupFullTextSearch() {
+    suspend fun setupFullTextSearch() {
         createAllIndexes()
         createAllTriggers()
         populateExistingData()
     }
 
-    private fun createAllIndexes() {
+    private suspend fun createAllIndexes() {
         tsVectorConfigs.forEach { config ->
             createIndex(config)
         }
     }
 
-    private fun createAllTriggers() {
+    private suspend fun createAllTriggers() {
         tsVectorConfigs.forEach { config ->
             createTriggerFunction(config)
             createTrigger(config)
         }
     }
 
-    private fun createIndex(config: TsVectorConfig) {
-        val conn = DatabaseFactory.datasource.connection
-        val con = DatabaseFactory.db
+    private suspend fun createIndex(config: TsVectorConfig) {
+        val conn = DatabaseFactory.connectionFactory.create().awaitFirstOrNull()
         try {
-            val statement = conn.createStatement()
             val indexSql = """
                 CREATE INDEX IF NOT EXISTS ${config.actualIndexName}
                 ON ${config.tableName} USING gin(${config.tsVectorColumn})
             """.trimIndent()
-            statement.executeUpdate(indexSql)
+            val statement = conn?.createStatement(indexSql)
+            statement?.execute()?.awaitFirstOrNull()
         } catch (e: Exception) {
             println("Failed to create index: ${config.actualIndexName} on ${config.tableName}, error: ${e.message}")
         } finally {
-            conn.close()
+            conn?.close()
         }
     }
 
-    private fun createTriggerFunction(config: TsVectorConfig) {
-        val connection = DatabaseFactory.datasource.connection
+    private suspend fun createTriggerFunction(config: TsVectorConfig) {
+        val connection = DatabaseFactory.connectionFactory.create().awaitFirstOrNull()
 
         try {
-            val statement = connection.createStatement()
-
             val weightExpression = config.searchColumns.joinToString(" || \n") { column ->
                 val weight = config.weights[column] ?: "D"
                 val expr = if (config.enumColumns.contains(column)) {
@@ -62,20 +61,21 @@ object TsVectorManager {
                 end
                 $$ LANGUAGE plpgsql;
             """.trimIndent()
-            statement.execute(functionSql)
+
+            val statement = connection?.createStatement(functionSql)
+
+            statement?.execute()?.awaitFirstOrNull()
         } catch (e: Exception) {
             println("Error creating trigger function for ${config.tableName}: ${e.message}")
         } finally {
-            connection.close()
+            connection?.close()
         }
     }
 
-    private fun createTrigger(config: TsVectorConfig) {
-        val connection = DatabaseFactory.datasource.connection
+    private suspend fun createTrigger(config: TsVectorConfig) {
+        val connection = DatabaseFactory.connectionFactory.create().awaitFirstOrNull()
 
         try {
-            val statement = connection.createStatement()
-
             val triggerSql = """
                 DO $$
                 BEGIN
@@ -94,25 +94,25 @@ object TsVectorManager {
             } ON ${config.tableName} FOR EACH ROW EXECUTE FUNCTION ${config.tableName}_tsvector_trigger();
                     END $$;
             """.trimIndent()
-            statement.execute(triggerSql)
+
+            val statement = connection?.createStatement(triggerSql)
+            statement?.execute()?.awaitFirstOrNull()
         } catch (e: Exception) {
             println("Error creating trigger for ${config.tableName}: ${e.message}")
         } finally {
-            connection.close()
+            connection?.close()
         }
     }
 
-    fun populateExistingData() {
+    suspend fun populateExistingData() {
         tsVectorConfigs.forEach { config ->
             populateTableData(config)
         }
     }
 
-    private fun populateTableData(config: TsVectorConfig) {
-        val connection = DatabaseFactory.datasource.connection
+    private suspend fun populateTableData(config: TsVectorConfig) {
+        val connection = DatabaseFactory.connectionFactory.create().awaitFirstOrNull()
         try {
-            val statement = connection.createStatement()
-
             val weightExpressions = config.searchColumns.joinToString(" ||\n") { column ->
                 val weight = config.weights[column] ?: "D"
                 val expr = if (config.enumColumns.contains(column)) {
@@ -129,12 +129,14 @@ object TsVectorManager {
                 WHERE ${config.tsVectorColumn} IS NULL OR ${config.tsVectorColumn} = '';
             """.trimIndent()
 
-            statement.executeUpdate(updateSql)
+            val statement = connection?.createStatement(updateSql)
+
+            statement?.execute()?.awaitFirstOrNull()
 
         } catch (e: Exception) {
             println("Error populating data for ${config.tableName}: ${e.message}")
         } finally {
-            connection.close()
+            connection?.close()
         }
     }
 

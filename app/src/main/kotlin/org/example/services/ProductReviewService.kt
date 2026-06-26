@@ -1,7 +1,6 @@
 package org.example.services
 
 import org.example.domain.models.catalog.ProductReview
-import org.example.domain.repo.ProductReviewRepository
 
 class ProductReviewService(private val productReviewRepository: ProductReviewRepository) {
     suspend fun createReview(productReview: ProductReview): ProductReview? {

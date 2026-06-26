@@ -4,6 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.json.Json
+import org.koin.core.annotation.Single
 import java.security.SecureRandom
 
 enum class OtpPurpose {
@@ -15,6 +16,7 @@ enum class OtpPurpose {
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Single
 class OtpService(
     private val redis: RedisCoroutinesCommands<String, String>
 ) {

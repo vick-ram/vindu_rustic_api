@@ -4,7 +4,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
-
+    alias(libs.plugins.ksp)
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     kotlin("plugin.serialization").version("2.1.20")
@@ -32,8 +32,6 @@ dependencies {
     // This dependency is used by the application.
     implementation(kotlin("stdlib"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
-
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.host.common)
@@ -42,7 +40,7 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.sessions)
-    implementation("at.favre.lib:bcrypt:0.10.2")
+    implementation(libs.bcrypt.hashing)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.hsts)
@@ -58,12 +56,9 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.pesapal.kotlin.client)
-    implementation(libs.jackson.module.kotlin)
 
     //Exposed
     implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.dao)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.exposed.json)
 
@@ -80,17 +75,15 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
 
     //Database
-    implementation(libs.hikariCp)
     implementation(libs.postgresql)
-    implementation("com.h2database:h2:2.2.224")
-    implementation("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
-    implementation("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
-    implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
+    implementation(libs.r2dbc)
+    implementation(libs.postgresql.pool)
 
     //Migrations
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
-    implementation(libs.exposed.migration)
+    implementation(libs.exposed.migration.core)
+    implementation(libs.exposed.migration.r2)
 
     //Redis
     implementation(libs.kotlinx.coroutines.reactive)
@@ -103,6 +96,8 @@ dependencies {
 
     //DI
     implementation(libs.koin.ktor)
+    implementation(libs.koin.annotations)
+    ksp(libs.koin.ksp.compiler)
     implementation(libs.koin.logger)
 
     implementation(libs.skiko)
@@ -119,6 +114,13 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        // Enforces the use of the new feature
+        freeCompilerArgs.add("-Xcollection-literals")
     }
 }
 

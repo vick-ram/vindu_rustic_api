@@ -17,5 +17,3 @@ object PluginRegistry {
         plugins.forEach {it.install(application)}
     }
 }
-
-annotation class AutoInstall

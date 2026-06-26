@@ -1,7 +1,6 @@
 package org.example.services
 
 import org.example.domain.models.sales.ShoppingCart
-import org.example.domain.repo.ShoppingCartRepository
 
 class ShoppingCartService(private val cartRepo: ShoppingCartRepository) {
 

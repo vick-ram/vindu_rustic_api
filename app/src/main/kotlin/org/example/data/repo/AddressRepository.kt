@@ -1,0 +1,223 @@
+package org.example.data.repo
+
+import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
+import org.example.data.mappers.AddressMapper
+import org.example.domain.models.identity.Address
+import java.math.BigDecimal
+
+class AddressRepository(
+    connectionFactory: ConnectionFactory,
+    addressMapper: AddressMapper
+) : CrudRepository<Address, String>(
+    connectionFactory = connectionFactory,
+    tableName = "addresses",
+    mapper = addressMapper
+) {
+    override val generatedColumns = listOf("id", "created_at")
+
+    // Get addresses by user
+    suspend fun findByUserId(userId: String): List<Address> {
+        val sql = """
+            SELECT * FROM $tableName 
+            WHERE user_id = :userId 
+            ORDER BY is_default DESC, created_at DESC
+        """.trimIndent()
+
+        return executeQuery(sql, mapOf("userId" to userId))
+    }
+
+    // Get default address for user
+    suspend fun findDefaultByUserId(userId: String): Address? {
+        val sql = """
+            SELECT * FROM $tableName 
+            WHERE user_id = :userId AND is_default = true 
+            LIMIT 1
+        """.trimIndent()
+
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .bind("userId", userId)
+                .execute()
+                .awaitSingle()
+                .map(rowMapper)
+                .awaitFirstOrNull()
+        }
+    }
+
+    // Set address as default (and unset others)
+    suspend fun setDefault(userId: String, addressId: String): Address? {
+        return connectionFactory.withTransaction { connection ->
+            // First, unset all defaults for this user
+            val unsetSql = """
+                UPDATE $tableName 
+                SET is_default = false 
+                WHERE user_id = :userId AND is_default = true
+            """.trimIndent()
+
+            connection.createStatement(unsetSql)
+                .bind("userId", userId)
+                .execute()
+                .awaitSingle()
+
+            // Then set the new default
+            val setSql = """
+                UPDATE $tableName 
+                SET is_default = true 
+                WHERE id = :addressId AND user_id = :userId 
+                RETURNING *
+            """.trimIndent()
+
+            connection.createStatement(setSql)
+                .bind("addressId", addressId)
+                .bind("userId", userId)
+                .execute()
+                .awaitSingle()
+                .map(rowMapper)
+                .awaitFirstOrNull()
+        }
+    }
+
+    // Search addresses by recipient name or phone
+    suspend fun searchByUser(
+        userId: String,
+        query: String
+    ): List<Address> {
+        val sql = """
+            SELECT * FROM $tableName 
+            WHERE user_id = :userId 
+              AND (recipient_name ILIKE :query 
+                   OR phone_number ILIKE :query 
+                   OR address_line1 ILIKE :query 
+                   OR city ILIKE :query)
+            ORDER BY is_default DESC, created_at DESC
+        """.trimIndent()
+
+        return executeQuery(sql, mapOf(
+            "userId" to userId,
+            "query" to "%$query%"
+        ))
+    }
+
+    // Find addresses near a location (requires PostGIS or similar)
+    suspend fun findNearby(
+        latitude: BigDecimal,
+        longitude: BigDecimal,
+        radiusKm: Double = 10.0,
+        limit: Int = 20
+    ): List<Address> {
+        // This assumes you have PostGIS installed
+        val sql = """
+            SELECT *, 
+                   (6371 * acos(cos(radians(:latitude)) 
+                    * cos(radians(latitude)) 
+                    * cos(radians(longitude) - radians(:longitude)) 
+                    + sin(radians(:latitude)) 
+                    * sin(radians(latitude)))) AS distance
+            FROM $tableName 
+            WHERE latitude IS NOT NULL 
+              AND longitude IS NOT NULL
+              AND (6371 * acos(cos(radians(:latitude)) 
+                   * cos(radians(latitude)) 
+                   * cos(radians(longitude) - radians(:longitude)) 
+                   + sin(radians(:latitude)) 
+                   * sin(radians(latitude)))) <= :radiusKm
+            ORDER BY distance ASC 
+            LIMIT :limit
+        """.trimIndent()
+
+        return executeQuery(sql, mapOf(
+            "latitude" to latitude.toDouble(),
+            "longitude" to longitude.toDouble(),
+            "radiusKm" to radiusKm,
+            "limit" to limit
+        ))
+    }
+
+    // Count addresses for a user
+    suspend fun countByUser(userId: String): Long {
+        val sql = """
+            SELECT COUNT(*) as count 
+            FROM $tableName 
+            WHERE user_id = :userId
+        """.trimIndent()
+
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .bind("userId", userId)
+                .execute()
+                .awaitSingle()
+                .map { row, _ -> row.get("count", Long::class.java) }
+                .awaitFirstOrNull() ?: 0L
+        }
+    }
+
+    // Validate address ownership
+    suspend fun isOwnedBy(addressId: String, userId: String): Boolean {
+        val sql = """
+            SELECT COUNT(*) as count 
+            FROM $tableName 
+            WHERE id = :addressId AND user_id = :userId
+        """.trimIndent()
+
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .bind("addressId", addressId)
+                .bind("userId", userId)
+                .execute()
+                .awaitSingle()
+                .map { row, _ -> row.get("count", Long::class.java) > 0 }
+                .awaitFirstOrNull() ?: false
+        }
+    }
+
+    // Bulk create addresses
+    suspend fun bulkCreate(addresses: List<Address>): List<Address> {
+        if (addresses.isEmpty()) return emptyList()
+
+        val columns = listOf(
+            "user_id", "label", "recipient_name", "phone_number",
+            "country_code", "country", "city", "state", "postal_code",
+            "address_line1", "address_line2", "latitude", "longitude", "is_default"
+        )
+
+        val placeholders = addresses.mapIndexed { index, _ ->
+            "(${columns.joinToString(", ") { ":${it}_$index" }})"
+        }
+
+        val sql = """
+            INSERT INTO $tableName (${columns.joinToString(", ")})
+            VALUES ${placeholders.joinToString(", ")}
+            RETURNING *
+        """.trimIndent()
+
+        return connectionFactory.withTransaction { connection ->
+            val statement = connection.createStatement(sql)
+            addresses.forEachIndexed { index, address ->
+                statement.bind("user_id_$index", address.userId)
+                statement.bind("label_$index", address.label)
+                statement.bind("recipient_name_$index", address.recipientName)
+                statement.bind("phone_number_$index", address.phoneNumber)
+                statement.bind("country_code_$index", address.countryCode)
+                statement.bind("country_$index", address.country)
+                statement.bind("city_$index", address.city)
+                statement.bind("state_$index", address.state)
+                statement.bind("postal_code_$index", address.postalCode)
+                statement.bind("address_line1_$index", address.addressLine1)
+                statement.bind("address_line2_$index", address.addressLine2)
+                statement.bind("latitude_$index", address.latitude)
+                statement.bind("longitude_$index", address.longitude)
+                statement.bind("is_default_$index", address.isDefault)
+            }
+
+            statement.execute()
+                .awaitSingle()
+                .map(rowMapper)
+                .asFlow()
+                .toList()
+        }
+    }
+}

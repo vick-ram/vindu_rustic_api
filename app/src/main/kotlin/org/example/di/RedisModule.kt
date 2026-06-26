@@ -3,25 +3,31 @@ package org.example.di
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
-import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
-import org.koin.dsl.module
+import org.example.config.AppConfig
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
-@OptIn(ExperimentalLettuceCoroutinesApi::class)
-val redisModule = module {
-    // Singleton redis client
-    single {
-        RedisClient.create("redis://localhost:6379")
+@Module
+class RedisModule {
+
+    @Single
+    fun provideRedisClient(appConfig: AppConfig) : RedisClient {
+        val config = appConfig.redis
+        return RedisClient.create("redis://${config.host}:${config.port}/${config.database}")
     }
 
-    // Singleton connection
-    single<StatefulRedisConnection<String, String>> {
-        get<RedisClient>().connect()
+    @Single
+    fun provideStatefulConnection(client: RedisClient): StatefulRedisConnection<String, String> {
+        return client.connect()
     }
 
-    // Sync commands
-    single<RedisCoroutinesCommands<String, String>> {
-        get<StatefulRedisConnection<String, String>>().coroutines()
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    @Single
+    fun provideCoroutineCommands(
+        connection: StatefulRedisConnection<String, String>
+    ): RedisCoroutinesCommands<String, String> {
+        return connection.coroutines()
     }
 }
