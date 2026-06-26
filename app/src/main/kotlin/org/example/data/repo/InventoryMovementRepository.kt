@@ -144,7 +144,7 @@ class InventoryMovementRepository(
             ORDER BY movement_type
         """.trimIndent()
 
-        val params = mutableMapOf(
+        val params = mutableMapOf<String, Any>(
             "startDate" to startDate,
             "endDate" to endDate
         )
