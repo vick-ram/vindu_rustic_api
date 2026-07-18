@@ -3,12 +3,18 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.PaymentTransactionMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.payments.PaymentTransaction
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class PaymentTransactionRepository(
+@Component
+class PaymentTransactionRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     paymentTransactionMapper: PaymentTransactionMapper
 ) : CrudRepository<PaymentTransaction, String>(
@@ -208,10 +214,13 @@ class PaymentTransactionRepository(
     }
 }
 
+@Serializable
 data class TransactionStats(
     val totalCount: Int,
     val successfulCount: Int,
     val failedCount: Int,
+    @Contextual
     val totalSuccessfulAmount: BigDecimal,
+    @Contextual
     val totalAmount: BigDecimal
 )

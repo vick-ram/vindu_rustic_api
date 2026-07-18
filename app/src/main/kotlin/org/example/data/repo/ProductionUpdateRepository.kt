@@ -5,17 +5,22 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ProductionUpdateMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.production.ProductionUpdate
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class ProductionUpdateRepository(
+@Component
+class ProductionUpdateRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     productionUpdateMapper: ProductionUpdateMapper
 ) : CrudRepository<ProductionUpdate, String>(
     connectionFactory = connectionFactory,
     tableName = "production_updates",
-    idColumn = "id",
     mapper = productionUpdateMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -218,7 +223,7 @@ class ProductionUpdateRepository(
         updates.forEach { validateProductionUpdate(it) }
 
         val columns = listOf("job_id", "status", "stage_name", "description", "image_url", "posted_by")
-        val placeholders = updates.mapIndexed { index, _ ->
+        val placeholders = List(updates.size) { index ->
             "(${columns.joinToString(", ") { ":${it}_$index" }})"
         }
 
@@ -233,9 +238,9 @@ class ProductionUpdateRepository(
             updates.forEachIndexed { index, update ->
                 statement.bind("job_id_$index", update.jobId)
                 statement.bind("status_$index", update.status)
-                statement.bind("stage_name_$index", update.stageName)
-                statement.bind("description_$index", update.description)
-                statement.bind("image_url_$index", update.imageUrl)
+                statement.bind("stage_name_$index", update.stageName ?: String::class.java)
+                statement.bind("description_$index", update.description ?: String::class.java)
+                statement.bind("image_url_$index", update.imageUrl ?: String::class.java)
                 statement.bind("posted_by_$index", update.postedBy)
             }
 
@@ -268,10 +273,10 @@ class ProductionUpdateRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     UpdateStats(
-                        totalUpdates = row.get("total_updates", Long::class.java).toInt(),
-                        uniquePosters = row.get("unique_posters", Long::class.java).toInt(),
-                        updatesWithImages = row.get("updates_with_images", Long::class.java).toInt(),
-                        stagesUpdated = row.get("stages_updated", Long::class.java).toInt(),
+                        totalUpdates = (row.get("total_updates", Long::class.java) ?: 0L).toInt(),
+                        uniquePosters = (row.get("unique_posters", Long::class.java) ?: 0L).toInt(),
+                        updatesWithImages = (row.get("updates_with_images", Long::class.java) ?: 0L).toInt(),
+                        stagesUpdated = (row.get("stages_updated", Long::class.java) ?: 0L).toInt(),
                         firstUpdate = row.get("first_update", OffsetDateTime::class.java),
                         lastUpdate = row.get("last_update", OffsetDateTime::class.java)
                     )
@@ -295,6 +300,7 @@ class ProductionUpdateRepository(
     }
 }
 
+@Serializable
 data class JobTimelineEvent(
     val update: ProductionUpdate,
     val previousStatus: String?,
@@ -303,11 +309,14 @@ data class JobTimelineEvent(
     val isStageChange: Boolean
 )
 
+@Serializable
 data class UpdateStats(
     val totalUpdates: Int,
     val uniquePosters: Int,
     val updatesWithImages: Int,
     val stagesUpdated: Int,
+    @Contextual
     val firstUpdate: OffsetDateTime?,
+    @Contextual
     val lastUpdate: OffsetDateTime?
 )

@@ -6,14 +6,18 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ProductReviewMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.ProductReview
+import org.koin.core.annotation.Single
 
-class ProductReviewRepository(
+@Component
+class ProductReviewRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
-    private val productReviewMapper: ProductReviewMapper
-            ) : CrudRepository<ProductReview, String>(
-        connectionFactory = connectionFactory, tableName = "product_reviews", mapper = productReviewMapper
-    ){
+    productReviewMapper: ProductReviewMapper
+) : CrudRepository<ProductReview, String>(
+    connectionFactory = connectionFactory, tableName = "product_reviews", mapper = productReviewMapper
+) {
 
     suspend fun findByProductId(
         productId: String,
@@ -27,11 +31,13 @@ class ProductReviewRepository(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "productId" to productId,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "productId" to productId,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     suspend fun findByUserId(userId: String): List<ProductReview> {
@@ -86,7 +92,7 @@ class ProductReviewRepository(
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
-                    row.get("rating", Int::class.java) to row.get("count", Long::class.java).toInt()
+                    row.get("rating", Int::class.java) to (row.get("count", Long::class.java) ?: 0L).toInt()
                 }
                 .asFlow()
                 .toList()

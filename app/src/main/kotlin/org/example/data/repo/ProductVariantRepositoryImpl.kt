@@ -4,11 +4,15 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ProductVariantMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.ProductVariant
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class ProductVariantRepository(
+@Component
+class ProductVariantRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     productVariantMapper: ProductVariantMapper,
 ) : CrudRepository<ProductVariant, String>(
@@ -110,7 +114,8 @@ class ProductVariantRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 

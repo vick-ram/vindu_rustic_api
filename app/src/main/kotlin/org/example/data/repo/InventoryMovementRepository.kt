@@ -6,10 +6,14 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.InventoryMovementMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.inventory.InventoryMovement
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class InventoryMovementRepository(
+@Component
+class InventoryMovementRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     inventoryMovementMapper: InventoryMovementMapper
 ) : CrudRepository<InventoryMovement, String>(

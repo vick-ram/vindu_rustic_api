@@ -5,18 +5,24 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.AuditLogsMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.system.AuditLogs
+import org.koin.core.annotation.Single
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
-class AuditLogsRepository(
+@Component
+class AuditLogsRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     auditLogsMapper: AuditLogsMapper
 ) : CrudRepository<AuditLogs, String>(
     connectionFactory = connectionFactory,
     tableName = "audit_logs",
-    idColumn = "id",
     mapper = auditLogsMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -30,17 +36,17 @@ class AuditLogsRepository(
     ): List<AuditLogs> {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE entity_type = :entityType 
-              AND entity_id = :entityId 
+            WHERE entity_type = $1 
+              AND entity_id = $2 
             ORDER BY created_at DESC 
-            LIMIT :limit OFFSET :offset
+            LIMIT $3 OFFSET $4
         """.trimIndent()
 
         return executeQuery(sql, mapOf(
-            "entityType" to entityType,
-            "entityId" to entityId,
-            "limit" to limit,
-            "offset" to offset.toLong()
+            "$1" to entityType,
+            "$2" to entityId,
+            "$3" to limit,
+            "$4" to offset.toLong()
         ))
     }
 
@@ -51,24 +57,24 @@ class AuditLogsRepository(
         offset: Int = 0,
         limit: Int = 50
     ): List<AuditLogs> {
-        val typeFilter = if (actorType != null) "AND actor_type = :actorType" else ""
+        val typeFilter = if (actorType != null) "AND actor_type = $1" else ""
 
         val sql = """
             SELECT * FROM $tableName 
-            WHERE actor_id = :actorId 
+            WHERE actor_id = $2 
             $typeFilter
             ORDER BY created_at DESC 
-            LIMIT :limit OFFSET :offset
+            LIMIT $3 OFFSET $4
         """.trimIndent()
 
         val params = mutableMapOf(
-            "actorId" to actorId,
-            "limit" to limit,
-            "offset" to offset.toLong()
+            "$2" to actorId,
+            "$3" to limit,
+            "$4" to offset.toLong()
         )
 
         if (actorType != null) {
-            params["actorType"] = actorType
+            params["$1"] = actorType
         }
 
         return executeQuery(sql, params)
@@ -81,24 +87,24 @@ class AuditLogsRepository(
         offset: Int = 0,
         limit: Int = 50
     ): List<AuditLogs> {
-        val entityFilter = if (entityType != null) "AND entity_type = :entityType" else ""
+        val entityFilter = if (entityType != null) "AND entity_type = $1" else ""
 
         val sql = """
             SELECT * FROM $tableName 
-            WHERE action = :action 
+            WHERE action = $2 
             $entityFilter
             ORDER BY created_at DESC 
-            LIMIT :limit OFFSET :offset
+            LIMIT $3 OFFSET $4
         """.trimIndent()
 
         val params = mutableMapOf(
-            "action" to action,
-            "limit" to limit,
-            "offset" to offset.toLong()
+            "$2" to action,
+            "$3" to limit,
+            "$4" to offset.toLong()
         )
 
         if (entityType != null) {
-            params["entityType"] = entityType
+            params["$1"] = entityType
         }
 
         return executeQuery(sql, params)
@@ -171,6 +177,24 @@ class AuditLogsRepository(
                 ipAddress = ipAddress,
                 userAgent = userAgent
             )
+        )
+    }
+
+    suspend fun logSystemAction(
+        action: String,
+        entityType: String,
+        entityId: String,
+        changes: Map<String, Any>? = null,
+        metadata: Map<String, Any>? = null
+    ) {
+        logAction(
+            actorId = null,
+            actorType = "system",
+            action = action,
+            entityType = entityType,
+            entityId = entityId,
+            changes = changes,
+            metadata = metadata
         )
     }
 
@@ -295,7 +319,8 @@ class AuditLogsRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -363,6 +388,7 @@ class AuditLogsRepository(
     }
 }
 
+@Serializable
 data class AuditStats(
     val totalLogs: Int,
     val uniqueActors: Int,
@@ -371,17 +397,21 @@ data class AuditStats(
     val activeDays: Int
 )
 
+@Serializable
 data class ActionCount(
     val action: String,
     val count: Int,
     val uniqueActors: Int
 )
 
+@Serializable
 data class EntityChange(
     val id: String,
     val action: String,
+    @Contextual
     val changes: Map<String, Any>?,
     val actorId: String?,
     val actorType: String,
+    @Contextual
     val createdAt: OffsetDateTime
 )

@@ -1,21 +1,17 @@
 package org.example.utils.notifications
 
-import jakarta.mail.Authenticator
-import jakarta.mail.Message
-import jakarta.mail.PasswordAuthentication
-import jakarta.mail.Session
-import jakarta.mail.Transport
+import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.example.config.AppConfig
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
-import org.example.domain.models.system.Notification
-import org.example.domain.repo.NotificationRepository
+import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
-import java.util.Properties
+import java.util.*
 
-class EmailNotificationService(private val config: AppConfig) : NotificationRepository {
+@Single
+class EmailNotificationService(private val config: AppConfig) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private val session: Session by lazy { createSession() }
@@ -66,33 +62,23 @@ class EmailNotificationService(private val config: AppConfig) : NotificationRepo
         }
     }
 
-    override suspend fun send(notification: Notification, email: String?, phoneNumber: String?): DispatchResult {
+    fun send(notificationId: String ,to: String, subject: String, body: String, actionUrl: String?): DispatchResult {
         return try {
-            val message = email?.let {
-                buildMessage(it, notification.title, String.format(emailBody(notification.body), notification.body))
-            }
-            Transport.send(message)
+            Transport.send(buildMessage(to, subject, body))
 
-            logger.info("Email sent for notification ${notification.id} to $email")
+            logger.info("Email sent for notification $notificationId to $to")
 
             DispatchResult(
-                notificationId = notification.id,
+                notificationId = notificationId,
                 channel = NotificationChannel.EMAIL,
                 success = true,
-                message = "Email sent for notification ${notification.id}"
+                message = "Email sent for notification $notificationId"
             )
         } catch (e: Exception) {
-            logger.error("Failed to send email for notification ${notification.id}", e)
+            logger.error("Failed to send email for notification ${notificationId}", e)
             throw e
         }
     }
-
-    override suspend fun markAsRead(notificationId: String, userId: String) {
-        logger.debug("Email does not support markAsRead")
-    }
-
-    override suspend fun getUnreadCount(userId: String): Long = 0
-
     private fun emailBody(body: String?): String {
         val htmlBody = """
         <!DOCTYPE html>

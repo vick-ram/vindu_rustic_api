@@ -7,7 +7,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.example.data.db.config.Ulid
 import org.example.domain.validations.*
-import org.example.utils.OffsetDateTimeSerializer
 import java.time.OffsetDateTime
 
 

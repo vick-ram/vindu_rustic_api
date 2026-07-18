@@ -5,11 +5,15 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.OrderItemMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.OrderItem
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class OrderItemRepository(
+@Component
+class OrderItemRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     orderItemMapper: OrderItemMapper
 ) : CrudRepository<OrderItem, String>(

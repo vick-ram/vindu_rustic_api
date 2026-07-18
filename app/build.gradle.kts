@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.skiko)
 
     implementation("com.github.vick-ram:kcelery:0.0.1")
+    implementation("io.github.classgraph:classgraph:4.8.184")
 
     // Test
     runtimeOnly(libs.kotest.runner)

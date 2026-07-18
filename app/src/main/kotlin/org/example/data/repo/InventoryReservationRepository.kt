@@ -4,10 +4,14 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.InventoryReservationMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.inventory.InventoryReservation
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class InventoryReservationRepository(
+@Component
+class InventoryReservationRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     inventoryReservationMapper: InventoryReservationMapper
 ) : CrudRepository<InventoryReservation, String>(
@@ -160,7 +164,8 @@ class InventoryReservationRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -179,7 +184,8 @@ class InventoryReservationRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 

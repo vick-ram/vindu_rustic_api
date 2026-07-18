@@ -7,12 +7,17 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.RoleMapper
 import org.example.data.mappers.UserRoleMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.identity.Role
 import org.example.domain.models.identity.UserRole
+import org.koin.core.annotation.Single
 
-class RoleRepository(
+@Component
+class RoleRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     roleMapper: RoleMapper
 ) : CrudRepository<Role, String>(
@@ -202,7 +207,7 @@ class UserRoleRepository(
                 .bind("roleId", roleId)
                 .execute()
                 .awaitSingle()
-                .map { row, _ -> row.get("count", Long::class.java) > 0 }
+                .map { row, _ -> (row.get("count", Long::class.java) ?: 0L) > 0 }
                 .awaitFirstOrNull() ?: false
         }
     }
@@ -211,7 +216,7 @@ class UserRoleRepository(
     suspend fun bulkAssignRoles(userId: String, roleIds: List<String>): List<UserRole> {
         if (roleIds.isEmpty()) return emptyList()
 
-        val placeholders = roleIds.mapIndexed { index, _ -> "(:userId, :roleId$index)" }
+        val placeholders = List(roleIds.size) { index -> "(:userId, :roleId$index)" }
         val sql = """
             INSERT INTO $tableName (user_id, role_id)
             VALUES ${placeholders.joinToString(", ")}
@@ -245,7 +250,8 @@ class UserRoleRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -258,6 +264,7 @@ class UserRoleRepository(
     }
 }
 
+@Serializable
 data class RoleWithUserCount(
     val role: Role,
     val userCount: Int

@@ -6,10 +6,14 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.SupportTicketMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.support.SupportTicket
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class SupportTicketRepository(
+@Component
+class SupportTicketRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     supportTicketMapper: SupportTicketMapper
 ) : CrudRepository<SupportTicket, String>(

@@ -4,11 +4,15 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ShipmentMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.shipping.Shipment
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class ShipmentRepository(
+@Component
+class ShipmentRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     shipmentMapper: ShipmentMapper
 ) : CrudRepository<Shipment, String>(

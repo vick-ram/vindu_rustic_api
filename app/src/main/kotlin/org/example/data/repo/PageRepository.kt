@@ -4,10 +4,14 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.PageMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.content.Page
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class PageRepository(
+@Component
+class PageRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     pageMapper: PageMapper
 ) : CrudRepository<Page, String>(

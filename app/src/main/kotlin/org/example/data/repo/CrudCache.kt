@@ -22,7 +22,7 @@ open class CrudCache<Model: Any, ID: Any>(
     private val delegate: CrudRepository<Model, ID>,
     private val getId: (Model) -> ID,
     private val serializer: KSerializer<Model>,
-    private val config: CacheConfig
+    val config: CacheConfig
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(CrudCache::class.java)
@@ -41,7 +41,7 @@ open class CrudCache<Model: Any, ID: Any>(
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun putInCache(id: ID, entity: Model) {
+    suspend fun putInCache(id: ID, entity: Model) {
         try {
             val key = generateCacheKey(id)
             val jsonValue = Json.encodeToString(serializer, entity)
@@ -77,7 +77,7 @@ open class CrudCache<Model: Any, ID: Any>(
         }
     }
 
-    suspend fun create(model: Model): Model {
+    open suspend fun create(model: Model): Model {
         val created = delegate.create(model)
         val id = getId(created)
         putInCache(id, created)
@@ -129,7 +129,7 @@ open class CrudCache<Model: Any, ID: Any>(
         return entities
     }
 
-    suspend fun update(id: ID, entity: Model): Model? {
+    open suspend fun update(id: ID, entity: Model): Model? {
         val updated = delegate.update(id, entity)
         if (updated != null) {
             putInCache(id, updated)
@@ -140,7 +140,7 @@ open class CrudCache<Model: Any, ID: Any>(
         return updated
     }
 
-    suspend fun delete(id: ID): Boolean {
+    open suspend fun delete(id: ID): Boolean {
         val deleted = delegate.delete(id)
         if (deleted) {
             removeFromCache(id)
@@ -156,7 +156,7 @@ open class CrudCache<Model: Any, ID: Any>(
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun invalidateCollectionCaches() {
+    suspend fun invalidateCollectionCaches() {
         deleteKeysByPattern("${config.cacheName}:collection:*")
     }
 

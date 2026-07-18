@@ -8,26 +8,20 @@ import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.example.config.AppConfig
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import org.koin.dsl.module
 
-@Module
-class RedisModule {
-
-    @Single
-    fun provideRedisClient(appConfig: AppConfig) : RedisClient {
-        val config = appConfig.redis
-        return RedisClient.create("redis://${config.host}:${config.port}/${config.database}")
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+val redisModule = module {
+    single {
+        val config = get<AppConfig>().redis
+        RedisClient.create("redis://${config.host}:${config.port}/${config.database}")
     }
 
-    @Single
-    fun provideStatefulConnection(client: RedisClient): StatefulRedisConnection<String, String> {
-        return client.connect()
+    single<StatefulRedisConnection<String, String>> {
+        get<RedisClient>().connect()
     }
 
-    @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    @Single
-    fun provideCoroutineCommands(
-        connection: StatefulRedisConnection<String, String>
-    ): RedisCoroutinesCommands<String, String> {
-        return connection.coroutines()
+    single {
+        get<StatefulRedisConnection<String, String>>().coroutines()
     }
 }

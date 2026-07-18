@@ -35,8 +35,8 @@ object SecurityModule : ApplicationPlugin {
         val sessionStorage = RedisSessionStorage(redisCommands)
         val config = AppConfig.load(application)
         val redirects = mutableMapOf<String, String>()
-        val secretSignKey = hex(config.security.secretSignKey)
-        val secretEncryptionKey = hex(config.security.secretEncryptionKey)
+        val secretSignKey = config.security.secretSignKey.hexToByteArray()
+        val secretEncryptionKey = config.security.secretEncryptionKey.hexToByteArray()
 
         application.install(XForwardedHeaders)
 

@@ -6,10 +6,14 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.OrderStatusHistoryMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.OrderStatusHistory
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class OrderStatusHistoryRepository(
+@Component
+class OrderStatusHistoryRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     orderStatusHistoryMapper: OrderStatusHistoryMapper
 ) : CrudRepository<OrderStatusHistory, String>(

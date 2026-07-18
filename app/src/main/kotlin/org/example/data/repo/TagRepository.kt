@@ -6,9 +6,13 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.TagMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.Tag
+import org.koin.core.annotation.Single
 
-class TagRepository(connectionFactory: ConnectionFactory, tagMapper: TagMapper) :
+@Component
+class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, tagMapper: TagMapper) :
     CrudRepository<Tag, String>(connectionFactory = connectionFactory, tableName = "tags", mapper = tagMapper) {
 
     override val generatedColumns: List<String> = listOf("id", "created_at")

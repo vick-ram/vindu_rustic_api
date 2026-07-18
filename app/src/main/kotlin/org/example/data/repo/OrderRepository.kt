@@ -3,12 +3,17 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.OrderMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.Order
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class OrderRepository(
+@Component
+class OrderRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     orderMapper: OrderMapper
 ) : CrudRepository<Order, String>(
@@ -311,9 +316,12 @@ class OrderRepository(
     }
 }
 
+@Serializable
 data class OrderStats(
     val totalOrders: Int,
+    @Contextual
     val totalRevenue: BigDecimal,
+    @Contextual
     val averageOrderValue: BigDecimal,
     val pending: Int,
     val confirmed: Int,

@@ -3,14 +3,18 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.PaymentMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.payments.Payment
 import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-@Single
-class PaymentRepository(
+@Component
+class PaymentRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     paymentMapper: PaymentMapper
 ) : CrudRepository<Payment, String>(
@@ -223,7 +227,7 @@ class PaymentRepository(
                 .bind("orderId", orderId)
                 .execute()
                 .awaitSingle()
-                .map { row, _ -> row.get("count", Long::class.java) > 0 }
+                .map { row, _ -> (row.get("count", Long::class.java) ?:0L) > 0 }
                 .awaitFirstOrNull() ?: false
         }
     }
@@ -245,12 +249,16 @@ class PaymentRepository(
     }
 }
 
+@Serializable
 data class PaymentSummary(
     val totalCount: Int,
+    @Contextual
     val completedAmount: BigDecimal,
     val completedCount: Int,
+    @Contextual
     val failedAmount: BigDecimal,
     val failedCount: Int,
+    @Contextual
     val pendingAmount: BigDecimal,
     val pendingCount: Int
 )

@@ -6,17 +6,21 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CustomProductRequestMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.customization.CustomProductRequest
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class CustomProductRequestRepository(
+@Component
+class CustomProductRequestRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     customProductRequestMapper: CustomProductRequestMapper
 ) : CrudRepository<CustomProductRequest, String>(
     connectionFactory = connectionFactory,
     tableName = "custom_product_requests",
-    idColumn = "id",
     mapper = customProductRequestMapper
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
@@ -34,11 +38,13 @@ class CustomProductRequestRepository(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get requests by status
@@ -54,11 +60,13 @@ class CustomProductRequestRepository(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "status" to status,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "status" to status,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Search requests by title or description
@@ -220,7 +228,7 @@ class CustomProductRequestRepository(
             connection.createStatement(sql)
                 .bind("requestId", requestId)
                 .bind("updatedAt", OffsetDateTime.now())
-                .bind("notes", notes)
+                .bind("notes", notes ?: String::class.java)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)

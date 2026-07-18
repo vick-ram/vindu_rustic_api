@@ -6,10 +6,15 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.AddressMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.identity.Address
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
-class AddressRepository(
+@Component
+class AddressRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     addressMapper: AddressMapper
 ) : CrudRepository<Address, String>(
@@ -23,24 +28,24 @@ class AddressRepository(
     suspend fun findByUserId(userId: String): List<Address> {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE user_id = :userId 
+            WHERE user_id = $1 
             ORDER BY is_default DESC, created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf("userId" to userId))
+        return executeQuery(sql, mapOf("$1" to userId))
     }
 
     // Get default address for user
     suspend fun findDefaultByUserId(userId: String): Address? {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE user_id = :userId AND is_default = true 
+            WHERE user_id = $1 AND is_default = true 
             LIMIT 1
         """.trimIndent()
 
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("userId", userId)
+                .bind("$1", userId)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -55,11 +60,11 @@ class AddressRepository(
             val unsetSql = """
                 UPDATE $tableName 
                 SET is_default = false 
-                WHERE user_id = :userId AND is_default = true
+                WHERE user_id = $1 AND is_default = true
             """.trimIndent()
 
             connection.createStatement(unsetSql)
-                .bind("userId", userId)
+                .bind("$1", userId)
                 .execute()
                 .awaitSingle()
 
@@ -67,13 +72,13 @@ class AddressRepository(
             val setSql = """
                 UPDATE $tableName 
                 SET is_default = true 
-                WHERE id = :addressId AND user_id = :userId 
+                WHERE id = $1 AND user_id = $2 
                 RETURNING *
             """.trimIndent()
 
             connection.createStatement(setSql)
-                .bind("addressId", addressId)
-                .bind("userId", userId)
+                .bind("$1", addressId)
+                .bind("$2", userId)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -88,7 +93,7 @@ class AddressRepository(
     ): List<Address> {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE user_id = :userId 
+            WHERE user_id = $1 
               AND (recipient_name ILIKE :query 
                    OR phone_number ILIKE :query 
                    OR address_line1 ILIKE :query 
@@ -96,10 +101,12 @@ class AddressRepository(
             ORDER BY is_default DESC, created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "query" to "%$query%"
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "$1" to userId,
+                "query" to "%$query%"
+            )
+        )
     }
 
     // Find addresses near a location (requires PostGIS or similar)
@@ -129,12 +136,14 @@ class AddressRepository(
             LIMIT :limit
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "latitude" to latitude.toDouble(),
-            "longitude" to longitude.toDouble(),
-            "radiusKm" to radiusKm,
-            "limit" to limit
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "latitude" to latitude.toDouble(),
+                "longitude" to longitude.toDouble(),
+                "radiusKm" to radiusKm,
+                "limit" to limit
+            )
+        )
     }
 
     // Count addresses for a user
@@ -142,12 +151,12 @@ class AddressRepository(
         val sql = """
             SELECT COUNT(*) as count 
             FROM $tableName 
-            WHERE user_id = :userId
+            WHERE user_id = $1
         """.trimIndent()
 
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("userId", userId)
+                .bind("$1", userId)
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) }
@@ -160,16 +169,16 @@ class AddressRepository(
         val sql = """
             SELECT COUNT(*) as count 
             FROM $tableName 
-            WHERE id = :addressId AND user_id = :userId
+            WHERE id = $1 AND user_id = $2
         """.trimIndent()
 
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("addressId", addressId)
-                .bind("userId", userId)
+                .bind("$1", addressId)
+                .bind("$2", userId)
                 .execute()
                 .awaitSingle()
-                .map { row, _ -> row.get("count", Long::class.java) > 0 }
+                .map { row, _ -> (row.get("count", Long::class.java) ?: 0) > 0 }
                 .awaitFirstOrNull() ?: false
         }
     }
@@ -184,7 +193,7 @@ class AddressRepository(
             "address_line1", "address_line2", "latitude", "longitude", "is_default"
         )
 
-        val placeholders = addresses.mapIndexed { index, _ ->
+        val placeholders = List(addresses.size) { index ->
             "(${columns.joinToString(", ") { ":${it}_$index" }})"
         }
 
@@ -197,19 +206,19 @@ class AddressRepository(
         return connectionFactory.withTransaction { connection ->
             val statement = connection.createStatement(sql)
             addresses.forEachIndexed { index, address ->
-                statement.bind("user_id_$index", address.userId)
-                statement.bind("label_$index", address.label)
                 statement.bind("recipient_name_$index", address.recipientName)
                 statement.bind("phone_number_$index", address.phoneNumber)
                 statement.bind("country_code_$index", address.countryCode)
                 statement.bind("country_$index", address.country)
-                statement.bind("city_$index", address.city)
-                statement.bind("state_$index", address.state)
-                statement.bind("postal_code_$index", address.postalCode)
+                statement.bindNullable("user_id_$index", address.userId, String::class.java)
+                statement.bindNullable("label_$index", address.label, String::class.java)
+                statement.bindNullable("city_$index", address.city, String::class.java)
+                statement.bindNullable("state_$index", address.state, String::class.java)
+                statement.bindNullable("postal_code_$index", address.postalCode, String::class.java)
+                statement.bindNullable("address_line2_$index", address.addressLine2, String::class.java)
+                statement.bindNullable("latitude_$index", address.latitude, BigDecimal::class.java)
+                statement.bindNullable("longitude_$index", address.longitude, BigDecimal::class.java)
                 statement.bind("address_line1_$index", address.addressLine1)
-                statement.bind("address_line2_$index", address.addressLine2)
-                statement.bind("latitude_$index", address.latitude)
-                statement.bind("longitude_$index", address.longitude)
                 statement.bind("is_default_$index", address.isDefault)
             }
 

@@ -6,15 +6,19 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CustomProductAttachmentMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.customization.CustomProductAttachment
+import org.koin.core.annotation.Single
 
-class CustomProductAttachmentRepository(
+@Component
+class CustomProductAttachmentRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     customProductAttachmentMapper: CustomProductAttachmentMapper
 ) : CrudRepository<CustomProductAttachment, String>(
     connectionFactory = connectionFactory,
     tableName = "custom_product_attachments",
-    idColumn = "id",
     mapper = customProductAttachmentMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")

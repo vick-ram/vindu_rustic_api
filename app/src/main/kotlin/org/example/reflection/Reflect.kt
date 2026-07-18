@@ -1,10 +1,26 @@
 package org.example.reflection
 
+import org.example.di.Inject
+import org.example.di.Qualifier
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import java.util.function.Supplier
 import kotlin.reflect.KProperty1
 import java.util.function.Function
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
+
+
+data class ConstructorParam(val type: KClass<*>, val qualifier: String?)
+
+data class InjectableConstructor(
+    val constructor: KFunction<Any>,
+    val parameters: List<ConstructorParam>
+)
 
 object Reflect {
     val propertyAccessor = PropertyAccessor()
@@ -17,8 +33,47 @@ object Reflect {
     }
 
     class PropertyCacheEntry {
-        val getters = ConcurrentHashMap<String, java.util.function.Function<*, *>>()
+        val getters = ConcurrentHashMap<String, Function<*, *>>()
         val setters = ConcurrentHashMap<String, BiConsumer<*, *>>()
+    }
+
+    // Cached, per-class: which constructor to use + each parameter's type/qualifier.
+    // Computed once via kotlin-reflect, reused on every subsequent instantiation.
+    private val constructorCache = object : ClassValue<InjectableConstructor>() {
+        override fun computeValue(type: Class<*>): InjectableConstructor {
+            val kClass = type.kotlin
+            val constructors = kClass.constructors
+
+            val selected = constructors.find { it.hasAnnotation<Inject>() }
+                ?: kClass.primaryConstructor
+                ?: constructors.firstOrNull()
+                ?: throw IllegalStateException("No usable constructor for ${kClass.qualifiedName}")
+
+            selected.isAccessible = true
+
+            val params = selected.parameters.map { p ->
+                val classifier = checkNotNull(p.type.classifier as KClass<*>) {
+                    "Cannot resolve concrete parameter type for ${kClass.qualifiedName}, parameter '${p.name}'"
+                }
+                ConstructorParam(classifier, p.findAnnotation<Qualifier>()?.name)
+            }
+
+            return InjectableConstructor(selected, params)
+        }
+    }
+
+    fun getInjectableConstructor(clazz: KClass<*>): InjectableConstructor =
+        constructorCache.get(clazz.java)
+
+    /**
+     * Creates an instance of [clazz] using its cached injectable constructor.
+     * [resolveParam] is called once per constructor parameter with (parameterType, qualifierNameOrNull)
+     * and must return the value to pass in.
+     */
+    fun createInstance(clazz: KClass<*>, resolveParam: (KClass<*>, String?) -> Any): Any {
+        val cached = getInjectableConstructor(clazz)
+        val args = cached.parameters.map { resolveParam(it.type, it.qualifier) }
+        return cached.constructor.call(*args.toTypedArray())
     }
 
     /**

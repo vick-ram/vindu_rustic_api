@@ -3,12 +3,18 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.RefundMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.payments.Refund
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class RefundRepository(
+@Component
+class RefundRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     refundMapper: RefundMapper
 ) : CrudRepository<Refund, String>(
@@ -184,10 +190,10 @@ class RefundRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     RefundSummary(
-                        totalCount = row.get("total_count", Long::class.java).toInt(),
-                        completedCount = row.get("completed_count", Long::class.java).toInt(),
-                        pendingCount = row.get("pending_count", Long::class.java).toInt(),
-                        rejectedCount = row.get("rejected_count", Long::class.java).toInt(),
+                        totalCount = (row.get("total_count", Long::class.java) ?: 0L).toInt(),
+                        completedCount = (row.get("completed_count", Long::class.java) ?: 0L).toInt(),
+                        pendingCount = (row.get("pending_count", Long::class.java) ?: 0L).toInt(),
+                        rejectedCount = (row.get("rejected_count", Long::class.java) ?: 0L).toInt(),
                         totalRefundedAmount = row.get("total_refunded_amount", BigDecimal::class.java) ?: BigDecimal.ZERO,
                         totalRequestedAmount = row.get("total_requested_amount", BigDecimal::class.java) ?: BigDecimal.ZERO
                     )
@@ -226,11 +232,14 @@ class RefundRepository(
     }
 }
 
+@Serializable
 data class RefundSummary(
     val totalCount: Int,
     val completedCount: Int,
     val pendingCount: Int,
     val rejectedCount: Int,
+    @Contextual
     val totalRefundedAmount: BigDecimal,
+    @Contextual
     val totalRequestedAmount: BigDecimal
 )

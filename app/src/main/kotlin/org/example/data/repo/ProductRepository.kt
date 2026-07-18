@@ -5,11 +5,16 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ProductMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.Product
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class ProductRepository(
+@Component
+class ProductRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     productMapper: ProductMapper
 ) : CrudRepository<Product, String>(
@@ -430,15 +435,15 @@ class ProductRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     ProductStats(
-                        totalProducts = row.get("total_products", Long::class.java).toInt(),
-                        published = row.get("published", Long::class.java).toInt(),
-                        draft = row.get("draft", Long::class.java).toInt(),
-                        archived = row.get("archived", Long::class.java).toInt(),
-                        featured = row.get("featured", Long::class.java).toInt(),
-                        customizable = row.get("customizable", Long::class.java).toInt(),
-                        uniqueBrands = row.get("unique_brands", Long::class.java).toInt(),
-                        uniqueCategories = row.get("unique_categories", Long::class.java).toInt(),
-                        uniqueProductTypes = row.get("unique_product_types", Long::class.java).toInt()
+                        totalProducts = (row.get("total_products", Long::class.java) ?: 0L).toInt(),
+                        published = (row.get("published", Long::class.java) ?: 0L).toInt(),
+                        draft = (row.get("draft", Long::class.java) ?: 0L).toInt(),
+                        archived = (row.get("archived", Long::class.java) ?: 0L).toInt(),
+                        featured = (row.get("featured", Long::class.java) ?: 0L).toInt(),
+                        customizable = (row.get("customizable", Long::class.java) ?: 0L).toInt(),
+                        uniqueBrands = (row.get("unique_brands", Long::class.java) ?: 0L).toInt(),
+                        uniqueCategories = (row.get("unique_categories", Long::class.java) ?: 0L).toInt(),
+                        uniqueProductTypes = (row.get("unique_product_types", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: ProductStats(0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -487,7 +492,7 @@ class ProductRepository(
             throw IllegalArgumentException("Invalid product status: $status")
         }
 
-        val placeholders = ids.mapIndexed { index, _ -> ":id$index" }
+        val placeholders = List(ids.size) { index -> ":id$index" }
 
         val sql = """
             UPDATE $tableName 
@@ -509,7 +514,8 @@ class ProductRepository(
             statement.execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -642,11 +648,13 @@ class ProductRepository(
     }
 }
 
+@Serializable
 data class ProductSearchResult(
     val product: Product,
     val relevance: Double
 )
 
+@Serializable
 data class ProductStats(
     val totalProducts: Int,
     val published: Int,
@@ -659,6 +667,7 @@ data class ProductStats(
     val uniqueProductTypes: Int
 )
 
+@Serializable
 data class ProductWithStock(
     val product: Product,
     val stockLevel: Int

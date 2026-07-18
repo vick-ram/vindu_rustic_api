@@ -1,9 +1,14 @@
 package org.example.services
 
 import org.example.data.cache.CategoryCache
+import org.example.di.Injectable
+import org.example.di.Qualifier
 import org.example.domain.models.catalog.Category
 
-class CategoryService(private val categoryCache: CategoryCache) {
+@Injectable
+class CategoryService(
+    @Qualifier("categoryCache") private val categoryCache: CategoryCache
+) {
 
     suspend fun createCategory(category: Category): Category {
         return categoryCache.create(category)

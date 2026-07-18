@@ -3,8 +3,7 @@ package org.example.utils.notifications
 import org.example.config.AppConfig
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
-import org.example.domain.models.system.Notification
-import org.example.domain.repo.NotificationRepository
+import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -13,7 +12,8 @@ import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 
-class SMSService(private val config: AppConfig) : NotificationRepository {
+@Single
+class SMSService(private val config: AppConfig) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private val snsClient by lazy {
@@ -24,7 +24,7 @@ class SMSService(private val config: AppConfig) : NotificationRepository {
             .build()
     }
 
-    override suspend fun send(notification: Notification, email: String?, phoneNumber: String?): DispatchResult {
+    suspend fun send(notificationId: String ,phoneNumber: String?, message: String): DispatchResult {
         return try {
             val attributes = mapOf(
                 "AWS.SNS.SMS.SenderID" to MessageAttributeValue.builder()
@@ -38,29 +38,23 @@ class SMSService(private val config: AppConfig) : NotificationRepository {
             )
 
             val request = PublishRequest.builder()
-                .message(notification.body)
+                .message(message)
                 .phoneNumber(phoneNumber)
                 .messageAttributes(attributes)
                 .build()
 
             snsClient?.publish(request)
-            logger.info("SMS sent for notification ${notification.id} to $phoneNumber")
+            logger.info("SMS sent for notification $notificationId to $phoneNumber")
 
             DispatchResult(
-                notificationId = notification.id,
+                notificationId = notificationId,
                 channel = NotificationChannel.SMS,
                 success = true,
                 message = "SMS sent to $phoneNumber",
             )
         } catch (e: Exception) {
-            logger.error("Failed to send SMS for notification ${notification.id}", e)
+            logger.error("Failed to send SMS for notification $notificationId", e)
             throw e
         }
     }
-
-    override suspend fun markAsRead(notificationId: String, userId: String) {
-        logger.debug("SMS does not support markAsRead")
-    }
-
-    override suspend fun getUnreadCount(userId: String): Long = 0
 }

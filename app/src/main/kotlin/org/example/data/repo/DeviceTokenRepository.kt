@@ -6,17 +6,20 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.DeviceTokenMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.Platform
 import org.example.domain.models.system.DeviceToken
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class DeviceTokenRepository(
+@Component
+class DeviceTokenRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     deviceTokenMapper: DeviceTokenMapper
 ) : CrudRepository<DeviceToken, String>(
     connectionFactory = connectionFactory,
     tableName = "device_tokens",
-    idColumn = "id",
     mapper = deviceTokenMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")

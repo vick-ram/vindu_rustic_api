@@ -6,19 +6,24 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CategoryMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.catalog.Category
+import org.koin.core.annotation.Single
 
-class CategoryRepository(
+@Component
+class CategoryRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     categoryMapper: CategoryMapper
 ) :
     CrudRepository<Category, String>(connectionFactory = connectionFactory, tableName = "categories", mapper = categoryMapper) {
 
     suspend fun findBySlug(slug: String): Category? {
-        val sql = "SELECT * FROM categories WHERE slug = :slug"
+        val sql = "SELECT * FROM categories WHERE slug = $1"
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("slug", slug)
+                .bind("$1", slug)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -27,10 +32,10 @@ class CategoryRepository(
     }
 
     suspend fun findChildren(parentId: String): List<Category>  {
-        val sql = "SELECT * FROM categories WHERE parent_id = :parentId"
+        val sql = "SELECT * FROM categories WHERE parent_id = $1"
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("parentId", parentId)
+                .bind("$1", parentId)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -41,8 +46,8 @@ class CategoryRepository(
 
     suspend fun findActive(): List<Category> {
         return connectionFactory.useConnection {
-            createStatement("SELECT * FROM categories WHERE isActive = :isActive")
-                .bind("isActive", true)
+            createStatement("SELECT * FROM categories WHERE isActive = $1")
+                .bind("$1", true)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)

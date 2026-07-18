@@ -1,5 +1,6 @@
 package org.example.data.mappers
 
+import org.example.di.Injectable
 import org.example.domain.models.catalog.Category
 import org.example.domain.models.catalog.Product
 import org.example.domain.models.catalog.ProductMedia
@@ -46,142 +47,141 @@ import org.example.domain.models.system.AuditLogs
 import org.example.domain.models.system.DeviceToken
 import org.example.domain.models.system.Notification
 import org.example.domain.models.system.OutboxEvent
-import org.koin.core.annotation.Single
 
-@Single
+@Injectable
 class AddressMapper : BaseRowMapper<Address>(Address.serializer(), { it.id })
 
-@Single
+@Injectable
 class AuditLogsMapper : BaseRowMapper<AuditLogs>(AuditLogs.serializer(), { it.id })
 
-@Single
+@Injectable
 class CategoryMapper : BaseRowMapper<Category>(Category.serializer(), { it.id })
 
-@Single
+@Injectable
 class ConversationMapper : BaseRowMapper<Conversation>(Conversation.serializer(), { it.id })
 
-@Single
+@Injectable
 class ParticipantMapper : BaseRowMapper<Participant>(Participant.serializer(), { it.id })
 
-@Single
+@Injectable
 class MessageMapper : BaseRowMapper<Message>(Message.serializer(), { it.id })
 
-@Single
+@Injectable
 class CouponMapper : BaseRowMapper<Coupon>(Coupon.serializer(), { it.id })
 
-@Single
+@Injectable
 class CouponUsageMapper : BaseRowMapper<CouponUsage>(CouponUsage.serializer(), { it.id })
 
-@Single
+@Injectable
 class CustomProductAttachmentMapper : BaseRowMapper<CustomProductAttachment>(CustomProductAttachment.serializer(), { it.id })
 
-@Single
+@Injectable
 class CustomProductQuoteMapper : BaseRowMapper<CustomProductQuote>(CustomProductQuote.serializer(), { it.id })
 
-@Single
+@Injectable
 class CustomProductRequestMapper : BaseRowMapper<CustomProductRequest>(CustomProductRequest.serializer(), { it.id })
 
-@Single
+@Injectable
 class InventoryMapper : BaseRowMapper<Inventory>(Inventory.serializer(), { it.id })
 
-@Single
+@Injectable
 class InventoryMovementMapper : BaseRowMapper<InventoryMovement>(InventoryMovement.serializer(), { it.id })
 
-@Single
+@Injectable
 class InventoryReservationMapper : BaseRowMapper<InventoryReservation>(InventoryReservation.serializer(), { it.id })
 
-@Single
+@Injectable
 class NotificationMapper : BaseRowMapper<Notification>(Notification.serializer(), { it.id })
 
-@Single
+@Injectable
 class DeviceTokenMapper : BaseRowMapper<DeviceToken>(DeviceToken.serializer(), { it.id })
 
-@Single
+@Injectable
 class OrderMapper : BaseRowMapper<Order>(Order.serializer(), { it.id })
 
-@Single
+@Injectable
 class OrderItemMapper : BaseRowMapper<OrderItem>(OrderItem.serializer(), { it.id })
 
-@Single
+@Injectable
 class OrderStatusHistoryMapper : BaseRowMapper<OrderStatusHistory>(OrderStatusHistory.serializer(), { it.id })
 
-@Single
+@Injectable
 class OutboxEventMapper : BaseRowMapper<OutboxEvent>(OutboxEvent.serializer(), { it.id })
 
-@Single
+@Injectable
 class PageMapper : BaseRowMapper<Page>(Page.serializer(), { it.id })
 
-@Single
+@Injectable
 class PaymentMapper : BaseRowMapper<Payment>(Payment.serializer(), { it.id })
 
-@Single
+@Injectable
 class PaymentTransactionMapper : BaseRowMapper<PaymentTransaction>(PaymentTransaction.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductionJobMapper : BaseRowMapper<ProductionJob>(ProductionJob.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductionUpdateMapper : BaseRowMapper<ProductionUpdate>(ProductionUpdate.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductMapper : BaseRowMapper<Product>(Product.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductMediaMapper : BaseRowMapper<ProductMedia>(ProductMedia.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductReviewMapper : BaseRowMapper<ProductReview>(ProductReview.serializer(), { it.id })
 
-@Single
+@Injectable
 class ProductTagMapper : BaseRowMapper<ProductTag>(ProductTag.serializer(), { model -> model.productId to model.tagId })
 
-@Single
+@Injectable
 class ProductVariantMapper : BaseRowMapper<ProductVariant>(ProductVariant.serializer(), { it.id })
 
-@Single
+@Injectable
 class RefundMapper : BaseRowMapper<Refund>(Refund.serializer(), { it.id })
 
-@Single
+@Injectable
 class RoleMapper : BaseRowMapper<Role>(Role.serializer(), { it.id })
 
-@Single
+@Injectable
 class UserRoleMapper : BaseRowMapper<UserRole>(UserRole.serializer(), { it.userId to it.roleId })
 
-@Single
+@Injectable
 class SessionMapper : BaseRowMapper<Session>(Session.serializer(), { it.id })
 
-@Single
+@Injectable
 class SettingsMapper : BaseRowMapper<Setting>(Setting.serializer(), { it.id })
 
-@Single
+@Injectable
 class ShipmentEventMapper : BaseRowMapper<ShipmentEvent>(ShipmentEvent.serializer(), { it.id })
 
-@Single
+@Injectable
 class ShipmentMapper : BaseRowMapper<Shipment>(Shipment.serializer(), { it.id })
 
-@Single
+@Injectable
 class ShoppingCartMapper : BaseRowMapper<ShoppingCart>(ShoppingCart.serializer(), { it.id })
 
-@Single
+@Injectable
 class SupportTicketMapper : BaseRowMapper<SupportTicket>(SupportTicket.serializer(), { it.id })
 
-@Single
+@Injectable
 class TagMapper : BaseRowMapper<Tag>(Tag.serializer(), { it.id })
 
-@Single
+@Injectable
 class TicketMessageMapper : BaseRowMapper<TicketMessage>(TicketMessage.serializer(), { it.id })
 
-@Single
+@Injectable
 class UserMapper : BaseRowMapper<User>(User.serializer(), { it.id })
 
-@Single
+@Injectable
 class WarehouseMapper : BaseRowMapper<Warehouse>(Warehouse.serializer(), { it.id })
 
-@Single
+@Injectable
 class CartItemMapper : BaseRowMapper<CartItem>(CartItem.serializer(), {it.id})
 
-@Single
+@Injectable
 class WishlistMapper : BaseRowMapper<Wishlist>(Wishlist.serializer(), { it.id })
 
-@Single
+@Injectable
 class WishlistItemMapper : BaseRowMapper<WishlistItem>(WishlistItem.serializer(), { it.id })

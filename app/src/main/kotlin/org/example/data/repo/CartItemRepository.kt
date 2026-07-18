@@ -3,11 +3,17 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.CartItemMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.sales.CartItem
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class CartItemRepository(
+@Component
+class CartItemRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     cartItemMapper: CartItemMapper
 ) : CrudRepository<CartItem, String>(
@@ -21,11 +27,11 @@ class CartItemRepository(
     suspend fun findByCartId(cartId: String): List<CartItem> {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE cart_id = :cartId 
+            WHERE cart_id = $1 
             ORDER BY created_at ASC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf("cartId" to cartId))
+        return executeQuery(sql, mapOf("$1" to cartId))
     }
 
     // Find item by cart and variant
@@ -35,26 +41,26 @@ class CartItemRepository(
         customizationDetails: Map<String, Any>? = null
     ): CartItem? {
         val customizationFilter = if (customizationDetails != null) {
-            "AND customization_details = :customizationDetails"
+            "AND customization_details = $1"
         } else {
             "AND customization_details IS NULL"
         }
 
         val sql = """
             SELECT * FROM $tableName 
-            WHERE cart_id = :cartId 
-              AND variant_id = :variantId 
+            WHERE cart_id = $2 
+              AND variant_id = $3 
               $customizationFilter
             LIMIT 1
         """.trimIndent()
 
         return connectionFactory.useConnection {
             val statement = createStatement(sql)
-                .bind("cartId", cartId)
-                .bind("variantId", variantId)
+                .bind("$2", cartId)
+                .bind("$3", variantId)
 
             if (customizationDetails != null) {
-                statement.bind("customizationDetails", customizationDetails)
+                statement.bind("$1", customizationDetails)
             }
 
             statement.execute()
@@ -97,17 +103,17 @@ class CartItemRepository(
 
         val sql = """
             UPDATE $tableName 
-            SET quantity = :quantity, 
-                updated_at = :updatedAt 
-            WHERE id = :id 
+            SET quantity = $1, 
+                updated_at = $2 
+            WHERE id = $3 
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
             connection.createStatement(sql)
-                .bind("id", id)
-                .bind("quantity", quantity)
-                .bind("updatedAt", OffsetDateTime.now())
+                .bind("$3", id)
+                .bind("$1", quantity)
+                .bind("$2", OffsetDateTime.now())
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -122,12 +128,12 @@ class CartItemRepository(
                 COUNT(*) as item_count,
                 COALESCE(SUM(ci.quantity), 0) as total_quantity
             FROM $tableName ci
-            WHERE ci.cart_id = :cartId
+            WHERE ci.cart_id = $1
         """.trimIndent()
 
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("cartId", cartId)
+                .bind("$1", cartId)
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -142,15 +148,16 @@ class CartItemRepository(
 
     // Clear cart
     suspend fun clearCart(cartId: String): Int {
-        val sql = "DELETE FROM $tableName WHERE cart_id = :cartId"
+        val sql = "DELETE FROM $tableName WHERE cart_id = $1"
 
         return connectionFactory.withTransaction { connection ->
             connection.createStatement(sql)
-                .bind("cartId", cartId)
+                .bind("$1", cartId)
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -159,12 +166,12 @@ class CartItemRepository(
         val sql = """
             SELECT COUNT(*) as count 
             FROM $tableName 
-            WHERE variant_id = :variantId
+            WHERE variant_id = $1
         """.trimIndent()
 
         return connectionFactory.useConnection {
             createStatement(sql)
-                .bind("variantId", variantId)
+                .bind("$1", variantId)
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }
@@ -173,6 +180,7 @@ class CartItemRepository(
     }
 }
 
+@Serializable
 data class CartTotal(
     val itemCount: Int,
     val totalQuantity: Int

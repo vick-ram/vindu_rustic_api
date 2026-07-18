@@ -4,9 +4,13 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.SettingsMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.content.Setting
+import org.koin.core.annotation.Single
 
-class SettingRepository(
+@Component
+class SettingRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     settingMapper: SettingsMapper
 ) : CrudRepository<Setting, String>(

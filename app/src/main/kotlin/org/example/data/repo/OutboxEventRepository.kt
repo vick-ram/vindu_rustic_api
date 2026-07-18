@@ -7,10 +7,14 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.Serializable
 import org.example.data.mappers.OutboxEventMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.system.OutboxEvent
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class OutboxEventRepository(
+@Component
+class OutboxEventRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     outboxEventMapper: OutboxEventMapper
 ) : CrudRepository<OutboxEvent, String>(
@@ -230,7 +234,8 @@ class OutboxEventRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 

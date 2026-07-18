@@ -4,6 +4,7 @@ import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.Row
 import io.r2dbc.spi.RowMetadata
+import io.r2dbc.spi.Statement
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -11,6 +12,45 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.domain.repo.RowMapper
 import java.time.OffsetDateTime
 import java.util.function.BiFunction
+
+
+object NamedParamSql {
+    private val PARAM_REGEX = Regex(":(\\w+)(?!:)")
+
+    data class Converted(val sql: String, val order: List<String>)
+
+    fun convert(sql: String): Converted {
+        val order = mutableListOf<String>()
+        val rewritten = PARAM_REGEX.replace(sql) { m ->
+            val name = m.groupValues[1]
+            order += name
+            "$$${order.size}" // Explicit sequential indexing: $1, $2, $3...
+        }
+        return Converted(rewritten, order)
+    }
+}
+
+/** Wrap nullable values so bindNull gets the right type — r2dbc has no way to infer it from null alone. */
+data class TypedNull(val type: Class<*>)
+
+fun Statement.bindNamedParams(order: List<String>, params: Map<String, Any?>): Statement {
+    order.forEachIndexed { i, name ->
+        // Handle null tracking safely via containsKey or fallback
+        if (!params.containsKey(name)) error("Missing binding for :$name")
+        when (val value = params[name]) {
+            is TypedNull -> this.bindNull(i, value.type)
+            null -> this.bindNull(i, String::class.java)
+            else -> this.bind(i, value)
+        }
+    }
+    return this
+}
+
+fun Connection.createNamedStatement(sql: String, params: Map<String, Any?>): Statement {
+    val (positionalSql, order) = NamedParamSql.convert(sql)
+    val statement = this.createStatement(positionalSql)
+    return statement.bindNamedParams(order, params)
+}
 
 abstract class CrudRepository<Model : Any, ID : Any>(
     protected val connectionFactory: ConnectionFactory,
@@ -43,13 +83,9 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            rowData.filterKeys { it in columns }.forEach { (key, value) ->
-                if (value != null) {
-                    statement.bind(key, value)
-                }
-            }
-            statement.execute()
+            val params = rowData.filterKeys { it in columns }
+            connection.createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitSingle()
@@ -58,10 +94,10 @@ abstract class CrudRepository<Model : Any, ID : Any>(
 
     open suspend fun read(id: ID): Model? {
         val sql = "SELECT * FROM $tableName WHERE $idColumn = :id"
+        val params = mapOf<String, Any?>("id" to id)
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("id", id)
+            createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -82,16 +118,18 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
+        val params = mutableMapOf<String, Any?>(
+            "limit" to limit,
+            "offset" to offset.toLong()
+        )
+
+        queryParams?.forEach { (key, value) ->
+            params["filter_$key"] = "%${value.lowercase()}%" // Fixed: Avoid key namespace collisions
+        }
+
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-                .bind("limit", limit)
-                .bind("offset", offset.toLong())
-
-            queryParams?.forEach { (key, value) ->
-                statement.bind(key, "%${value.lowercase()}%")
-            }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -113,16 +151,14 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updated_at", OffsetDateTime.now())
+            val params = mutableMapOf<String, Any?>(
+                "id" to id,
+                "updated_at" to OffsetDateTime.now()
+            )
+            params.putAll(rowData.filterKeys { it != idColumn && it !in generatedColumns })
 
-            rowData.filterKeys { it != idColumn && it !in generatedColumns }
-                .forEach { (key, value) ->
-                    if (value != null) statement.bind(key, value) else statement.bindNull(key, Any::class.java)
-                }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
@@ -131,10 +167,10 @@ abstract class CrudRepository<Model : Any, ID : Any>(
 
     open suspend fun delete(id: ID): Boolean {
         val sql = "DELETE FROM $tableName WHERE $idColumn = :id"
+        val params = mapOf<String, Any?>("id" to id)
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
+            connection.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -273,7 +309,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         if (queryParams.isNullOrEmpty()) return ""
 
         return "WHERE " + queryParams.entries.joinToString(" AND ") { (key, _) ->
-            "LOWER(CAST($key AS TEXT)) LIKE LOWER(:$key)"
+            "LOWER(CAST($key AS TEXT)) LIKE LOWER(:filter_$key)"
         }
     }
 
@@ -284,12 +320,9 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         mapper: BiFunction<Row, RowMetadata, R> = BiFunction { row, _ -> row as R }
     ): List<R> {
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            params.forEach { (key, value) ->
-                if (value != null) {
-                    statement.bind(key, value)
-                }
-            }
+            val (positionalSql, order) = NamedParamSql.convert(sql)
+            val statement = createStatement(positionalSql)
+            statement.bindNamedParams(order, params)
 
             statement.execute()
                 .awaitSingle() // Returns an R2DBC Result object
@@ -320,13 +353,14 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             offset?.let { append("\nOFFSET :offset") }
         }
 
+        val allParams = params.toMutableMap()
+        limit?.let { allParams["limit"] = it }
+        offset?.let { allParams["offset"] = it.toLong() }
+
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            params.forEach { (key, value) ->
-                if (value != null) statement.bind(key, value)
-            }
-            limit?.let { statement.bind("limit", it) }
-            offset?.let { statement.bind("offset", it.toLong()) }
+            val (positionalSql, order) = NamedParamSql.convert(sql)
+            val statement = createStatement(positionalSql)
+            statement.bindNamedParams(order, allParams)
 
             statement.execute()
                 .awaitSingle()
@@ -380,5 +414,8 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             conn.close().awaitFirstOrNull()
         }
     }
+
+    fun <T : Any> Statement.bindNullable(name: String, value: T?, type: Class<T>): Statement =
+        value?.let { bind(name, it) } ?: bind(name, type)
 }
 

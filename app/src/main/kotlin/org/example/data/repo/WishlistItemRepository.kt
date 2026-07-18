@@ -5,11 +5,18 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.WishlistItemMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.WishlistItem
+import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
-class WishlistItemRepository(
+@Component
+class WishlistItemRepository @Inject constructor(
+    private val cartItemRepo: CartItemRepository,
     connectionFactory: ConnectionFactory,
     wishlistItemMapper: WishlistItemMapper
 ) : CrudRepository<WishlistItem, String>(
@@ -128,15 +135,10 @@ class WishlistItemRepository(
         wishlistItemId: String,
         cartId: String
     ): Boolean {
-        // This would be implemented with a transaction that:
-        // 1. Gets the wishlist item
-        // 2. Adds it to the cart
-        // 3. Removes it from the wishlist
         return connectionFactory.withTransaction {
             val item = read(wishlistItemId) ?: return@withTransaction false
 
-            // Add to cart (using CartItemRepository)
-            // cartItemRepo.addOrUpdateItem(cartId, item.variantId ?: item.productId, 1)
+             cartItemRepo.addOrUpdateItem(cartId, item.variantId ?: item.productId, 1)
 
             // Remove from wishlist
             delete(wishlistItemId)
@@ -182,11 +184,13 @@ class WishlistItemRepository(
     }
 }
 
+@Serializable
 data class WishlistItemWithProduct(
     val wishlistItem: WishlistItem,
     val productTitle: String?,
     val productSlug: String?,
     val variantSku: String?,
     val variantTitle: String?,
+    @Contextual
     val variantPrice: BigDecimal?
 )

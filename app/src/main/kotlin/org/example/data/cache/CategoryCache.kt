@@ -7,20 +7,23 @@ import org.example.data.mappers.CategoryMapper
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CategoryRepository
 import org.example.data.repo.CrudCache
+import org.example.di.Injectable
+import org.example.di.Qualifier
 import org.example.domain.models.catalog.Category
 import org.koin.core.annotation.Single
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Single
+@Injectable
+@Qualifier("categoryCache")
 class CategoryCache(
     redis: RedisCoroutinesCommands<String, String>,
     private val categoryRepository: CategoryRepository,
     categoryMapper: CategoryMapper,
     categorySerializer: KSerializer<Category>
-): CrudCache<Category, String>(
+) : CrudCache<Category, String>(
     redis = redis,
     delegate = categoryRepository,
-    getId = {category -> categoryMapper.getId(category) as String},
+    getId = { category -> categoryMapper.getId(category) as String },
     serializer = categorySerializer,
     config = object : CacheConfig {
         override val cacheName: String

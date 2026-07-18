@@ -6,11 +6,15 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.NotificationMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.Notification
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class NotificationRepository(
+@Component
+class NotificationRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     notificationMapper: NotificationMapper
 ) : CrudRepository<Notification, String>(
@@ -22,7 +26,7 @@ class NotificationRepository(
 
     // Override update to handle updated_at
     override suspend fun update(id: String, model: Notification): Notification? {
-        return super.update(id, model)
+        return super.update(id, model.copy(updatedAt = OffsetDateTime.now()))
     }
 
     // Get notifications for a user
@@ -271,12 +275,12 @@ class NotificationRepository(
             createStatement(sql)
                 .bind("userId", notification.userId)
                 .bind("type", notification.type)
-                .bind("referenceType", notification.referenceType)
-                .bind("referenceId", notification.referenceId)
+                .bind("referenceType", notification.referenceType ?: String::class.java)
+                .bind("referenceId", notification.referenceId ?: String::class.java)
                 .bind("cutoffTime", OffsetDateTime.now().minusMinutes(deduplicateWithinMinutes))
                 .execute()
                 .awaitSingle()
-                .map { row, _ -> row.get("count", Long::class.java) > 0 }
+                .map { row, _ -> (row.get("count", Long::class.java)?: 0L) > 0 }
                 .awaitFirstOrNull() ?: false
         }
 
@@ -313,10 +317,10 @@ class NotificationRepository(
                 statement.bind("user_id_$index", notification.userId)
                 statement.bind("type_$index", notification.type)
                 statement.bind("title_$index", notification.title)
-                statement.bind("body_$index", notification.body)
-                statement.bind("action_url_$index", notification.actionUrl)
-                statement.bind("reference_type_$index", notification.referenceType)
-                statement.bind("reference_id_$index", notification.referenceId)
+                statement.bind("body_$index", notification.body ?: String::class.java)
+                statement.bind("action_url_$index", notification.actionUrl ?: String::class.java)
+                statement.bind("reference_type_$index", notification.referenceType ?: String::class.java)
+                statement.bind("reference_id_$index", notification.referenceId ?: String::class.java)
                 statement.bind("metadata_$index", notification.metadata)
                 statement.bind("channel_$index", notification.channel.name)
                 statement.bind("is_read_$index", notification.isRead)
@@ -344,7 +348,8 @@ class NotificationRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -361,7 +366,8 @@ class NotificationRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -388,14 +394,14 @@ class NotificationRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     NotificationStats(
-                        totalNotifications = row.get("total_notifications", Long::class.java).toInt(),
-                        unread = row.get("unread", Long::class.java).toInt(),
-                        read = row.get("read_count", Long::class.java).toInt(),
-                        uniqueTypes = row.get("unique_types", Long::class.java).toInt(),
-                        fcmCount = row.get("fcm_count", Long::class.java).toInt(),
-                        emailCount = row.get("email_count", Long::class.java).toInt(),
-                        databaseCount = row.get("database_count", Long::class.java).toInt(),
-                        smsCount = row.get("sms_count", Long::class.java).toInt()
+                        totalNotifications = (row.get("total_notifications", Long::class.java) ?: 0L).toInt(),
+                        unread = (row.get("unread", Long::class.java) ?: 0L).toInt(),
+                        read = (row.get("read_count", Long::class.java) ?: 0L).toInt(),
+                        uniqueTypes = (row.get("unique_types", Long::class.java) ?: 0L).toInt(),
+                        fcmCount = (row.get("fcm_count", Long::class.java) ?: 0L).toInt(),
+                        emailCount = (row.get("email_count", Long::class.java) ?: 0L).toInt(),
+                        databaseCount = (row.get("database_count", Long::class.java) ?: 0L).toInt(),
+                        smsCount =( row.get("sms_count", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: NotificationStats(0, 0, 0, 0, 0, 0, 0, 0)

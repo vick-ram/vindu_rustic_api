@@ -14,7 +14,8 @@ data class AppConfig(
     val sms: SMSConfig,
     val payment: PaymentConfig,
     val server: ServerConfig,
-    val redis: RedisConfig
+    val redis: RedisConfig,
+    val storage: StorageConfig
 ) {
     companion object {
         fun load(application: Application) : AppConfig {
@@ -132,6 +133,9 @@ data class AppConfig(
                     host = env.get("redis.host", "localhost"),
                     port = env.getInt("redis.port", 6379),
                     database = env.get("redis.database", "0")
+                ),
+                storage = StorageConfig(
+                    uploadDir = env.getRequired("")
                 )
             )
         }
@@ -262,13 +266,6 @@ data class SMSConfig(
     val region: String
 )
 
-
-@Module
-class ConfigModule(private val application: Application) {
-
-    @Single
-    fun provideAppConfig(): AppConfig {
-        // Automatically reads from your Ktor Application Hocon environment configuration files on boot
-        return AppConfig.load(application)
-    }
-}
+data class StorageConfig(
+    val uploadDir: String
+)

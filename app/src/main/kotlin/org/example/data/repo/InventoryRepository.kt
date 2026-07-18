@@ -5,11 +5,15 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.InventoryMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.inventory.Inventory
 import org.example.plugins.NotFoundException
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class InventoryRepository(connectionFactory: ConnectionFactory, inventoryMapper: InventoryMapper) :
+@Component
+class InventoryRepository @Inject constructor(connectionFactory: ConnectionFactory, inventoryMapper: InventoryMapper) :
     CrudRepository<Inventory, String>(connectionFactory = connectionFactory, tableName = "inventories", mapper = inventoryMapper){
 
     suspend fun findByVariantAndWarehouse(variantId: String, warehouseId: String): Inventory? {

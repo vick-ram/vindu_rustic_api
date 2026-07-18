@@ -2,16 +2,23 @@ package org.example.data.repo
 
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitSingle
-import org.example.data.db.config.Ulid
 import org.example.data.mappers.CouponMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.marketing.Coupon
 import org.example.domain.models.marketing.CouponUsage
 import org.example.plugins.NotFoundException
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-class CouponRepository(connectionFactory: ConnectionFactory, couponMapper: CouponMapper) :
-    CrudRepository<Coupon, String>(connectionFactory = connectionFactory, tableName = "coupons", mapper = couponMapper) {
+@Component
+class CouponRepository @Inject constructor(connectionFactory: ConnectionFactory, couponMapper: CouponMapper) :
+    CrudRepository<Coupon, String>(
+        connectionFactory = connectionFactory,
+        tableName = "coupons",
+        mapper = couponMapper
+    ) {
 
     suspend fun findByCode(code: String): Coupon? {
         val sql = "SELECT * FROM coupons WHERE code = :code"
@@ -37,7 +44,7 @@ class CouponRepository(connectionFactory: ConnectionFactory, couponMapper: Coupo
         ).firstOrNull() ?: return null
 
         coupon.minOrderAmount?.let { minAmount ->
-            if (orderAmount < minAmount) return  null
+            if (orderAmount < minAmount) return null
         }
         // Check usage limit
         coupon.usageLimit?.let { limit ->
@@ -47,7 +54,12 @@ class CouponRepository(connectionFactory: ConnectionFactory, couponMapper: Coupo
         return coupon
     }
 
-    suspend fun applyCoupon(couponId: String, orderId: String, userId: String, discountAmount: BigDecimal): CouponUsage = connectionFactory.withTransaction  { connection ->
+    suspend fun applyCoupon(
+        couponId: String,
+        orderId: String,
+        userId: String,
+        discountAmount: BigDecimal
+    ): CouponUsage = connectionFactory.withTransaction { connection ->
         val usageId = Ulid.generate()
         val sql = """
             INSERT INTO coupon_usages (id, coupon_id, order_id, user_id, discount_amount, created_at)

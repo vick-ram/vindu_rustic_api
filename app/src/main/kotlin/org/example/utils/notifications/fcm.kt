@@ -15,16 +15,16 @@ import com.google.firebase.messaging.MulticastMessage
 import com.google.firebase.messaging.TopicManagementResponse
 import com.google.firebase.messaging.Notification as FCMNotification
 import org.example.config.AppConfig
+import org.example.data.repo.DeviceTokenRepository
 import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
-import org.example.domain.repo.DeviceTokenRepository
-import org.example.domain.repo.NotificationRepository
+import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class FcmNotificationService(private val config: AppConfig, private val deviceTokenRepository: DeviceTokenRepository) :
-    NotificationRepository {
+@Single
+class FcmNotificationService(private val config: AppConfig) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
     private val firebaseMessaging = FirebaseMessaging.getInstance()
@@ -33,39 +33,19 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
         initializeFirebase()
     }
 
-    override suspend fun markAsRead(notificationId: String, userId: String) {
-        // FCM doesn't support marking as read - this is a no-op
-        logger.debug("FCM does not support markAsRead")
-    }
-
-    override suspend fun getUnreadCount(userId: String): Long = 0
-
-    override suspend fun send(notification: Notification, email: String?, phoneNumber: String?): DispatchResult {
-       require(notification.channel == NotificationChannel.FCM) {
-           "FCM service only handles FCM channel"
-       }
-
-        val tokens = deviceTokenRepository.findUserDeviceTokens(notification.userId)
-            .filter { it.isActive }
-            .map { it.token }
-
-        if (tokens.isEmpty()) {
-            logger.warn("No active device tokens for user ${notification.userId}")
-            throw NoDeviceTokensException(notification.userId)
-        }
+    suspend fun send(notificationId: String, tokens: List<String>, title: String, body: String, data: Map<String, String>, deviceTokenRepository: DeviceTokenRepository): DispatchResult {
 
         return try {
             val result = if (tokens.size == 1) {
                 val messageId = sendToDevice(
                     token = tokens[0],
-                    title = notification.title,
-                    body = notification.body ?: "",
-                    data = buildNotificationData(notification),
-                    imageUrl = notification.metadata["imageUrl"]
+                    title = title,
+                    body = body,
+                    data = data
                 )
 
                 DispatchResult(
-                    notificationId = notification.id,
+                    notificationId = notificationId,
                     channel = NotificationChannel.FCM,
                     success = true,
                     message = "Sent to single device",
@@ -74,10 +54,9 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
             } else {
                 val batchResponse = sendToMultiple(
                     tokens = tokens,
-                    title = notification.title,
-                    body = notification.body ?: "",
-                    data = buildNotificationData(notification),
-                    imageUrl = notification.metadata["imageUrl"]
+                    title = title,
+                    body = body,
+                    data = data
                 )
 
                 val failureCount = batchResponse.failureCount
@@ -100,7 +79,7 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
                 }
 
                 DispatchResult(
-                    notificationId = notification.id,
+                    notificationId = notificationId,
                     channel = NotificationChannel.FCM,
                     success = failureCount < tokens.size,
                     message = "Sent to ${tokens.size - failureCount}/${tokens.size} devices",
@@ -109,7 +88,7 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
             }
             result
         } catch (e: Exception) {
-            logger.error("Failed to send notification ${notification.id}", e)
+            logger.error("Failed to send notification $notificationId", e)
             throw e
         }
     }
@@ -143,14 +122,13 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
         }
     }
 
-    fun sendToDevice(token: String, title: String, body: String, data: Map<String, String>, imageUrl: String?): String {
+    fun sendToDevice(token: String, title: String, body: String, data: Map<String, String>): String {
         return firebaseMessaging.send(
             buildMessage(
                 token = token,
                 title = title,
                 body = body,
                 data = data,
-                imageUrl = imageUrl
             )
         )
     }
@@ -162,7 +140,6 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
                 body = body,
                 topic = topic,
                 data = data,
-                imageUrl = imageUrl
             )
         )
     }
@@ -171,8 +148,7 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
         tokens: List<String>,
         title: String,
         body: String,
-        data: Map<String, String>,
-        imageUrl: String?
+        data: Map<String, String>
     ): BatchResponse {
         return firebaseMessaging.sendEachForMulticast(
             buildMulticastMessage(
@@ -180,7 +156,6 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
                 title = title,
                 body = body,
                 data = data,
-                imageUrl = imageUrl
             )
         )
     }
@@ -205,15 +180,13 @@ class FcmNotificationService(private val config: AppConfig, private val deviceTo
         condition: String? = null,
         title: String,
         body: String,
-        data: Map<String, String> = emptyMap(),
-        imageUrl: String? = null
+        data: Map<String, String> = emptyMap()
     ): Message {
         val builder = Message.builder()
             .setNotification(
                 FCMNotification.builder()
                     .setTitle(title)
                     .setBody(body)
-                    .setImage(imageUrl)
                     .build()
             )
             .putAllData(data)

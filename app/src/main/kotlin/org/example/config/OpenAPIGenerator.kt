@@ -1,5 +1,6 @@
 package org.example.config
 
+import io.ktor.server.application.Application
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
@@ -16,12 +17,13 @@ import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
+import org.slf4j.LoggerFactory
 
-class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
+class OpenAPIGenerator(private val application: Application, private val factory: DynamicRouteFactory) {
     fun generateOpenApi(): OpenAPI {
         return OpenAPI().apply {
             info = Info()
-                .title("Vindu Rustic Lights API")
+                .title("Vindu Rustic API")
                 .version("1.0.0")
                 .description("Automatically generated from DynamicRouteFactory")
                 .summary("This document was automatically generated based on registered routes.")
@@ -39,14 +41,23 @@ class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
                     .description("Session cookie authentication"))
             }
 
-            val paths = factory.getAllRoutes()
+            // Only HTTP routes carry HTTP methods; Websockets configs have an empty
+            // methods set and would silently fall through convertPathItem's
+            // dispatch, so they're excluded up front rather than processed for nothing
+            val paths = factory.getHttpRoutes()
                 .groupBy { it.path }
-                .mapValues { (_, routeConfig) ->
-                    convertToPathItem(routeConfig)
-                }
+                .mapValues { (_, routeConfigs) -> convertToPathItem(routeConfigs) }
 
             paths.forEach { (path, pathItem) ->
                 path(path, pathItem)
+            }
+
+            if (paths.isEmpty()) {
+                application.environment.log.warn(
+                    "generateOpenApi() produced zero paths. Make sure generateOpenApi() is called " +
+                            "on the same DynamicRouteFactory instance that routes were registered on, " +
+                            "and after registration has happened."
+                )
             }
         }
     }
@@ -55,14 +66,19 @@ class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
         return PathItem().apply {
             routeConfigs.forEach { config ->
                 val operation = convertToOperation(config)
-                when {
-                    config.methods.contains(HttpMethodType.GET) -> get(operation)
-                    config.methods.contains(HttpMethodType.POST) -> post(operation)
-                    config.methods.contains(HttpMethodType.PUT) -> put(operation)
-                    config.methods.contains(HttpMethodType.PATCH) -> patch(operation)
-                    config.methods.contains(HttpMethodType.DELETE) -> delete(operation)
-                    config.methods.contains(HttpMethodType.HEAD) -> head(operation)
-                    config.methods.contains(HttpMethodType.OPTIONS) -> options(operation)
+                // A single route config can carry multiple HTTP methods (e.g. {GET, POST}),
+                // and the factory registers every one of them with Ktor. Iterates all of them
+                // Here too, instead of matching only the first method in  fixed priority order.
+                config.methods.forEach { method ->
+                    when (method) {
+                        HttpMethodType.GET -> get(operation)
+                        HttpMethodType.POST -> post(operation)
+                        HttpMethodType.PUT -> put(operation)
+                        HttpMethodType.PATCH -> patch(operation)
+                        HttpMethodType.DELETE -> delete(operation)
+                        HttpMethodType.HEAD -> head(operation)
+                        HttpMethodType.OPTIONS -> options(operation)
+                    }
                 }
             }
         }
@@ -83,7 +99,7 @@ class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
                         req.addList("JWT")
                         req.addList("Session")
                     }
-                    else -> {}
+                    AuthType.NONE -> {}
                 }
                 addSecurityItem(req)
             }
@@ -94,7 +110,7 @@ class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
                     .`in`("path")
                     .required(true)
                     .schema(StringSchema())
-            }
+            }.toMutableList()
 
             if (config.methods.contains(HttpMethodType.GET)) {
                 parameters?.addAll(extractCommonQueryParameters())
@@ -114,9 +130,16 @@ class OpenAPIGenerator(private val factory: DynamicRouteFactory) {
         }
     }
 
+    /**
+     * Extracts path parameter names, stripping Ktor's constrained-parameter suffix
+     * (e.g. {id:[0-9]+} -> "id") so the OpenAPI parameter name is the actual
+     * variable name rather than the full regex constraint.
+     */
     private fun extractPathParameters(path: String): List<String> {
-        val pattern = Regex("\\{(.*?)}")
-        return pattern.findAll(path).map { it.groupValues[1] }.toList()
+        val pattern = Regex("\\{(.*?)\\??}")
+        return pattern.findAll(path).map { match ->
+            match.groupValues[1].substringBefore(":")
+        }.toList()
     }
 
     private fun extractCommonQueryParameters(): List<Parameter> {

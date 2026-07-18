@@ -5,11 +5,16 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.TicketMessageMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.support.TicketMessage
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class TicketMessageRepository(
+@Component
+class TicketMessageRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     ticketMessageMapper: TicketMessageMapper
 ) : CrudRepository<TicketMessage, String>(
@@ -242,6 +247,7 @@ class TicketMessageRepository(
     }
 }
 
+@Serializable
 data class MessageWithSender(
     val message: TicketMessage,
     val senderName: String?,

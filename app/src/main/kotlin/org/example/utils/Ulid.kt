@@ -1,4 +1,4 @@
-package org.example.data.db.config
+package org.example.utils
 
 import java.math.BigInteger
 import java.security.SecureRandom

@@ -3,10 +3,15 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.WarehouseMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.inventory.Warehouse
+import org.koin.core.annotation.Single
 
-class WarehouseRepository(
+@Component
+class WarehouseRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     warehouseMapper: WarehouseMapper
 ) : CrudRepository<Warehouse, String>(
@@ -152,11 +157,11 @@ class WarehouseRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     WarehouseStockSummary(
-                        totalProducts = row.get("total_products", Long::class.java).toInt(),
-                        inStock = row.get("in_stock", Long::class.java).toInt(),
-                        outOfStock = row.get("out_of_stock", Long::class.java).toInt(),
-                        lowStock = row.get("low_stock", Long::class.java).toInt(),
-                        totalUnits = row.get("total_units", Long::class.java).toInt()
+                        totalProducts = (row.get("total_products", Long::class.java) ?: 0L).toInt(),
+                        inStock = (row.get("in_stock", Long::class.java) ?: 0L).toInt(),
+                        outOfStock = (row.get("out_of_stock", Long::class.java) ?: 0L).toInt(),
+                        lowStock = (row.get("low_stock", Long::class.java) ?: 0L).toInt(),
+                        totalUnits = (row.get("total_units", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: WarehouseStockSummary(0, 0, 0, 0, 0)
@@ -184,6 +189,7 @@ class WarehouseRepository(
     }
 }
 
+@Serializable
 data class WarehouseWithAddress(
     val warehouse: Warehouse,
     val addressName: String?,
@@ -195,6 +201,7 @@ data class WarehouseWithAddress(
     val postalCode: String?
 )
 
+@Serializable
 data class WarehouseStockSummary(
     val totalProducts: Int,
     val inStock: Int,

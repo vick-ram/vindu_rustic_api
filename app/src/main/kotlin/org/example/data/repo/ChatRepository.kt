@@ -6,16 +6,18 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.serialization.json.Json
-import org.example.data.db.config.Ulid
 import org.example.data.mappers.ConversationMapper
 import org.example.data.mappers.MessageMapper
 import org.example.data.mappers.ParticipantMapper
+import org.example.di.Component
+import org.example.di.Inject
+import org.example.di.Qualifier
 import org.example.domain.models.support.*
-import org.koin.core.annotation.Single
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
-@Single
-class ConversationRepository(
+@Component
+class ConversationRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     private val conversationMapper: ConversationMapper,
     private val participantMapper: ParticipantMapper,
@@ -47,12 +49,12 @@ class ConversationRepository(
             FROM conversations c
             INNER JOIN participants p ON c.id = p.conversation_id AND p.is_active = true
             LEFT JOIN messages m ON c.last_message_id = m.id
-            WHERE c.id IN (SELECT conversation_id FROM participants WHERE user_id = :userId AND is_active = true)
+            WHERE c.id IN (SELECT conversation_id FROM participants WHERE user_id = $1 AND is_active = true)
             GROUP BY c.id, m.id
             ORDER BY c.updated_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf("userId" to userId)) { row, metadata ->
+        return executeQuery(sql, mapOf("$1" to userId)) { row, metadata ->
             val conversation = conversationMapper.toModel(row, metadata)
 
             val lastMessage = row.get("last_message_id", String::class.java)?.let { id ->

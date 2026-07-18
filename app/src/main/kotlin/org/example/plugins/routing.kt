@@ -16,10 +16,9 @@ import org.example.routes.frontendRoutes
 import org.example.routes.serveStaticContent
 import kotlin.time.Duration.Companion.seconds
 
-object RoutingModule : ApplicationPlugin {
+class RoutingModule(private val factory: DynamicRouteFactory) : ApplicationPlugin {
     override fun install(application: Application) {
         val config = AppConfig.load(application)
-        val factory = DynamicRouteFactory()
 
         application.install(IgnoreTrailingSlash)
 
@@ -45,8 +44,6 @@ object RoutingModule : ApplicationPlugin {
             serveStaticContent()
             // Register all routes
             factory.registerRoutes(this)
-            // Print routes AFTER registration
-            factory.printRoutes()
         }
     }
 }

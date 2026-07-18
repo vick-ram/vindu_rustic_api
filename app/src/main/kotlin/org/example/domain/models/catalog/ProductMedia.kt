@@ -66,7 +66,7 @@ data class ProductMedia(
 
                     else -> {}
                 }
-                part.dispose()
+                part.release()
             }
 
             return ProductMedia(

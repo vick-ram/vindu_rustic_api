@@ -80,6 +80,10 @@ class BadRequestException(message: String) : Exception(message)
 class AlreadyExistsException(message: String) : Exception(message)
 class ConflictException(message: String) : Exception(message)
 class TokenExpiredException(message: String, expiresAt: OffsetDateTime) : Exception(message)
+class TwoFactorRequiredException(val userId: String) : RuntimeException("2FA verification required")
+class OtpExpiredException : RuntimeException("OTP has expired")
+class InvalidOtpException(val remainingAttempts: Int) : RuntimeException("Invalid OTP. $remainingAttempts attempts remaining")
+class TooManyAttemptsException : RuntimeException("Too many attempts. Please request a new OTP")
 class ValidationException(
     val fieldErrors: List<ValidationError>
 ) : Exception() {
@@ -92,6 +96,9 @@ class ValidationException(
     )
 }
 
+class RouteValidationException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+class RouteConflictException(message: String) : RuntimeException(message)
+class FileStorageException(message: String, cause: Throwable) : Exception(message, cause)
 suspend fun Throwable.dynamicRespond(call: ApplicationCall) {
     val accept = call.request.headers["Accept"] ?: ""
     val currentTemplate = call.getCurrentTemplate()

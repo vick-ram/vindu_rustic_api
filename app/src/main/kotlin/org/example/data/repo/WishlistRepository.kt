@@ -3,10 +3,15 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.WishlistMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.Wishlist
+import org.koin.core.annotation.Single
 
-class WishlistRepository(
+@Component
+class WishlistRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     wishlistMapper: WishlistMapper
 ) : CrudRepository<Wishlist, String>(
@@ -96,6 +101,7 @@ class WishlistRepository(
     }
 }
 
+@Serializable
 data class WishlistWithItemCount(
     val wishlist: Wishlist,
     val itemCount: Int

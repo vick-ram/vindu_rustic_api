@@ -4,10 +4,13 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CustomProductQuoteMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.customization.CustomProductQuote
 import java.time.OffsetDateTime
 
-class CustomProductQuoteRepository(
+@Component
+class CustomProductQuoteRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     customProductQuoteMapper: CustomProductQuoteMapper
 ) : CrudRepository<CustomProductQuote, String>(

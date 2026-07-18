@@ -58,7 +58,7 @@ data class Category(
 
                     else -> {}
                 }
-                part.dispose()
+                part.release()
             }
             return Category(
                 name = name!!, slug = slug!!, description = description!!, imageUrl = image,

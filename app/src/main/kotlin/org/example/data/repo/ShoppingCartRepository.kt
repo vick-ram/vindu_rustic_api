@@ -3,12 +3,17 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ShoppingCartMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.sales.ShoppingCart
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 import kotlin.uuid.Uuid
 
-class ShoppingCartRepository(
+@Component
+class ShoppingCartRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     shoppingCartMapper: ShoppingCartMapper
 ) : CrudRepository<ShoppingCart, String>(
@@ -133,7 +138,8 @@ class ShoppingCartRepository(
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 
@@ -155,7 +161,7 @@ class ShoppingCartRepository(
                 .map { row, rowMetadata ->
                     CartWithItemCount(
                         cart = rowMapper.apply(row, rowMetadata),
-                        itemCount = row.get("item_count", Long::class.java).toInt()
+                        itemCount = (row.get("item_count", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull()
@@ -163,6 +169,7 @@ class ShoppingCartRepository(
     }
 }
 
+@Serializable
 data class CartWithItemCount(
     val cart: ShoppingCart,
     val itemCount: Int

@@ -6,10 +6,14 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ShipmentEventMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.shipping.ShipmentEvent
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class ShipmentEventRepository(
+@Component
+class ShipmentEventRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     shipmentEventMapper: ShipmentEventMapper
 ) : CrudRepository<ShipmentEvent, String>(

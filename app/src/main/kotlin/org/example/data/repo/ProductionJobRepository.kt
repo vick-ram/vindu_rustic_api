@@ -3,11 +3,16 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ProductionJobMapper
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.production.ProductionJob
+import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
-class ProductionJobRepository(
+@Component
+class ProductionJobRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     productionJobMapper: ProductionJobMapper
 ) : CrudRepository<ProductionJob, String>(
@@ -361,14 +366,14 @@ class ProductionJobRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     ProductionStats(
-                        totalJobs = row.get("total_jobs", Long::class.java).toInt(),
-                        queued = row.get("queued", Long::class.java).toInt(),
-                        inProgress = row.get("in_progress", Long::class.java).toInt(),
-                        paused = row.get("paused", Long::class.java).toInt(),
-                        completed = row.get("completed", Long::class.java).toInt(),
-                        cancelled = row.get("cancelled", Long::class.java).toInt(),
-                        urgent = row.get("urgent", Long::class.java).toInt(),
-                        highPriority = row.get("high_priority", Long::class.java).toInt()
+                        totalJobs = (row.get("total_jobs", Long::class.java) ?: 0L).toInt(),
+                        queued = (row.get("queued", Long::class.java) ?: 0L).toInt(),
+                        inProgress = (row.get("in_progress", Long::class.java) ?: 0L).toInt(),
+                        paused = (row.get("paused", Long::class.java) ?: 0L).toInt(),
+                        completed = (row.get("completed", Long::class.java) ?: 0L).toInt(),
+                        cancelled = (row.get("cancelled", Long::class.java) ?: 0L).toInt(),
+                        urgent = (row.get("urgent", Long::class.java) ?: 0L).toInt(),
+                        highPriority = (row.get("high_priority", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: ProductionStats(0, 0, 0, 0, 0, 0, 0, 0)
@@ -430,10 +435,10 @@ class ProductionJobRepository(
                 .awaitSingle()
                 .map { row, _ ->
                     UserWorkload(
-                        totalAssigned = row.get("total_assigned", Long::class.java).toInt(),
-                        currentlyWorking = row.get("currently_working", Long::class.java).toInt(),
-                        urgentTasks = row.get("urgent_tasks", Long::class.java).toInt(),
-                        overdueTasks = row.get("overdue_tasks", Long::class.java).toInt()
+                        totalAssigned = (row.get("total_assigned", Long::class.java) ?: 0L).toInt(),
+                        currentlyWorking = (row.get("currently_working", Long::class.java) ?: 0L).toInt(),
+                        urgentTasks = (row.get("urgent_tasks", Long::class.java) ?: 0L).toInt(),
+                        overdueTasks = (row.get("overdue_tasks", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: UserWorkload(0, 0, 0, 0)
@@ -457,6 +462,7 @@ class ProductionJobRepository(
     }
 }
 
+@Serializable
 data class ProductionStats(
     val totalJobs: Int,
     val queued: Int,
@@ -468,6 +474,7 @@ data class ProductionStats(
     val highPriority: Int
 )
 
+@Serializable
 data class UserWorkload(
     val totalAssigned: Int,
     val currentlyWorking: Int,
