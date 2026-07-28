@@ -22,7 +22,6 @@ class WishlistItemRepository @Inject constructor(
 ) : CrudRepository<WishlistItem, String>(
     connectionFactory = connectionFactory,
     tableName = "wishlist_items",
-    idColumn = "id",
     mapper = wishlistItemMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -44,7 +43,10 @@ class WishlistItemRepository @Inject constructor(
         productId: String,
         variantId: String? = null
     ): Boolean {
+        val params = mutableMapOf<String, Any>("wishlistId" to wishlistId, "productId" to productId)
+
         val variantFilter = if (variantId != null) {
+            params["variantId"] = variantId
             "AND (variant_id = :variantId OR variant_id IS NULL)"
         } else {
             "AND variant_id IS NULL"
@@ -59,15 +61,8 @@ class WishlistItemRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-                .bind("wishlistId", wishlistId)
-                .bind("productId", productId)
-
-            if (variantId != null) {
-                statement.bind("variantId", variantId)
-            }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }
                 .awaitFirstOrNull() ?: false
@@ -101,7 +96,10 @@ class WishlistItemRepository @Inject constructor(
         productId: String,
         variantId: String? = null
     ): Boolean {
+        val params = mutableMapOf<String, Any>("wishlistId" to wishlistId, "productId" to productId)
+
         val variantFilter = if (variantId != null) {
+            params["variantId"] = variantId
             "AND (variant_id = :variantId OR variant_id IS NULL)"
         } else {
             "AND variant_id IS NULL"
@@ -115,15 +113,8 @@ class WishlistItemRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("wishlistId", wishlistId)
-                .bind("productId", productId)
-
-            if (variantId != null) {
-                statement.bind("variantId", variantId)
-            }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .rowsUpdated
                 .awaitSingle() > 0
@@ -164,8 +155,7 @@ class WishlistItemRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("wishlistId", wishlistId)
+            createNamedStatement(sql, mapOf("wishlistId" to wishlistId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->

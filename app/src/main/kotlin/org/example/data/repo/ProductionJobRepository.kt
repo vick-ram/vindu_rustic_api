@@ -22,18 +22,6 @@ class ProductionJobRepository @Inject constructor(
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
 
-    // Override update to handle updated_at
-    override suspend fun update(id: String, model: ProductionJob): ProductionJob? {
-        validateProductionJob(model)
-        return super.update(id, model)
-    }
-
-    // Create with validation
-    override suspend fun create(model: ProductionJob): ProductionJob {
-        validateProductionJob(model)
-        return super.create(model)
-    }
-
     // Get jobs by status
     suspend fun findByStatus(
         status: String,
@@ -45,10 +33,10 @@ class ProductionJobRepository @Inject constructor(
             WHERE status = :status 
             ORDER BY 
                 CASE priority 
-                    WHEN 'URGENT' THEN 1 
-                    WHEN 'HIGH' THEN 2 
-                    WHEN 'NORMAL' THEN 3 
-                    WHEN 'LOW' THEN 4 
+                    WHEN 'urgent' THEN 1 
+                    WHEN 'high' THEN 2 
+                    WHEN 'normal' THEN 3 
+                    WHEN 'low' THEN 4 
                     ELSE 5 
                 END,
                 created_at ASC 
@@ -71,7 +59,7 @@ class ProductionJobRepository @Inject constructor(
         val sql = """
             SELECT * FROM $tableName 
             WHERE priority = :priority 
-              AND status NOT IN ('COMPLETED', 'CANCELLED') 
+              AND status NOT IN ('completed', 'cancelled') 
             ORDER BY created_at ASC 
             LIMIT :limit OFFSET :offset
         """.trimIndent()
@@ -91,7 +79,7 @@ class ProductionJobRepository @Inject constructor(
         limit: Int = 20
     ): List<ProductionJob> {
         val statusFilter = if (!includeCompleted) {
-            "AND status NOT IN ('COMPLETED', 'CANCELLED')"
+            "AND status NOT IN ('completed', 'cancelled')"
         } else ""
 
         val sql = """
@@ -100,10 +88,10 @@ class ProductionJobRepository @Inject constructor(
             $statusFilter
             ORDER BY 
                 CASE priority 
-                    WHEN 'URGENT' THEN 1 
-                    WHEN 'HIGH' THEN 2 
-                    WHEN 'NORMAL' THEN 3 
-                    WHEN 'LOW' THEN 4 
+                    WHEN 'urgent' THEN 1 
+                    WHEN 'high' THEN 2 
+                    WHEN 'normal' THEN 3 
+                    WHEN 'low' THEN 4 
                     ELSE 5 
                 END,
                 created_at ASC 
@@ -152,28 +140,23 @@ class ProductionJobRepository @Inject constructor(
     suspend fun startJob(id: String, assignedTo: String? = null): ProductionJob? {
         val sql = """
             UPDATE $tableName 
-            SET status = 'IN_PROGRESS',
+            SET status = 'in_progress',
                 assigned_to = COALESCE(:assignedTo, assigned_to),
                 started_at = :startedAt,
                 updated_at = :updatedAt
             WHERE id = :id 
-              AND status = 'QUEUED'
+              AND status = 'queued'
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("startedAt", now)
-                .bind("updatedAt", now)
-                .apply {
-                    if (assignedTo != null) {
-                        bind("assignedTo", assignedTo)
-                    } else {
-                        bindNull("assignedTo", String::class.java)
-                    }
-                }
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "startedAt" to now,
+                "updatedAt" to now,
+                "assignedTo" to assignedTo
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -185,20 +168,21 @@ class ProductionJobRepository @Inject constructor(
     suspend fun completeJob(id: String): ProductionJob? {
         val sql = """
             UPDATE $tableName 
-            SET status = 'COMPLETED',
+            SET status = 'completed',
                 completed_at = :completedAt,
                 updated_at = :updatedAt
             WHERE id = :id 
-              AND status = 'IN_PROGRESS'
+              AND status = 'in_progress'
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("completedAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "completedAt" to now,
+                "updatedAt" to now
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -210,17 +194,18 @@ class ProductionJobRepository @Inject constructor(
     suspend fun pauseJob(id: String): ProductionJob? {
         val sql = """
             UPDATE $tableName 
-            SET status = 'PAUSED',
+            SET status = 'paused',
                 updated_at = :updatedAt
             WHERE id = :id 
-              AND status = 'IN_PROGRESS'
+              AND status = 'in_progress'
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -232,7 +217,7 @@ class ProductionJobRepository @Inject constructor(
     suspend fun cancelJob(id: String, reason: String? = null): ProductionJob? {
         val sql = """
             UPDATE $tableName 
-            SET status = 'CANCELLED',
+            SET status = 'cancelled',
                 notes = CASE 
                     WHEN notes IS NOT NULL AND :reason IS NOT NULL 
                     THEN CONCAT(notes, E'\nCancelled: ', :reason)
@@ -240,21 +225,16 @@ class ProductionJobRepository @Inject constructor(
                 END,
                 updated_at = :updatedAt
             WHERE id = :id 
-              AND status NOT IN ('COMPLETED', 'CANCELLED')
+              AND status NOT IN ('competed', 'cancelled')
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
-                .apply {
-                    if (reason != null) {
-                        bind("reason", reason)
-                    } else {
-                        bindNull("reason", String::class.java)
-                    }
-                }
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "updatedAt" to OffsetDateTime.now(),
+                "reason" to reason
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -269,15 +249,16 @@ class ProductionJobRepository @Inject constructor(
             SET assigned_to = :assignedTo,
                 updated_at = :updatedAt
             WHERE id = :id 
-              AND status NOT IN ('COMPLETED', 'CANCELLED')
+              AND status NOT IN ('completed', 'cancelled')
             RETURNING *
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("assignedTo", assignedTo)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "assignedTo" to assignedTo,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -287,11 +268,6 @@ class ProductionJobRepository @Inject constructor(
 
     // Update job priority
     suspend fun updatePriority(id: String, priority: String): ProductionJob? {
-        val validPriorities = listOf("LOW", "NORMAL", "HIGH", "URGENT")
-        if (priority !in validPriorities) {
-            throw IllegalArgumentException("Invalid priority: $priority. Must be one of: ${validPriorities.joinToString()}")
-        }
-
         val sql = """
             UPDATE $tableName 
             SET priority = :priority,
@@ -301,10 +277,11 @@ class ProductionJobRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("priority", priority)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "priority" to priority,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -316,13 +293,13 @@ class ProductionJobRepository @Inject constructor(
     suspend fun getProductionQueue(limit: Int = 50): List<ProductionJob> {
         val sql = """
             SELECT * FROM $tableName 
-            WHERE status = 'QUEUED' 
+            WHERE status = 'queued' 
             ORDER BY 
                 CASE priority 
-                    WHEN 'URGENT' THEN 1 
-                    WHEN 'HIGH' THEN 2 
-                    WHEN 'NORMAL' THEN 3 
-                    WHEN 'LOW' THEN 4 
+                    WHEN 'urgent' THEN 1 
+                    WHEN 'high' THEN 2 
+                    WHEN 'normal' THEN 3 
+                    WHEN 'low' THEN 4 
                     ELSE 5 
                 END,
                 created_at ASC 
@@ -428,9 +405,10 @@ class ProductionJobRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("assignedTo", assignedTo)
-                .bind("now", OffsetDateTime.now())
+            createNamedStatement(sql, mapOf(
+                "assignedTo" to assignedTo,
+                "now" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -442,22 +420,6 @@ class ProductionJobRepository @Inject constructor(
                     )
                 }
                 .awaitFirstOrNull() ?: UserWorkload(0, 0, 0, 0)
-        }
-    }
-
-    private fun validateProductionJob(job: ProductionJob) {
-        if (job.quantity <= 0) {
-            throw IllegalArgumentException("Production quantity must be greater than zero")
-        }
-
-        val validStatuses = listOf("QUEUED", "IN_PROGRESS", "PAUSED", "COMPLETED", "CANCELLED")
-        if (job.status !in validStatuses) {
-            throw IllegalArgumentException("Invalid job status: ${job.status}")
-        }
-
-        val validPriorities = listOf("LOW", "NORMAL", "HIGH", "URGENT")
-        if (job.priority !in validPriorities) {
-            throw IllegalArgumentException("Invalid priority: ${job.priority}")
         }
     }
 }

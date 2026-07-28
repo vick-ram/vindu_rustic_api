@@ -7,7 +7,11 @@ import kotlinx.serialization.Serializable
 import org.example.data.mappers.ShoppingCartMapper
 import org.example.di.Component
 import org.example.di.Inject
+import org.example.domain.models.sales.CartItem
 import org.example.domain.models.sales.ShoppingCart
+import org.example.domain.models.sales.WishlistItem
+import org.example.plugins.InsufficientInventoryException
+import org.example.plugins.NotFoundException
 import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 import kotlin.uuid.Uuid
@@ -15,13 +19,86 @@ import kotlin.uuid.Uuid
 @Component
 class ShoppingCartRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
-    shoppingCartMapper: ShoppingCartMapper
+    shoppingCartMapper: ShoppingCartMapper,
+    private val cartItemRepository: CartItemRepository,
+    private val productVariantRepository: ProductVariantRepository,
+    private val inventoryRepository: InventoryRepository,
+    private val auditLogRepository: AuditLogRepository
 ) : CrudRepository<ShoppingCart, String>(
     connectionFactory = connectionFactory,
     tableName = "shopping_carts",
     mapper = shoppingCartMapper
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
+
+    /**
+     * Add to cart with optional wishlist save
+     */
+    suspend fun addToCart(
+        userId: String?,
+        guestToken: Uuid?,
+        variantId: String,
+        quantity: Int = 1,
+    ): AddToCartResult {
+        return connectionFactory.withTransaction { _ ->
+            val variant = productVariantRepository.read(variantId)
+                ?: throw NotFoundException("Variant not found: $variantId")
+
+            if (!variant.isActive) {
+                throw IllegalStateException("Product variant is not available")
+            }
+
+            // Check inventory
+            val availableInventory = inventoryRepository.findByVariantAndWarehouse(
+                variantId,
+                getDefaultWarehouse()
+            )
+
+            if (availableInventory != null && availableInventory.availableQuantity < quantity) {
+                throw InsufficientInventoryException(
+                    variantId = variantId,
+                    required = quantity,
+                    available = availableInventory.availableQuantity
+                )
+            }
+
+            // Get or create cart
+            val cart = if (userId != null) {
+                getOrCreateForUser(userId)
+            } else if (guestToken != null) {
+                getOrCreateForGuest(guestToken)
+            } else {
+                throw IllegalArgumentException("Either userId or guestToken must be provided")
+            }
+
+            // Add to cart
+            val cartItem = cartItemRepository.addOrUpdateItem(
+                cartId = cart.id,
+                variantId = variantId,
+                quantity = quantity
+            )
+
+            // Touch cart
+            touchCart(cart.id)
+
+            AddToCartResult(
+                cartItem = cartItem,
+                cartId = cart.id
+            )
+        }
+    }
+
+    private suspend fun getDefaultWarehouse(): String {
+        // Get first available warehouse or default
+        val sql = "SELECT id FROM warehouses LIMIT 1"
+        return connectionFactory.useConnection {
+            createStatement(sql)
+                .execute()
+                .awaitSingle()
+                .map { row, _ -> row.get("id", String::class.java)!! }
+                .awaitFirstOrNull() ?: throw NotFoundException("No warehouse configured")
+        }
+    }
 
     // Find cart by user ID
     suspend fun findByUserId(userId: String): ShoppingCart? {
@@ -33,8 +110,7 @@ class ShoppingCartRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -52,8 +128,7 @@ class ShoppingCartRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("guestToken", guestToken)
+            createNamedStatement(sql, mapOf("guestToken" to guestToken))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -90,10 +165,14 @@ class ShoppingCartRepository @Inject constructor(
                     WHERE cart_id = :guestCartId
                 """.trimIndent()
 
-                connection.createStatement(moveItemsSql)
-                    .bind("userCartId", userCart.id)
-                    .bind("guestCartId", guestCart.id)
-                    .bind("updatedAt", OffsetDateTime.now())
+                connection.createNamedStatement(
+                    moveItemsSql,
+                    mapOf(
+                        "userCartId" to userCart.id,
+                        "guestCartId" to guestCart.id,
+                        "updatedAt" to OffsetDateTime.now()
+                    )
+                )
                     .execute()
                     .awaitSingle()
 
@@ -114,9 +193,7 @@ class ShoppingCartRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "updatedAt" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -133,8 +210,10 @@ class ShoppingCartRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("cutoffDate", OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            connection.createNamedStatement(
+                sql,
+                mapOf("cutoffDate" to OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -154,8 +233,7 @@ class ShoppingCartRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("cartId", cartId)
+            createNamedStatement(sql, mapOf("cartId" to cartId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -173,4 +251,10 @@ class ShoppingCartRepository @Inject constructor(
 data class CartWithItemCount(
     val cart: ShoppingCart,
     val itemCount: Int
+)
+
+@Serializable
+data class AddToCartResult(
+    val cartItem: CartItem,
+    val cartId: String
 )

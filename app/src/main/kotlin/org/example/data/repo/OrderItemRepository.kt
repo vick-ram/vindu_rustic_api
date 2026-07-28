@@ -4,6 +4,8 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.OrderItemMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -94,8 +96,7 @@ class OrderItemRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("orderId", orderId)
+            createNamedStatement(sql, mapOf("orderId" to orderId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -137,16 +138,15 @@ class OrderItemRepository @Inject constructor(
             LIMIT :limit
         """.trimIndent()
 
+        val params = mapOf(
+            "limit" to limit,
+            "startDate" to startDate,
+            "endDate" to endDate
+        )
+
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-                .bind("limit", limit)
-
-            if (startDate != null && endDate != null) {
-                statement.bind("startDate", startDate)
-                statement.bind("endDate", endDate)
-            }
-
-            statement.execute()
+          createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ ->
                     TopSellingProduct(
@@ -181,27 +181,23 @@ class OrderItemRepository @Inject constructor(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            items.forEachIndexed { index, item ->
-                statement.bind("order_id_$index", item.orderId)
-                statement.bind("product_id_$index", item.productId)
-                statement.bind("variant_id_$index", item.variantId)
-                if (item.warehouseId != null) statement.bind(
-                    "warehouse_id_$index",
-                    item.warehouseId
-                ) else statement.bind("warehouse_id_$index", String::class.java)
-                statement.bind("quantity_$index", item.quantity)
-                statement.bind("unit_price_$index", item.unitPrice)
-                statement.bind("total_price_$index", item.totalPrice)
-                if (item.customizationSnapshot != null) statement.bind(
-                    "customization_snapshot_$index",
-                    item.customizationSnapshot
-                ) else statement.bind("customization_snapshot_$index", Map::class.java)
-                statement.bind("product_snapshot_$index", item.productSnapshot)
-            }
+        val params = mutableMapOf<String, Any?>()
 
-            statement.execute()
+        items.forEachIndexed { index, item ->
+            params["order_id_$index"] = item.orderId
+            params["product_id_$index"] = item.productId
+            params["variant_id_$index"] = item.variantId
+            params["warehouse_id_$index"] = item.warehouseId
+            params["quantity_$index"]= item.quantity
+            params["unit_price_$index"] = item.unitPrice
+            params["total_price_$index"] = item.totalPrice
+            params["customization_snapshot_$index"] = item.customizationSnapshot
+            params["product_snapshot_$index"] = item.productSnapshot
+        }
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -210,6 +206,7 @@ class OrderItemRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class OrderItemWithProduct(
     val orderItem: OrderItem,
     val productTitle: String?,
@@ -218,9 +215,11 @@ data class OrderItemWithProduct(
     val variantTitle: String?
 )
 
+@Serializable
 data class TopSellingProduct(
     val productId: String,
     val orderCount: Int,
     val totalQuantitySold: Int,
+    @Contextual
     val totalRevenue: BigDecimal
 )

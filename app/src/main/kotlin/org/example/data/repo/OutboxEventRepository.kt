@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -39,9 +40,7 @@ class OutboxEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("limit", limit)
-                .bind("maxAttempts", maxAttempts)
+            connection.createNamedStatement(sql, mapOf("limit" to limit, "maxAttempts" to maxAttempts))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -65,12 +64,14 @@ class OutboxEventRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "aggregateType" to aggregateType,
-            "aggregateId" to aggregateId,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "aggregateType" to aggregateType,
+                "aggregateId" to aggregateId,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get events by type
@@ -86,11 +87,13 @@ class OutboxEventRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "eventType" to eventType,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "eventType" to eventType,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Mark event as processed
@@ -104,9 +107,7 @@ class OutboxEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("processedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "processedAt" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -128,9 +129,7 @@ class OutboxEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("errorMessage", errorMessage)
+            connection.createNamedStatement(sql, mapOf("id" to id, "errorMessage" to errorMessage))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -157,8 +156,7 @@ class OutboxEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("maxAttempts", maxAttempts)
+            val statement = connection.createNamedStatement(sql, mapOf("maxAttempts" to maxAttempts))
 
             if (olderThan != null) {
                 statement.bind("olderThan", olderThan)
@@ -177,7 +175,8 @@ class OutboxEventRepository @Inject constructor(
         aggregateType: String,
         aggregateId: String,
         eventType: String,
-        payload: Map<String, Any>
+        payload: Map<String, Any>,
+        connection: Connection? = null
     ): OutboxEvent {
         return create(
             OutboxEvent(
@@ -185,7 +184,8 @@ class OutboxEventRepository @Inject constructor(
                 aggregateId = aggregateId,
                 eventType = eventType,
                 payload = payload
-            )
+            ),
+            connection
         )
     }
 
@@ -229,8 +229,10 @@ class OutboxEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("cutoffDate", OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            connection.createNamedStatement(
+                sql,
+                mapOf("cutoffDate" to OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated

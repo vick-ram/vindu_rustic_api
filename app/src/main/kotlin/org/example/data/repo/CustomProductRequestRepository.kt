@@ -114,16 +114,12 @@ class CustomProductRequestRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("id", id)
-                .bind("status", status)
-                .bind("updatedAt", OffsetDateTime.now())
-
-            if (notes != null) {
-                statement.bind("notes", notes)
-            } else {
-                statement.bindNull("notes", String::class.java)
-            }
+            val statement = connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "status" to status,
+                "updatedAt" to OffsetDateTime.now(),
+                "notes" to notes
+            ))
 
             statement.execute()
                 .awaitSingle()
@@ -225,10 +221,11 @@ class CustomProductRequestRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("requestId", requestId)
-                .bind("updatedAt", OffsetDateTime.now())
-                .bind("notes", notes ?: String::class.java)
+            connection.createNamedStatement(sql, mapOf(
+                "requestId" to requestId,
+                "updatedAt" to OffsetDateTime.now(),
+                "notes" to notes
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -250,8 +247,7 @@ class CustomProductRequestRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->

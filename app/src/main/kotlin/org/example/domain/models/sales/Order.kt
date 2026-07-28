@@ -1,12 +1,12 @@
 package org.example.domain.models.sales
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.Email
-import org.example.utils.BigDecimalSerializer
+import org.example.domain.validations.OneOf
 import org.example.utils.InetAddressSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.net.InetAddress
 import java.time.OffsetDateTime
@@ -21,40 +21,40 @@ data class Order(
     @SerialName(value = "user_id")
     val userId: String? = null,
 
-    @field:Email
-    val email: String,
-
     @SerialName("shopping_address_id")
     val shippingAddressId: String,
 
     @SerialName("billing_address_id")
     val billingAddressId: String? = null,
 
+    @OneOf("pending", "confirmed", "processing", "completed", "cancelled", "refunded")
     val status: String = "pending",
 
+    @OneOf("pending", "authorized", "paid", "partially_paid", "refunded", "failed")
     @SerialName(value = "payment_status")
     val paymentStatus: String = "pending",
 
+    @OneOf("unfulfilled", "partially_fulfilled", "fulfilled", "restocked")
     @SerialName(value = "fulfillment_status")
     val fulfillmentStatus: String = "unfulfilled",
 
     val currency: String = "kes",
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     val subtotal: BigDecimal = BigDecimal.ZERO,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "shipping_cost")
     val shippingCost: BigDecimal,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     val taxAmount: BigDecimal,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "discount_amount")
     val discountAmount: BigDecimal = BigDecimal.ZERO,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "total_amount")
     val totalAmount: BigDecimal,
 
@@ -70,11 +70,11 @@ data class Order(
     @SerialName("user_agent")
     val userAgent: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "placed_at")
     val placedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 ) {

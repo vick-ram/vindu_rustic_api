@@ -1,10 +1,10 @@
 package org.example.domain.models.inventory
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -16,20 +16,20 @@ data class Inventory(
 
     val warehouseId: String,
 
-    @field:GreaterThan(value = 0)
+    @GreaterThan(value = 0)
     @SerialName(value = "availability_quantity")
     val availableQuantity: Int = 0,
 
     @SerialName(value = "reserved_quantity")
     val reservedQuantity: Int = 0,
 
-    @field:GreaterThan(value = 0)
+    @GreaterThan(value = 0)
     @SerialName(value = "damaged_quantity")
     val damagedQuantity: Int = 0,
 
     val lowStockThreshold: Int? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 ) {

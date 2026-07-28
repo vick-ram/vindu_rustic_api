@@ -1,10 +1,10 @@
 package org.example.services
 
+import org.example.data.repo.ConversationRepository
+import org.example.data.repo.MessageRepository
 import org.example.domain.models.support.Conversation
 import org.example.domain.models.support.Message
 import org.example.domain.models.support.MessageType
-import org.example.domain.repo.ConversationRepository
-import org.example.domain.repo.MessageRepository
 
 class ChatService(
     private val conversationRepo: ConversationRepository,

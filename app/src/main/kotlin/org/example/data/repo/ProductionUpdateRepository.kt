@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -38,11 +39,13 @@ class ProductionUpdateRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "jobId" to jobId,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "jobId" to jobId,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get updates by status
@@ -58,11 +61,13 @@ class ProductionUpdateRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "status" to status,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "status" to status,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get updates posted by a user
@@ -78,11 +83,13 @@ class ProductionUpdateRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "postedBy" to postedBy,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "postedBy" to postedBy,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get latest update for a job
@@ -95,13 +102,13 @@ class ProductionUpdateRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("jobId", jobId)
+            createNamedStatement(sql, mapOf("jobId" to jobId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
         }
+
     }
 
     // Get updates by stage name
@@ -116,10 +123,12 @@ class ProductionUpdateRepository @Inject constructor(
             ORDER BY created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "jobId" to jobId,
-            "stageName" to stageName
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "jobId" to jobId,
+                "stageName" to stageName
+            )
+        )
     }
 
     // Get updates with images
@@ -188,8 +197,7 @@ class ProductionUpdateRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("jobId", jobId)
+            createNamedStatement(sql, mapOf("jobId" to jobId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -211,9 +219,9 @@ class ProductionUpdateRepository @Inject constructor(
     }
 
     // Create update with validation
-    override suspend fun create(model: ProductionUpdate): ProductionUpdate {
+    override suspend fun create(model: ProductionUpdate, connection: Connection?): ProductionUpdate {
         validateProductionUpdate(model)
-        return super.create(model)
+        return super.create(model, connection)
     }
 
     // Bulk create updates
@@ -233,18 +241,20 @@ class ProductionUpdateRepository @Inject constructor(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            updates.forEachIndexed { index, update ->
-                statement.bind("job_id_$index", update.jobId)
-                statement.bind("status_$index", update.status)
-                statement.bind("stage_name_$index", update.stageName ?: String::class.java)
-                statement.bind("description_$index", update.description ?: String::class.java)
-                statement.bind("image_url_$index", update.imageUrl ?: String::class.java)
-                statement.bind("posted_by_$index", update.postedBy)
-            }
+        val params = mutableMapOf<String, Any>()
 
-            statement.execute()
+        updates.forEachIndexed { index, update ->
+            params["job_id_$index"] = update.jobId
+            params["status_$index"] = update.status
+            params["stage_name_$index"] = update.stageName ?: String::class.java
+            params["description_$index"] = update.description ?: String::class.java
+            params["image_url_$index"] = update.imageUrl ?: String::class.java
+            params["posted_by_$index"] = update.postedBy
+        }
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createStatement(sql)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -267,8 +277,7 @@ class ProductionUpdateRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("jobId", jobId)
+            createNamedStatement(sql, mapOf("jobId" to jobId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->

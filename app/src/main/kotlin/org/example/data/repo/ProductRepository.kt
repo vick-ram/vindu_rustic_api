@@ -24,18 +24,6 @@ class ProductRepository @Inject constructor(
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
 
-    // Override update to handle updated_at
-    override suspend fun update(id: String, model: Product): Product? {
-        validateProduct(model)
-        return super.update(id, model)
-    }
-
-    // Create with validation
-    override suspend fun create(model: Product): Product {
-        validateProduct(model)
-        return super.create(model)
-    }
-
     // Find product by slug
     suspend fun findBySlug(slug: String, includeDeleted: Boolean = false): Product? {
         val deletedFilter = if (!includeDeleted) "AND deleted_at IS NULL" else ""
@@ -48,8 +36,7 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("slug", slug)
+            createNamedStatement(sql, mapOf("slug" to slug))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -193,55 +180,12 @@ class ProductRepository @Inject constructor(
     }
 
     // Search products
-    suspend fun search(
+    suspend fun searchProduct(
         query: String,
-        categoryId: String? = null,
-        status: String? = "published",
-        productType: String? = null,
-        brand: String? = null,
         offset: Int = 0,
         limit: Int = 20
     ): List<Product> {
-        val conditions = mutableListOf(
-            "(title ILIKE :query OR short_description ILIKE :query OR description ILIKE :query)",
-            "deleted_at IS NULL"
-        )
-        val params = mutableMapOf<String, Any>(
-            "query" to "%$query%",
-            "limit" to limit,
-            "offset" to offset.toLong()
-        )
-
-        status?.let {
-            conditions.add("status = :status")
-            params["status"] = it
-        }
-
-        categoryId?.let {
-            conditions.add("category_id = :categoryId")
-            params["categoryId"] = it
-        }
-
-        productType?.let {
-            conditions.add("product_type = :productType")
-            params["productType"] = it
-        }
-
-        brand?.let {
-            conditions.add("brand = :brand")
-            params["brand"] = it
-        }
-
-        val sql = """
-            SELECT * FROM $tableName 
-            WHERE ${conditions.joinToString(" AND ")} 
-            ORDER BY 
-                CASE WHEN is_featured = true THEN 1 ELSE 2 END,
-                created_at DESC 
-            LIMIT :limit OFFSET :offset
-        """.trimIndent()
-
-        return executeQuery(sql, params)
+        return search(query, offset = offset, limit = limit)
     }
 
     // Full-text search with ranking
@@ -265,10 +209,11 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("query", query)
-                .bind("limit", limit)
-                .bind("offset", offset.toLong())
+            createNamedStatement(sql, mapOf(
+                "query" to query,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            ))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -299,10 +244,11 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("status", status)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "status" to status,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -324,10 +270,11 @@ class ProductRepository @Inject constructor(
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("deletedAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "deletedAt" to now,
+                "updatedAt" to now
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -348,9 +295,10 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -370,9 +318,10 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -498,20 +447,19 @@ class ProductRepository @Inject constructor(
             UPDATE $tableName 
             SET status = :status,
                 updated_at = :updatedAt 
-            WHERE id IN (${placeholders.joinToString(", ")}) 
+            WHERE id = ANY(:ids)
               AND deleted_at IS NULL
         """.trimIndent()
 
+        val params = mutableMapOf<String, Any>(
+            "status" to status,
+            "updatedAt" to OffsetDateTime.now(),
+            "ids" to ids.toTypedArray()
+        )
+
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("status", status)
-                .bind("updatedAt", OffsetDateTime.now())
-
-            ids.forEachIndexed { index, id ->
-                statement.bind("id$index", id)
-            }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .rowsUpdated
                 .awaitSingle()
@@ -540,7 +488,12 @@ class ProductRepository @Inject constructor(
 
     // Check if slug is unique
     suspend fun isSlugUnique(slug: String, excludeId: String? = null): Boolean {
-        val excludeFilter = if (excludeId != null) "AND id != :excludeId" else ""
+        val params = mutableMapOf<String, Any>("slug" to slug)
+
+        val excludeFilter = if (excludeId != null) {
+            params["excludeId"] = excludeId
+            "AND id != :excludeId"
+        } else ""
 
         val sql = """
             SELECT COUNT(*) as count 
@@ -551,14 +504,8 @@ class ProductRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-                .bind("slug", slug)
-
-            if (excludeId != null) {
-                statement.bind("excludeId", excludeId)
-            }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) == 0L }
                 .awaitFirstOrNull() ?: true
@@ -571,7 +518,15 @@ class ProductRepository @Inject constructor(
         threshold: Int = 10,
         limit: Int = 20
     ): List<ProductWithStock> {
-        val warehouseFilter = if (warehouseId != null) "AND im.warehouse_id = :warehouseId" else ""
+        val params = mutableMapOf<String, Any>(
+            "threshold" to threshold,
+            "limit" to limit
+        )
+
+        val warehouseFilter = if (warehouseId != null) {
+            params["warehouseId"] = warehouseId
+            "AND im.warehouse_id = :warehouseId"
+        } else ""
 
         val sql = """
             WITH stock_levels AS (
@@ -601,20 +556,9 @@ class ProductRepository @Inject constructor(
             LIMIT :limit
         """.trimIndent()
 
-        val params = mutableMapOf<String, Any>(
-            "threshold" to threshold,
-            "limit" to limit
-        )
-
-        if (warehouseId != null) {
-            params["warehouseId"] = warehouseId
-        }
-
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            params.forEach { (key, value) -> statement.bind(key, value) }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
                     ProductWithStock(
@@ -624,26 +568,6 @@ class ProductRepository @Inject constructor(
                 }
                 .asFlow()
                 .toList()
-        }
-    }
-
-    private fun validateProduct(product: Product) {
-        if (product.title.isBlank()) {
-            throw IllegalArgumentException("Product title cannot be blank")
-        }
-
-        if (product.slug.isBlank()) {
-            throw IllegalArgumentException("Product slug cannot be blank")
-        }
-
-        val validStatuses = listOf("draft", "published", "archived")
-        if (product.status !in validStatuses) {
-            throw IllegalArgumentException("Invalid product status: ${product.status}")
-        }
-
-        val validProductTypes = listOf("standard", "customizable", "digital", "service")
-        if (product.productType !in validProductTypes) {
-            throw IllegalArgumentException("Invalid product type: ${product.productType}")
         }
     }
 }

@@ -62,8 +62,7 @@ class CustomProductAttachmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("requestId", requestId)
+            createNamedStatement(sql, mapOf("requestId" to requestId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("total_size", Long::class.java) ?: 0L }
@@ -86,22 +85,18 @@ class CustomProductAttachmentRepository @Inject constructor(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            attachments.forEachIndexed { index, attachment ->
-                statement.bind("request_id_$index", attachment.requestId)
-                statement.bind("file_url_$index", attachment.fileUrl)
-                if (attachment.fileType != null) statement.bind(
-                    "file_type_$index",
-                    attachment.fileType
-                ) else statement.bindNull("file_size_$index", String::class.java)
-                if (attachment.fileSize != null) statement.bind(
-                    "file_type_$index",
-                    attachment.fileSize
-                ) else statement.bindNull("file_size_$index", Long::class.java)
-            }
+        val params = mutableMapOf<String, Any?>()
 
-            statement.execute()
+        attachments.forEachIndexed { index, attachment ->
+            params["request_id_$index"] = attachment.requestId
+            params["file_url_$index"] = attachment.fileUrl
+            params["file_type_$index"] = attachment.fileType
+            params["file_size_$index"] = attachment.fileSize
+        }
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -114,8 +109,7 @@ class CustomProductAttachmentRepository @Inject constructor(
         val sql = "DELETE FROM $tableName WHERE request_id = :requestId"
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("requestId", requestId)
+            connection.createNamedStatement(sql, mapOf("requestId" to requestId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -133,9 +127,7 @@ class CustomProductAttachmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("requestId", requestId)
-                .bind("fileUrl", fileUrl)
+            createNamedStatement(sql, mapOf("requestId" to requestId, "file_url" to fileUrl))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }

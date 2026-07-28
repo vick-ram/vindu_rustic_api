@@ -26,8 +26,7 @@ class SettingRepository @Inject constructor(
         val sql = "SELECT * FROM $tableName WHERE key = :key"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("key", key)
+            createNamedStatement(sql, mapOf("key" to key))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -97,8 +96,7 @@ class SettingRepository @Inject constructor(
         val sql = "DELETE FROM $tableName WHERE key = :key"
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("key", key)
+            connection.createNamedStatement(sql, mapOf("key" to key))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated

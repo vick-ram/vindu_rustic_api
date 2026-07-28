@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.ktor.client.utils.EmptyContent.status
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
@@ -31,8 +32,8 @@ class ConversationRepository @Inject constructor(
         userId: String,
         otherUserId: String
     ): Conversation {
-         return findConversationBetweenUsers(userId, otherUserId)
-        ?: createConversation(userId, otherUserId)
+        return findConversationBetweenUsers(userId, otherUserId)
+            ?: createConversation(userId, otherUserId)
     }
 
     suspend fun getUserConversations(userId: String): List<Conversation> {
@@ -108,31 +109,38 @@ class ConversationRepository @Inject constructor(
     ): Conversation = connectionFactory.withTransaction { connection ->
         val conversationId = Ulid.generate()
         val now = OffsetDateTime.now()
-
-        // Insert conversation
-        connection.createStatement("""
+        val conversationSql = """
             INSERT INTO conversations (id, created_at, updated_at) 
             VALUES (:id, :createdAt, :updatedAt)
             RETURNING *
-        """.trimIndent())
-            .bind("id", conversationId)
-            .bind("createdAt", now)
-            .bind("updatedAt", now)
+        """.trimIndent()
+
+        // Insert conversation
+        connection.createNamedStatement(
+            conversationSql,
+            mapOf("id" to conversationId, "createdAt" to now, "updatedAt" to now)
+        )
             .execute()
             .awaitSingle()
             .map(rowMapper)
             .awaitSingle()
 
-        // Insert participants
-        listOf(userId, otherUserId).forEach { participantUserId ->
-            connection.createStatement("""
+        val participantSql = """
                 INSERT INTO participants (id, conversation_id, user_id, joined_at, is_active) 
                 VALUES (:id, :conversationId, :userId, :joinedAt, :isActive)
-            """.trimIndent())
-                .bind("conversationId", conversationId)
-                .bind("userId", participantUserId)
-                .bind("joinedAt", now)
-                .bind("isActive", true)
+            """.trimIndent()
+
+        // Insert participants
+        listOf(userId, otherUserId).forEach { participantUserId ->
+            connection.createNamedStatement(
+                participantSql,
+                mapOf(
+                    "conversationId" to conversationId,
+                    "userId" to participantUserId,
+                    "joinedAt" to now,
+                    "isActive" to true
+                )
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -201,20 +209,23 @@ class MessageRepository(
     ): Message = connectionFactory.withTransaction { connection ->
         val messageId = Ulid.generate()
         val now = OffsetDateTime.now()
-
-        // Insert message
-        connection.createStatement("""
+        val messageSql = """
             INSERT INTO messages (id, conversation_id, sender_id, message_text, message_type, created_at, updated_at)
             VALUES (:id, :conversationId, :senderId, :text, :type, :createdAt, :updatedAt)
             RETURNING *
-        """.trimIndent())
-            .bind("id", messageId)
-            .bind("conversationId", conversationId)
-            .bind("senderId", senderId)
-            .bind("text", text)
-            .bind("type", type.name)
-            .bind("createdAt", now)
-            .bind("updatedAt", now)
+        """.trimIndent()
+        val messageParams = mapOf(
+            "id" to messageId,
+            "conversationId" to conversationId,
+            "senderId" to senderId,
+            "text" to text,
+            "type" to type,
+            "createdAt" to now,
+            "updatedAt" to now
+        )
+
+        // Insert message
+        connection.createNamedStatement(messageSql, messageParams)
             .execute()
             .awaitSingle()
             .map(rowMapper)
@@ -223,32 +234,40 @@ class MessageRepository(
         // Get active participants (excluding sender) - using existing executeQuery
         val participants = getActiveParticipants(connection, conversationId, senderId)
 
-        // Create message status for each participant
-        participants.forEach { participant ->
-            connection.createStatement("""
+        val messageStatusSql = """
                 INSERT INTO message_status (id, message_id, user_id, status, updated_at)
                 VALUES (:id, :messageId, :userId, :status, :updatedAt)
-            """.trimIndent())
-                .bind("id", Ulid.generate())
-                .bind("messageId", messageId)
-                .bind("userId", participant.userId)
-                .bind("status", MessageStatus.SENT.name)
-                .bind("updatedAt", now)
+            """.trimIndent()
+
+        // Create message status for each participant
+        participants.forEach { participant ->
+            val messageStatusParams = mapOf(
+                "id" to Ulid.generate(),
+                "messageId" to messageId,
+                "userId" to participant.userId,
+                "status" to MessageStatus.SENT.name,
+                "updatedAt" to now
+            )
+
+            connection.createNamedStatement(messageStatusSql, messageStatusParams)
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
                 .awaitSingle()
         }
 
-        // Update conversation's last message and timestamp
-        connection.createStatement("""
+        val conversationSql = """
             UPDATE conversations 
             SET updated_at = :updatedAt, last_message_id = :messageId
             WHERE id = :conversationId
-        """.trimIndent())
-            .bind("updatedAt", now)
-            .bind("messageId", messageId)
-            .bind("conversationId", conversationId)
+        """.trimIndent()
+
+        // Update conversation's last message and timestamp
+        connection.createNamedStatement(conversationSql, mapOf(
+            "conversationId" to conversationId,
+            "messageId" to messageId,
+            "updatedAt" to now
+        ))
             .execute()
             .awaitSingle()
             .rowsUpdated
@@ -279,7 +298,11 @@ class MessageRepository(
             mapper = { row, metadata ->
                 val message = messageMapper.toModel(row, metadata)
                 val status = row.get("user_status", String::class.java)?.let {
-                    try { MessageStatus.valueOf(it) } catch (e: Exception) { null }
+                    try {
+                        MessageStatus.valueOf(it)
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
                 message.copy(status = status)
             }
@@ -291,17 +314,21 @@ class MessageRepository(
             val now = OffsetDateTime.now()
 
             // Upsert message status using PostgreSQL ON CONFLICT
-            connection.createStatement("""
+            connection.createNamedStatement(
+                """
                 INSERT INTO message_status (id, message_id, user_id, status, updated_at)
                 VALUES (:id, :messageId, :userId, :status, :updatedAt)
                 ON CONFLICT (message_id, user_id) 
                 DO UPDATE SET status = :status, updated_at = :updatedAt
-            """.trimIndent())
-                .bind("id", Ulid.generate())
-                .bind("messageId", messageId)
-                .bind("userId", userId)
-                .bind("status", MessageStatus.READ.name)
-                .bind("updatedAt", now)
+            """.trimIndent(),
+                mapOf(
+                    "id" to Ulid.generate(),
+                    "messageId" to messageId,
+                    "userId" to userId,
+                    "status" to MessageStatus.READ.name,
+                    "updatedAt" to now
+                )
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -337,7 +364,8 @@ class MessageRepository(
         val now = OffsetDateTime.now()
 
         // Single query to mark all messages as read using PostgreSQL's INSERT...ON CONFLICT
-        connection.createStatement("""
+        connection.createNamedStatement(
+            """
             INSERT INTO message_status (id, message_id, user_id, status, updated_at)
             SELECT 
                 gen_random_uuid(),
@@ -352,11 +380,14 @@ class MessageRepository(
             AND (ms.status IS NULL OR ms.status != 'READ')
             ON CONFLICT (message_id, user_id) 
             DO UPDATE SET status = :status, updated_at = :updatedAt
-        """.trimIndent())
-            .bind("conversationId", conversationId)
-            .bind("userId", userId)
-            .bind("status", MessageStatus.READ.name)
-            .bind("updatedAt", now)
+        """.trimIndent(),
+            mapOf(
+                "conversationId" to conversationId,
+                "userId" to userId,
+                "status" to MessageStatus.READ.name,
+                "updatedAt" to now
+            )
+        )
             .execute()
             .awaitSingle()
             .rowsUpdated
@@ -369,14 +400,18 @@ class MessageRepository(
         conversationId: String,
         excludeUserId: String
     ): List<Participant> {
-        return connection.createStatement("""
+        return connection.createNamedStatement(
+            """
             SELECT * FROM participants 
             WHERE conversation_id = :conversationId 
             AND is_active = true 
             AND user_id != :excludeUserId
-        """.trimIndent())
-            .bind("conversationId", conversationId)
-            .bind("excludeUserId", excludeUserId)
+        """.trimIndent(),
+            mapOf(
+                "conversationId" to conversationId,
+                "excludeUserId" to excludeUserId
+            )
+        )
             .execute()
             .awaitSingle()
             .map { row, metadata -> participantMapper.toModel(row, metadata) }

@@ -79,8 +79,7 @@ class TicketMessageRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("ticketId", ticketId)
+            createNamedStatement(sql, mapOf("ticketId" to ticketId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -103,8 +102,7 @@ class TicketMessageRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("ticketId", ticketId)
+            createNamedStatement(sql, mapOf("ticketId" to ticketId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) }
@@ -169,8 +167,7 @@ class TicketMessageRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("ticketId", ticketId)
+            createNamedStatement(sql, mapOf("ticketId" to ticketId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -237,8 +234,7 @@ class TicketMessageRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) }

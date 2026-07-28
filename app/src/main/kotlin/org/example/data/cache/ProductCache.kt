@@ -2,244 +2,271 @@ package org.example.data.cache
 
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
-import kotlinx.serialization.Serializable
-import org.example.data.mappers.ProductMapper
-import org.example.data.repo.AuditLogsRepository
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
-import org.example.data.repo.ProductMediaRepository
 import org.example.data.repo.ProductRepository
-import org.example.data.repo.ProductReviewRepository
+import org.example.data.repo.ProductSearchResult
 import org.example.data.repo.ProductStats
-import org.example.data.repo.ProductVariantRepository
+import org.example.data.repo.ProductWithStock
 import org.example.domain.models.catalog.Product
-import org.example.domain.models.catalog.ProductMedia
-import org.example.domain.models.catalog.ProductReview
-import org.example.domain.models.catalog.ProductVariant
-import org.koin.core.annotation.Single
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.time.OffsetDateTime
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Single
 class ProductCache(
-    redis: RedisCoroutinesCommands<String, String>,
-    private val productRepository: ProductRepository,
-    private val auditLogRepository: AuditLogsRepository,
-    private val productMediaRepository: ProductMediaRepository,
-    private val productVariantRepository: ProductVariantRepository,
-    private val productReviewRepository: ProductReviewRepository,
-    productMapper: ProductMapper
-): CrudCache<Product, String>(
+    private val redis: RedisCoroutinesCommands<String, String>,
+    private val productRepo: ProductRepository,
+    config: CacheConfig
+) : CrudCache<Product, String>(
     redis = redis,
-    delegate = productRepository,
-    getId = {product -> productMapper.getId(product) as String},
+    delegate = productRepo,
+    getId = { it.id }, // Assuming Product has an 'id' property of type String
     serializer = Product.serializer(),
-    config = object : CacheConfig {
-        override val cacheName: String = "productCache"
-        override val ttl: Long = 1800L
-    }
+    config = config
 ) {
-    suspend fun createProduct(
-        title: String,
-        slug: String,
-        categoryId: String? = null,
-        description: String? = null,
-        shortDescription: String? = null,
-        productType: String = "standard",
-        brand: String? = null,
-        isCustomizable: Boolean = false,
-        seoTitle: String? = null,
-        seoDescription: String? = null,
-        actorId: String? = null
-    ) : Product {
-        if (!productRepository.isSlugUnique(slug)) {
-            throw IllegalArgumentException("Product slug '$slug' already exists")
+    private val logger: Logger = LoggerFactory.getLogger(ProductCache::class.java)
+    private val productListSerializer = ListSerializer(Product.serializer())
+
+    /**
+     * Helper to cache collections with custom sub-keys (e.g., category, status, featured)
+     */
+    private suspend fun <T> typedCacheOrFetch(
+        cacheKey: String,
+        serializer: kotlinx.serialization.KSerializer<T>,
+        fetcher: suspend () -> T
+    ): T {
+        val cachedJson = try {
+            redis.get(cacheKey)
+        } catch (e: Exception) {
+            logger.error("Failed to read from cache for key: $cacheKey", e)
+            null
         }
 
-        val product = productRepository.create(
-            Product(
-                categoryId = categoryId,
-                title = title,
-                slug = slug,
-                description = description,
-                shortDescription = shortDescription,
-                productType = productType,
-                brand = brand,
-                isCustomizable = isCustomizable,
-                seoTitle = seoTitle,
-                seoDescription = seoDescription
-            )
-        )
-
-        // Log product creation
-        auditLogRepository.logAction(
-            actorId = actorId,
-            actorType = "user",
-            action = "product_created",
-            entityType = "product",
-            entityId = product.id,
-            metadata = mapOf(
-                "title" to title,
-                "slug" to slug,
-                "product_type" to productType
-            )
-        )
-        return product
-    }
-
-    suspend fun updateProduct(
-        id: String,
-        title: String? = null,
-        slug: String? = null,
-        categoryId: String? = null,
-        description: String? = null,
-        shortDescription: String? = null,
-        brand: String? = null,
-        isCustomizable: Boolean? = null,
-        isFeatured: Boolean? = null,
-        seoTitle: String? = null,
-        seoDescription: String? = null,
-        actorId: String? = null
-    ): Product? {
-        val existingProduct = productRepository.read(id) ?: return null
-
-        // Validate slug uniqueness if changed
-        if (slug != null && slug != existingProduct.slug) {
-            if (!productRepository.isSlugUnique(slug, id)) {
-                throw IllegalArgumentException("Product slug '$slug' already exists")
+        if (cachedJson != null) {
+            try {
+                return Json.decodeFromString(serializer, cachedJson)
+            } catch (e: Exception) {
+                logger.error("Failed to deserialize cache for key: $cacheKey", e)
             }
         }
 
-        val updatedProduct = productRepository.update(
-            id,
-            existingProduct.copy(
-                title = title ?: existingProduct.title,
-                slug = slug ?: existingProduct.slug,
-                categoryId = categoryId ?: existingProduct.categoryId,
-                description = description ?: existingProduct.description,
-                shortDescription = shortDescription ?: existingProduct.shortDescription,
-                brand = brand ?: existingProduct.brand,
-                isCustomizable = isCustomizable ?: existingProduct.isCustomizable,
-                isFeatured = isFeatured ?: existingProduct.isFeatured,
-                seoTitle = seoTitle ?: existingProduct.seoTitle,
-                seoDescription = seoDescription ?: existingProduct.seoDescription
-            )
-        )
+        val result = fetcher()
 
-        // Log product update
-        if (updatedProduct != null) {
-            auditLogRepository.logAction(
-                actorId = actorId,
-                actorType = "user",
-                action = "product_updated",
-                entityType = "product",
-                entityId = id,
-                changes = mapOf(
-                    "old" to mapOf(
-                        "title" to existingProduct.title,
-                        "slug" to existingProduct.slug,
-                        "status" to existingProduct.status
-                    ),
-                    "new" to mapOf(
-                        "title" to updatedProduct.title,
-                        "slug" to updatedProduct.slug,
-                        "status" to updatedProduct.status
-                    )
-                )
-            )
+        // Cache the result if it's a non-empty list or a non-null object
+        val shouldCache = when (result) {
+            is List<*> -> result.isNotEmpty()
+            null -> false
+            else -> true
         }
 
-        return updatedProduct
-    }
-
-    suspend fun publishProduct(id: String, actorId: String? = null): Product? {
-        val product = productRepository.updateStatus(id, "published")
-
-        if (product != null) {
-            auditLogRepository.logAction(
-                actorId = actorId,
-                actorType = "user",
-                action = "product_published",
-                entityType = "product",
-                entityId = id,
-                metadata = mapOf("title" to product.title)
-            )
+        if (shouldCache) {
+            try {
+                val jsonValue = Json.encodeToString(serializer, result)
+                if (config.ttl != null) {
+                    redis.setex(cacheKey, config.ttl!!, jsonValue)
+                } else {
+                    redis.set(cacheKey, jsonValue)
+                }
+            } catch (e: Exception) {
+                logger.error("Failed to write to cache for key: $cacheKey", e)
+            }
         }
 
-        return product
+        return result
     }
 
-    suspend fun deleteProduct(id: String, actorId: String? = null): Product? {
-        val product = productRepository.softDelete(id)
+    // --- Query Methods (Cached) ---
 
-        if (product != null) {
-            auditLogRepository.logAction(
-                actorId = actorId,
-                actorType = "user",
-                action = "product_deleted",
-                entityType = "product",
-                entityId = id,
-                metadata = mapOf("title" to product.title)
-            )
+    suspend fun findBySlug(slug: String, includeDeleted: Boolean = false): Product? {
+        val cacheKey = "${config.cacheName}:slug:$slug:$includeDeleted"
+        return typedCacheOrFetch(cacheKey, Product.serializer().nullable) {
+            productRepo.findBySlug(slug, includeDeleted)
         }
-
-        return product
     }
 
-    suspend fun getProductDetails(productId: String): ProductDetails? {
-        val product = productRepository.read(productId) ?: return null
-        val media = productMediaRepository.findByProductId(productId)
-        val variants = productVariantRepository.findByProductId(productId)
-        val reviews = productReviewRepository.findByProductId(productId)
-        val averageRating = productReviewRepository.getAverageRating(productId)
-        val relatedProducts = productRepository.findRelated(productId)
-
-        return ProductDetails(
-            product = product,
-            media = media,
-            variants = variants,
-            reviews = reviews,
-            averageRating = averageRating,
-            relatedProducts = relatedProducts
-        )
-    }
-
-    suspend fun searchProducts(
-        query: String,
-        categoryId: String? = null,
-        brand: String? = null,
-        productType: String? = null,
+    suspend fun findByCategoryId(
+        categoryId: String,
+        status: String? = "published",
         offset: Int = 0,
         limit: Int = 20
     ): List<Product> {
-        return productRepository.search(
-            query = query,
-            categoryId = categoryId,
-            brand = brand,
-            productType = productType,
-            offset = offset,
-            limit = limit
-        )
+        val cacheKey = "${config.cacheName}:category:$categoryId:$status:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findByCategoryId(categoryId, status, offset, limit)
+        }
     }
 
-    suspend fun getFeaturedProducts(limit: Int = 10): List<Product> {
-        return productRepository.findFeatured(0, limit)
+    suspend fun findByStatus(status: String, offset: Int = 0, limit: Int = 20): List<Product> {
+        val cacheKey = "${config.cacheName}:status:$status:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findByStatus(status, offset, limit)
+        }
     }
 
-    suspend fun getLatestProducts(limit: Int = 10): List<Product> {
-        return productRepository.getLatest(limit)
+    suspend fun findFeatured(offset: Int = 0, limit: Int = 20): List<Product> {
+        val cacheKey = "${config.cacheName}:featured:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findFeatured(offset, limit)
+        }
+    }
+
+    suspend fun findCustomizable(offset: Int = 0, limit: Int = 20): List<Product> {
+        val cacheKey = "${config.cacheName}:customizable:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findCustomizable(offset, limit)
+        }
+    }
+
+    suspend fun findByBrand(brand: String, offset: Int = 0, limit: Int = 20): List<Product> {
+        val cacheKey = "${config.cacheName}:brand:$brand:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findByBrand(brand, offset, limit)
+        }
+    }
+
+    suspend fun findByProductType(productType: String, offset: Int = 0, limit: Int = 20): List<Product> {
+        val cacheKey = "${config.cacheName}:type:$productType:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findByProductType(productType, offset, limit)
+        }
+    }
+
+    suspend fun searchProduct(query: String, offset: Int = 0, limit: Int = 20): List<Product> {
+        // Search queries are highly dynamic; cached under a search namespace
+        val cacheKey = "${config.cacheName}:search:$query:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.searchProduct(query, offset, limit)
+        }
+    }
+
+    suspend fun fullTextSearch(query: String, offset: Int = 0, limit: Int = 20): List<ProductSearchResult> {
+        val cacheKey = "${config.cacheName}:fts:$query:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, ListSerializer(ProductSearchResult.serializer())) {
+            productRepo.fullTextSearch(query, offset, limit)
+        }
+    }
+
+    suspend fun findRelated(productId: String, limit: Int = 10): List<Product> {
+        val cacheKey = "${config.cacheName}:related:$productId:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findRelated(productId, limit)
+        }
     }
 
     suspend fun getProductStats(): ProductStats {
-        return productRepository.getProductStats()
+        val cacheKey = "${config.cacheName}:stats"
+        return typedCacheOrFetch(cacheKey, ProductStats.serializer()) {
+            productRepo.getProductStats()
+        }
+    }
+
+    suspend fun findByDateRange(
+        startDate: OffsetDateTime,
+        endDate: OffsetDateTime,
+        status: String? = null,
+        offset: Int = 0,
+        limit: Int = 50
+    ): List<Product> {
+        val cacheKey = "${config.cacheName}:daterange:${startDate.toEpochSecond()}:${endDate.toEpochSecond()}:$status:$offset:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.findByDateRange(startDate, endDate, status, offset, limit)
+        }
+    }
+
+    suspend fun getLatest(limit: Int = 10, status: String = "published"): List<Product> {
+        val cacheKey = "${config.cacheName}:latest:$status:$limit"
+        return typedCacheOrFetch(cacheKey, productListSerializer) {
+            productRepo.getLatest(limit, status)
+        }
+    }
+
+    suspend fun isSlugUnique(slug: String, excludeId: String? = null): Boolean {
+        // We bypass cache for absolute constraint validations to ensure zero race-conditions
+        return productRepo.isSlugUnique(slug, excludeId)
+    }
+
+    suspend fun getLowStockProducts(warehouseId: String? = null, threshold: Int = 10, limit: Int = 20): List<ProductWithStock> {
+        // Real-time stock shouldn't be long-cached, but we cache with short parameters if needed
+        val cacheKey = "${config.cacheName}:lowstock:$warehouseId:$threshold:$limit"
+        return typedCacheOrFetch(cacheKey, ListSerializer(ProductWithStock.serializer())) {
+            productRepo.getLowStockProducts(warehouseId, threshold, limit)
+        }
+    }
+
+    // --- Write Actions (Evict & Sync Cache) ---
+
+    suspend fun updateStatus(id: String, status: String): Product? {
+        val updated = productRepo.updateStatus(id, status)
+        handleStateMutation(id, updated)
+        return updated
+    }
+
+    suspend fun softDelete(id: String): Product? {
+        val updated = productRepo.softDelete(id)
+        handleStateMutation(id, updated)
+        return updated
+    }
+
+    suspend fun restore(id: String): Product? {
+        val updated = productRepo.restore(id)
+        handleStateMutation(id, updated)
+        return updated
+    }
+
+    suspend fun toggleFeatured(id: String): Product? {
+        val updated = productRepo.toggleFeatured(id)
+        handleStateMutation(id, updated)
+        return updated
+    }
+
+    suspend fun bulkUpdateStatus(ids: List<String>, status: String): Int {
+        val rowsUpdated = productRepo.bulkUpdateStatus(ids, status)
+        if (rowsUpdated > 0) {
+            // Drop individual item keys and wipe all structured query/collection indices
+            ids.forEach { removeFromCache(it) }
+            invalidateProductQueryCaches()
+        }
+        return rowsUpdated
+    }
+
+    // --- Private Cache Eviction Orchestration ---
+
+    private suspend fun handleStateMutation(id: String, updatedProduct: Product?) {
+        if (updatedProduct != null) {
+            putInCache(id, updatedProduct)
+        } else {
+            removeFromCache(id)
+        }
+        invalidateProductQueryCaches()
+    }
+
+    /**
+     * Drops all query collections and indices from Redis while keeping base entity caches active.
+     */
+    private suspend fun invalidateProductQueryCaches() {
+        invalidateCollectionCaches() // Base method handling `cacheName:collection:*`
+        deleteKeysByPattern("${config.cacheName}:slug:*")
+        deleteKeysByPattern("${config.cacheName}:category:*")
+        deleteKeysByPattern("${config.cacheName}:status:*")
+        deleteKeysByPattern("${config.cacheName}:featured:*")
+        deleteKeysByPattern("${config.cacheName}:customizable:*")
+        deleteKeysByPattern("${config.cacheName}:brand:*")
+        deleteKeysByPattern("${config.cacheName}:type:*")
+        deleteKeysByPattern("${config.cacheName}:search:*")
+        deleteKeysByPattern("${config.cacheName}:fts:*")
+        deleteKeysByPattern("${config.cacheName}:related:*")
+        deleteKeysByPattern("${config.cacheName}:stats*")
+        deleteKeysByPattern("${config.cacheName}:daterange:*")
+        deleteKeysByPattern("${config.cacheName}:latest:*")
+        deleteKeysByPattern("${config.cacheName}:lowstock:*")
     }
 }
 
-@Serializable
-data class ProductDetails(
-    val product: Product,
-    val media: List<ProductMedia>,
-    val variants: List<ProductVariant>,
-    val reviews: List<ProductReview>,
-    val averageRating: Double?,
-    val relatedProducts: List<Product>
-)
+/**
+ * Kotlinx Serialization Extension to cleanly serialize nullable products inside a lambda block.
+ */
+private val <T> kotlinx.serialization.KSerializer<T>.nullable: kotlinx.serialization.KSerializer<T?>
+    get() = @Suppress("UNCHECKED_CAST") (this as kotlinx.serialization.KSerializer<T?>)

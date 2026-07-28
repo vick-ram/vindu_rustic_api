@@ -10,10 +10,9 @@ import org.example.data.mappers.ConversationMapper
 import org.example.data.mappers.MessageMapper
 import org.example.data.mappers.ProductMapper
 import org.example.data.mappers.UserMapper
-import org.example.data.repo.AuditLogsRepository
+import org.example.data.repo.AuditLogRepository
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.ConversationRepository
-import org.example.data.repo.CrudCache
 import org.example.data.repo.MessageRepository
 import org.example.data.repo.ProductMediaRepository
 import org.example.data.repo.ProductRepository
@@ -21,8 +20,6 @@ import org.example.data.repo.ProductReviewRepository
 import org.example.data.repo.ProductVariantRepository
 import org.example.data.repo.UserRepository
 import org.example.domain.models.identity.User
-import org.example.domain.models.support.Conversation
-import org.example.domain.models.support.Message
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
@@ -80,7 +77,7 @@ class CacheModule {
     fun provideProductCache(
         redis: RedisCoroutinesCommands<String, String>,
         productRepo: ProductRepository,
-        @Qualifier("auditLogsRepository") auditLogsRepository: AuditLogsRepository,
+        @Qualifier("auditLogsRepository") auditLogRepository: AuditLogRepository,
         productMediaRepository: ProductMediaRepository,
         productVariantRepository: ProductVariantRepository,
         productReviewRepository: ProductReviewRepository,
@@ -89,7 +86,7 @@ class CacheModule {
         return ProductCache(
             redis = redis,
             productRepository = productRepo,
-            auditLogRepository = auditLogsRepository,
+            auditLogRepository = auditLogRepository,
             productMediaRepository = productMediaRepository,
             productVariantRepository = productVariantRepository,
             productReviewRepository = productReviewRepository,

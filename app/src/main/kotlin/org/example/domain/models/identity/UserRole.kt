@@ -1,5 +1,6 @@
 package org.example.domain.models.identity
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.example.utils.OffsetDateTimeSerializer
@@ -13,7 +14,7 @@ data class UserRole(
     @SerialName(value = "role_id")
     val roleId: String,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -8,7 +9,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.NotificationMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.Notification
 import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
@@ -23,11 +23,6 @@ class NotificationRepository @Inject constructor(
     mapper = notificationMapper
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
-
-    // Override update to handle updated_at
-    override suspend fun update(id: String, model: Notification): Notification? {
-        return super.update(id, model.copy(updatedAt = OffsetDateTime.now()))
-    }
 
     // Get notifications for a user
     suspend fun findByUserId(
@@ -46,11 +41,13 @@ class NotificationRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get notifications by type
@@ -72,18 +69,20 @@ class NotificationRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "type" to type,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "type" to type,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get notifications by channel
     suspend fun findByChannel(
         userId: String,
-        channel: NotificationChannel,
+        channel: String,
         includeRead: Boolean = false,
         offset: Int = 0,
         limit: Int = 20
@@ -99,12 +98,14 @@ class NotificationRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "channel" to channel.name,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "channel" to channel,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get notifications by reference
@@ -125,11 +126,13 @@ class NotificationRepository @Inject constructor(
             ORDER BY created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "referenceType" to referenceType,
-            "referenceId" to referenceId
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "referenceType" to referenceType,
+                "referenceId" to referenceId
+            )
+        )
     }
 
     // Get unread notification count
@@ -142,8 +145,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) }
@@ -164,8 +166,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -192,10 +193,7 @@ class NotificationRepository @Inject constructor(
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("readAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(sql, mapOf("id" to id, "readAt" to now, "updatedAt" to now))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -216,10 +214,7 @@ class NotificationRepository @Inject constructor(
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("userId", userId)
-                .bind("readAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(sql, mapOf("userId" to userId, "readAt" to now, "updatedAt" to now))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -242,11 +237,10 @@ class NotificationRepository @Inject constructor(
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("userId", userId)
-                .bind("type", type)
-                .bind("readAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(
+                sql,
+                mapOf("userId" to userId, "type" to type, "readAt" to now, "updatedAt" to now)
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -272,15 +266,19 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         val isDuplicate = connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", notification.userId)
-                .bind("type", notification.type)
-                .bind("referenceType", notification.referenceType ?: String::class.java)
-                .bind("referenceId", notification.referenceId ?: String::class.java)
-                .bind("cutoffTime", OffsetDateTime.now().minusMinutes(deduplicateWithinMinutes))
+            createNamedStatement(
+                sql,
+                mapOf(
+                    "userId" to notification.userId,
+                    "type" to notification.type,
+                    "referenceType" to notification.referenceType,
+                    "referenceId" to notification.referenceId,
+                    "cutoffTime" to OffsetDateTime.now().minusMinutes(deduplicateWithinMinutes)
+                )
+            )
                 .execute()
                 .awaitSingle()
-                .map { row, _ -> (row.get("count", Long::class.java)?: 0L) > 0 }
+                .map { row, _ -> (row.get("count", Long::class.java) ?: 0L) > 0 }
                 .awaitFirstOrNull() ?: false
         }
 
@@ -311,22 +309,24 @@ class NotificationRepository @Inject constructor(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            notifications.forEachIndexed { index, notification ->
-                statement.bind("user_id_$index", notification.userId)
-                statement.bind("type_$index", notification.type)
-                statement.bind("title_$index", notification.title)
-                statement.bind("body_$index", notification.body ?: String::class.java)
-                statement.bind("action_url_$index", notification.actionUrl ?: String::class.java)
-                statement.bind("reference_type_$index", notification.referenceType ?: String::class.java)
-                statement.bind("reference_id_$index", notification.referenceId ?: String::class.java)
-                statement.bind("metadata_$index", notification.metadata)
-                statement.bind("channel_$index", notification.channel.name)
-                statement.bind("is_read_$index", notification.isRead)
-            }
+        val params = mutableMapOf<String, Any>()
 
-            statement.execute()
+        notifications.forEachIndexed { index, notification ->
+            params["user_id_$index"] = notification.userId
+            params["type_$index"] = notification.type
+            params["title_$index"] = notification.title
+            params["body_$index"] = notification.body ?: String::class.java
+            params["action_url_$index"] = notification.actionUrl ?: String::class.java
+            params["reference_type_$index"] = notification.referenceType ?: String::class.java
+            params["reference_id_$index"] = notification.referenceId ?: String::class.java
+            params["metadata_$index"] = notification.metadata
+            params["channel_$index"] =  notification.channel
+            params["is_read_$index"] = notification.isRead
+        }
+
+        return connectionFactory.withTransaction { connection ->
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -343,8 +343,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("cutoffDate", OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            connection.createNamedStatement(sql, mapOf("cutoffDate" to OffsetDateTime.now().minusDays(olderThanDays.toLong())))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -361,8 +360,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("userId", userId)
+            connection.createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -388,8 +386,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
+            createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -401,7 +398,7 @@ class NotificationRepository @Inject constructor(
                         fcmCount = (row.get("fcm_count", Long::class.java) ?: 0L).toInt(),
                         emailCount = (row.get("email_count", Long::class.java) ?: 0L).toInt(),
                         databaseCount = (row.get("database_count", Long::class.java) ?: 0L).toInt(),
-                        smsCount =( row.get("sms_count", Long::class.java) ?: 0L).toInt()
+                        smsCount = (row.get("sms_count", Long::class.java) ?: 0L).toInt()
                     )
                 }
                 .awaitFirstOrNull() ?: NotificationStats(0, 0, 0, 0, 0, 0, 0, 0)
@@ -414,7 +411,7 @@ class NotificationRepository @Inject constructor(
         startDate: OffsetDateTime,
         endDate: OffsetDateTime,
         type: String? = null,
-        channel: NotificationChannel? = null,
+        channel: String? = null,
         offset: Int = 0,
         limit: Int = 50
     ): List<Notification> {
@@ -437,7 +434,7 @@ class NotificationRepository @Inject constructor(
 
         channel?.let {
             conditions.add("channel = :channel")
-            params["channel"] = it.name
+            params["channel"] = it
         }
 
         val sql = """
@@ -467,12 +464,14 @@ class NotificationRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "userId" to userId,
-            "query" to "%$query%",
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "userId" to userId,
+                "query" to "%$query%",
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get recent notifications with grouping
@@ -509,9 +508,7 @@ class NotificationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
-                .bind("limit", limit)
+            createNamedStatement(sql, mapOf("userId" to userId, "limit" to limit))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->

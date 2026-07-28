@@ -1,12 +1,11 @@
 package org.example.domain.models.sales
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
-import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -20,11 +19,11 @@ data class ShoppingCart @OptIn(ExperimentalUuidApi::class) constructor(
     @SerialName("guest_token")
     val guestToken: Uuid = Uuid.random(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 ) {

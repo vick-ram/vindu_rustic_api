@@ -1,11 +1,12 @@
 package org.example.domain.models.catalog
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.Between
 import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -29,7 +30,7 @@ data class ProductReview(
     @SerialName(value = "is_verified_purchase")
     val isVerifiedPurchase: Boolean = false,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 ) {

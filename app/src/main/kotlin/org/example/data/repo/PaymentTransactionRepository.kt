@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -26,14 +27,14 @@ class PaymentTransactionRepository @Inject constructor(
     override val generatedColumns = listOf("id", "created_at")
 
     // Get transactions for a payment
-    suspend fun findByPaymentId(paymentId: String): List<PaymentTransaction> {
+    suspend fun findByPaymentId(paymentId: String, connection: Connection? = null): List<PaymentTransaction> {
         val sql = """
             SELECT * FROM $tableName 
             WHERE payment_id = :paymentId 
             ORDER BY created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf("paymentId" to paymentId))
+        return executeQuery(sql, mapOf("paymentId" to paymentId), connection)
     }
 
     // Get transaction by provider transaction ID
@@ -45,8 +46,7 @@ class PaymentTransactionRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("providerTransactionId", providerTransactionId)
+            createNamedStatement(sql, mapOf("providerTransactionId" to providerTransactionId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -89,19 +89,15 @@ class PaymentTransactionRepository @Inject constructor(
             WHERE id = :id 
             RETURNING *
         """.trimIndent()
+        val params = mapOf(
+            "id" to id,
+            "status" to status,
+            "errorMessage" to errorMessage,
+            "providerResponse" to providerResponse
+        )
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("status", status)
-                .bind("errorMessage", errorMessage)
-                .apply {
-                    if (providerResponse != null) {
-                        bind("providerResponse", providerResponse)
-                    } else {
-                        bindNull("providerResponse", Any::class.java)
-                    }
-                }
+            connection.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -139,10 +135,7 @@ class PaymentTransactionRepository @Inject constructor(
         }
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            params.forEach { (key, value) -> statement.bind(key, value) }
-
-            statement.execute()
+            createNamedStatement(sql, params).execute()
                 .awaitSingle()
                 .map { row, _ ->
                     TransactionStats(
@@ -167,8 +160,7 @@ class PaymentTransactionRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("paymentId", paymentId)
+            createNamedStatement(sql, mapOf("paymentId" to paymentId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -185,8 +177,7 @@ class PaymentTransactionRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("providerTransactionId", providerTransactionId)
+            createNamedStatement(sql, mapOf("providerTransactionId" to providerTransactionId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }

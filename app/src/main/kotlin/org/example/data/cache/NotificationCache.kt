@@ -2,10 +2,8 @@ package org.example.data.cache
 
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
-import org.example.config.AppConfig
 import org.example.data.mappers.NotificationMapper
 import org.example.data.repo.*
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
 import org.example.plugins.NotFoundException
@@ -20,9 +18,8 @@ import java.math.BigDecimal
 class NotificationCache(
     redis: RedisCoroutinesCommands<String, String>,
     notificationMapper: NotificationMapper,
-    private val config: AppConfig,
     private val notificationRepository: NotificationRepository,
-    private val auditLogsRepository: AuditLogsRepository,
+    private val auditLogRepository: AuditLogRepository,
     private val deviceTokenRepository: DeviceTokenRepository,
     private val userRepository: UserRepository,
     private val pushService: FcmNotificationService,
@@ -49,7 +46,7 @@ class NotificationCache(
         referenceType: String? = null,
         referenceId: String? = null,
         metadata: Map<String, String> = emptyMap(),
-        channels: List<NotificationChannel> = listOf(NotificationChannel.DATABASE)
+        channels: List<String> = listOf("database")
     ): List<Notification> {
         val notifications = channels.map { channel ->
             Notification(
@@ -75,19 +72,19 @@ class NotificationCache(
 
                 // Handle additional channel-specific logic
                 when (notification.channel) {
-                    NotificationChannel.FCM -> {
+                    "fcm" -> {
                         sendPushNotification(notification.id, userId, title, body ?: "", metadata)
                     }
 
-                    NotificationChannel.EMAIL -> {
+                    "email" -> {
                         sendEmailNotification(notification.id, userId, title, body ?: "", actionUrl)
                     }
 
-                    NotificationChannel.SMS -> {
+                    "sms" -> {
                         sendSmsNotification(notification.id, userId, body ?: title)
                     }
 
-                    NotificationChannel.DATABASE -> {
+                    "database" -> {
                         // Already stored in database
                     }
                 }
@@ -95,7 +92,7 @@ class NotificationCache(
         }
 
         // Log notification sending
-        auditLogsRepository.logAction(
+        auditLogRepository.logAction(
             actorId = null,
             actorType = "system",
             action = "notification_sent",
@@ -103,7 +100,7 @@ class NotificationCache(
             entityId = userId,
             metadata = mapOf(
                 "type" to type,
-                "channels" to channels.map { it.name },
+                "channels" to channels.map { it },
                 "count" to createdNotifications.size
             )
         )
@@ -130,9 +127,9 @@ class NotificationCache(
             referenceType = "order",
             referenceId = orderId,
             channels = listOf(
-                NotificationChannel.DATABASE,
-                NotificationChannel.FCM,
-                NotificationChannel.EMAIL
+                "database",
+                "fcm",
+                "email"
             )
         )
     }
@@ -156,8 +153,7 @@ class NotificationCache(
             referenceType = "order",
             referenceId = orderId,
             channels = listOf(
-                NotificationChannel.DATABASE,
-                NotificationChannel.EMAIL
+                "database", "email"
             )
         )
     }
@@ -181,9 +177,7 @@ class NotificationCache(
             referenceType = "order",
             referenceId = orderId,
             channels = listOf(
-                NotificationChannel.DATABASE,
-                NotificationChannel.FCM,
-                NotificationChannel.EMAIL
+                "database", "fcm", "email"
             )
         )
     }
@@ -205,8 +199,7 @@ class NotificationCache(
             referenceType = "campaign",
             referenceId = campaignId,
             channels = listOf(
-                NotificationChannel.DATABASE,
-                NotificationChannel.FCM
+                "database", "fcm"
             )
         )
     }
@@ -249,7 +242,7 @@ class NotificationCache(
     suspend fun cleanupOldNotifications() {
         val deleted = notificationRepository.deleteOldNotifications(30) // Delete notifications older than 30 days
 
-        auditLogsRepository.logSystemAction(
+        auditLogRepository.logSystemAction(
             action = "notification_cleanup",
             entityType = "notification",
             entityId = "cleanup",
@@ -281,7 +274,7 @@ class NotificationCache(
             )
         } catch (e: Exception) {
             // Log failure but don't throw - other channels should still work
-            auditLogsRepository.logSystemAction(
+            auditLogRepository.logSystemAction(
                 action = "push_notification_failed",
                 entityType = "notification",
                 entityId = userId,
@@ -292,7 +285,7 @@ class NotificationCache(
 
             DispatchResult(
                 notificationId = notificationId,
-                channel = NotificationChannel.FCM, // Assumes PUSH exists in your enum
+                channel = "fcm", // Assumes PUSH exists in your enum
                 success = false,
                 message = e.message ?: "Unknown push notification error"
             )
@@ -310,7 +303,7 @@ class NotificationCache(
             val user = userRepository.read(userId) ?: throw NotFoundException("user with $userId not found")
             return emailService.send(notificationId, to = user.email, subject = subject, body = body, actionUrl = actionUrl)
         } catch (e: Exception) {
-            auditLogsRepository.logSystemAction(
+            auditLogRepository.logSystemAction(
                 action = "email_notification_failed",
                 entityType = "notification",
                 entityId = userId,
@@ -321,7 +314,7 @@ class NotificationCache(
 
             DispatchResult(
                 notificationId = notificationId,
-                channel = NotificationChannel.EMAIL,
+                channel = "email",
                 success = false,
                 message = e.message ?: "Unknown email notification error"
             )
@@ -338,7 +331,7 @@ class NotificationCache(
             val user = userRepository.read(userId) ?: throw NotFoundException("user with $userId not found")
             smsService.send(notificationId, user.phoneNumber, message)
         } catch (e: Exception) {
-            auditLogsRepository.logSystemAction(
+            auditLogRepository.logSystemAction(
                 action = "sms_notification_failed",
                 entityType = "notification",
                 entityId = userId,
@@ -349,7 +342,7 @@ class NotificationCache(
 
             DispatchResult(
                 notificationId = notificationId,
-                channel = NotificationChannel.SMS,
+                channel = "sms",
                 success = false,
                 message = e.message ?: "Unknown sms notification error"
             )

@@ -1,13 +1,13 @@
 package org.example.domain.models.customization
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.example.data.db.config.Ulid
-import org.example.utils.BigDecimalSerializer
+import org.example.domain.validations.OneOf
 import org.example.utils.MapStringAnySerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -21,25 +21,26 @@ data class CustomProductRequest(
     val title: String,
     val description: String,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val specifications: Map<String, Any>? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "estimated_budget_min")
     val estimatedBudgetMin: BigDecimal? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "estimated_budget_max")
     val estimatedBudgetMax: BigDecimal? = null,
 
+    @OneOf("pending", "under_review", "quoted", "accepted", "rejected", "cancelled")
     val status: String = "pending",
     val notes: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 ) {

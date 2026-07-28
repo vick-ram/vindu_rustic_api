@@ -29,8 +29,7 @@ class InventoryRepository @Inject constructor(connectionFactory: ConnectionFacto
         val sql = "SELECT * FROM low_stock_products WHERE total_available <= :threshold"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("threshold", threshold)
+            createNamedStatement(sql, mapOf("threshold" to threshold))
                 .execute()
                 .awaitSingle()
                 .map { row, metadata ->
@@ -58,11 +57,12 @@ class InventoryRepository @Inject constructor(connectionFactory: ConnectionFacto
         """.trimIndent()
 
         val rowsUpdated = connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("quantity", quantity)
-                .bind("now", OffsetDateTime.now())
-                .bind("variantId", variantId)
-                .bind("warehouseId", warehouseId)
+            createNamedStatement(sql, mapOf(
+                "quantity" to quantity,
+                "now" to OffsetDateTime.now(),
+                "variantId" to variantId,
+                "warehouseId" to warehouseId
+            ))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -93,11 +93,12 @@ class InventoryRepository @Inject constructor(connectionFactory: ConnectionFacto
         """.trimIndent()
 
         val rowsUpdated = connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("quantity", quantity)
-                .bind("now", OffsetDateTime.now())
-                .bind("variantId", variantId)
-                .bind("warehouseId", warehouseId)
+            createNamedStatement(sql, mapOf(
+                "quantity" to quantity,
+                "now" to OffsetDateTime.now(),
+                "variantId" to variantId,
+                "warehouseId" to warehouseId
+            ))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated

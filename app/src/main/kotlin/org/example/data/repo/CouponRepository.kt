@@ -22,7 +22,7 @@ class CouponRepository @Inject constructor(connectionFactory: ConnectionFactory,
 
     suspend fun findByCode(code: String): Coupon? {
         val sql = "SELECT * FROM coupons WHERE code = :code"
-        return executeQuery(sql, mapOf("code" to code), rowMapper).firstOrNull()
+        return executeQuery(sql, mapOf("code" to code), mapper = rowMapper).firstOrNull()
     }
 
     suspend fun validateCoupon(code: String, orderAmount: BigDecimal): Coupon? {
@@ -68,13 +68,16 @@ class CouponRepository @Inject constructor(connectionFactory: ConnectionFactory,
         """.trimIndent()
 
         // Insert coupon usage and map the resulting record directly
-        connection.createStatement(sql)
-            .bind("id", usageId)
-            .bind("couponId", couponId)
-            .bind("orderId", orderId)
-            .bind("userId", userId)
-            .bind("discountAmount", discountAmount)
-            .bind("createdAt", OffsetDateTime.now())
+        connection.createNamedStatement(
+            sql, mapOf(
+                "id" to usageId,
+                "couponId" to couponId,
+                "orderId" to orderId,
+                "userId" to userId,
+                "discountAmount" to discountAmount,
+                "createdAt" to OffsetDateTime.now()
+            )
+        )
             .execute()
             .awaitSingle()
             .map { row, _ ->
@@ -96,9 +99,7 @@ class CouponRepository @Inject constructor(connectionFactory: ConnectionFactory,
             WHERE id = :id
         """.trimIndent()
 
-        val updatedRows = connection.createStatement(sql)
-            .bind("id", couponId)
-            .bind("now", OffsetDateTime.now())
+        val updatedRows = connection.createNamedStatement(sql, mapOf("id" to couponId, "'now" to OffsetDateTime.now()))
             .execute()
             .awaitSingle()
             .rowsUpdated

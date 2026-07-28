@@ -1,11 +1,12 @@
 package org.example.domain.models.customization
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
+import org.example.domain.validations.OneOf
 import org.example.utils.BigDecimalSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -16,7 +17,7 @@ data class CustomProductQuote(
     @SerialName("request_id")
     val requestId: String,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName("quoted_price")
     val quotedPrice: BigDecimal,
 
@@ -27,18 +28,20 @@ data class CustomProductQuote(
 
     val description: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("valid_until")
     val validUntil: OffsetDateTime? = null,
 
+    @OneOf("sent", "accepted", "expired", "rejected")
     val status: String = "sent",
+
     val createdBy: String,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 ) {

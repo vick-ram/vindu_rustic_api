@@ -3,25 +3,15 @@ package org.example.utils.notifications
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
-import com.google.firebase.messaging.AndroidConfig
-import com.google.firebase.messaging.ApnsConfig
-import com.google.firebase.messaging.Aps
-import com.google.firebase.messaging.BatchResponse
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.FirebaseMessagingException
-import com.google.firebase.messaging.Message
-import com.google.firebase.messaging.MessagingErrorCode
-import com.google.firebase.messaging.MulticastMessage
-import com.google.firebase.messaging.TopicManagementResponse
-import com.google.firebase.messaging.Notification as FCMNotification
+import com.google.firebase.messaging.*
 import org.example.config.AppConfig
 import org.example.data.repo.DeviceTokenRepository
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
 import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import java.io.File
+import com.google.firebase.messaging.Notification as FCMNotification
 
 @Single
 class FcmNotificationService(private val config: AppConfig) {
@@ -46,7 +36,7 @@ class FcmNotificationService(private val config: AppConfig) {
 
                 DispatchResult(
                     notificationId = notificationId,
-                    channel = NotificationChannel.FCM,
+                    channel = "fcm",
                     success = true,
                     message = "Sent to single device",
                     externalId = messageId
@@ -80,7 +70,7 @@ class FcmNotificationService(private val config: AppConfig) {
 
                 DispatchResult(
                     notificationId = notificationId,
-                    channel = NotificationChannel.FCM,
+                    channel = "fcm",
                     success = failureCount < tokens.size,
                     message = "Sent to ${tokens.size - failureCount}/${tokens.size} devices",
                     externalId = batchResponse.responses.firstOrNull { it.isSuccessful }?.messageId ?: ""

@@ -443,7 +443,7 @@ CREATE TABLE shipments
 CREATE TABLE shipment_events
 (
     id    VARCHAR(26) PRIMARY KEY DEFAULT generate_ulid(),
-    shipment_id VARCHAR(26) NOT NULL REFERENCES shipments (shipment_id) ON DELETE CASCADE,
+    shipment_id VARCHAR(26) NOT NULL REFERENCES shipments (id) ON DELETE CASCADE,
     event_type  VARCHAR(50) NOT NULL,
     status      VARCHAR(100),
     location    VARCHAR(255),
@@ -654,6 +654,18 @@ CREATE TABLE message_status
     updated_at TIMESTAMPTZ                                              DEFAULT NOW()
 );
 
+CREATE TABLE device_tokens
+(
+    id VARCHAR(26) PRIMARY KEY DEFAULT generate_ulid(),
+    user_id VARCHAR(26) NOT NULL REFERENCES users (id),
+    token TEXT NOT NULL,
+    platform VARCHAR(20) DEFAULT 'web',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT chk_platform CHECK ( platform IN ('android', 'ios', 'web') )
+);
+
 CREATE TABLE notifications
 (
     id             VARCHAR(26) PRIMARY KEY DEFAULT generate_ulid(),
@@ -664,9 +676,14 @@ CREATE TABLE notifications
     action_url     TEXT,
     reference_type VARCHAR(100),
     reference_id   VARCHAR(26),
+    metadata JSONB DEFAULT '{}',
     is_read        BOOLEAN                 DEFAULT FALSE,
     read_at        TIMESTAMPTZ,
-    created_at     TIMESTAMPTZ             DEFAULT NOW()
+    channel VARCHAR(20) DEFAULT 'database',
+    created_at     TIMESTAMPTZ             DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ             DEFAULT NOW(),
+
+    CONSTRAINT chk_channel CHECK ( channel IN ('database', 'fcm', 'email', 'sms') )
 );
 
 

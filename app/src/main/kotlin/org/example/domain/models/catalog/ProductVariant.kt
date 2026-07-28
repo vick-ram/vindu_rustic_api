@@ -1,13 +1,14 @@
 package org.example.domain.models.catalog
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.example.data.db.config.Ulid
 import org.example.utils.BigDecimalSerializer
 import org.example.utils.MapStringAnySerializer
 import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -20,14 +21,14 @@ data class ProductVariant(
 
     val sku: String,
     val title: String? = null,
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     val price: BigDecimal,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "compare_at_price")
     val compareAtPrice: BigDecimal? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "cost_price")
     val costPrice: BigDecimal? = null,
 
@@ -36,20 +37,20 @@ data class ProductVariant(
     @SerialName(value = "weight_grams")
     val weightGrams: Int? = null,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val dimensions: Map<String, Any> = emptyMap(),
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val attributes: Map<String, Any> = emptyMap(),
 
     @SerialName(value = "is_active")
     val isActive: Boolean = true,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 ) {

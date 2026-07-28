@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.SupportTicketMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -22,12 +24,6 @@ class SupportTicketRepository @Inject constructor(
     mapper = supportTicketMapper
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
-
-    // Override update to handle updated_at
-    override suspend fun update(id: String, model: SupportTicket): SupportTicket? {
-        validateTicket(model)
-        return super.update(id, model)
-    }
 
     // Get tickets by user
     suspend fun findByUserId(
@@ -196,11 +192,12 @@ class SupportTicketRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("status", status)
-                .bind("updatedAt", OffsetDateTime.now())
-                .bind("resolvedAt", resolvedAt ?: OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "status" to status,
+                "updatedAt" to OffsetDateTime.now(),
+                "resolvedAt" to (resolvedAt ?: OffsetDateTime.now())
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -223,10 +220,11 @@ class SupportTicketRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("assignedTo", assignedTo)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "assignedTo" to assignedTo,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -281,7 +279,12 @@ class SupportTicketRepository @Inject constructor(
     suspend fun getTicketStats(
         assignedTo: String? = null
     ): TicketStats {
-        val assignedFilter = if (assignedTo != null) "WHERE assigned_to = :assignedTo" else ""
+        val params = mutableMapOf<String, Any>()
+
+        val assignedFilter = if (assignedTo != null) {
+            params["assignedTo"] = assignedTo
+            "WHERE assigned_to = :assignedTo"
+        } else ""
 
         val sql = """
             SELECT 
@@ -301,12 +304,8 @@ class SupportTicketRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            if (assignedTo != null) {
-                statement.bind("assignedTo", assignedTo)
-            }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ ->
                     TicketStats(
@@ -380,10 +379,8 @@ class SupportTicketRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            params.forEach { (key, value) -> statement.bind(key, value) }
-
-            statement.execute()
+           createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
                     TicketWithLastMessage(
@@ -397,28 +394,9 @@ class SupportTicketRepository @Inject constructor(
                 .toList()
         }
     }
-
-    private fun validateTicket(ticket: SupportTicket) {
-        if (ticket.userId.isBlank()) {
-            throw IllegalArgumentException("User ID cannot be blank")
-        }
-
-        if (ticket.subject.isBlank()) {
-            throw IllegalArgumentException("Subject cannot be blank")
-        }
-
-        val validStatuses = listOf("open", "in_progress", "waiting", "resolved", "closed")
-        if (ticket.status !in validStatuses) {
-            throw IllegalArgumentException("Invalid ticket status: ${ticket.status}")
-        }
-
-        val validPriorities = listOf("low", "normal", "high", "urgent")
-        if (ticket.priority !in validPriorities) {
-            throw IllegalArgumentException("Invalid ticket priority: ${ticket.priority}")
-        }
-    }
 }
 
+@Serializable
 data class TicketStats(
     val totalTickets: Int,
     val open: Int,
@@ -431,9 +409,10 @@ data class TicketStats(
     val avgResolutionHours: Double
 )
 
+@Serializable
 data class TicketWithLastMessage(
     val ticket: SupportTicket,
     val lastMessage: String?,
     val lastSenderId: String?,
-    val lastMessageAt: OffsetDateTime?
+    @Contextual val lastMessageAt: OffsetDateTime?
 )

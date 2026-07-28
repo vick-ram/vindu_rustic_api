@@ -23,6 +23,11 @@ class DefaultValidationRegistry : ValidatorRegistry {
         registerSimple(Phone::class, PhoneValidator())
         registerSimple(FutureDate::class, FutureDateValidator())
         registerSimple(FutureDateTime::class, FutureDateTimeValidator())
+        registerSimple(Url::class, UrlValidator())
+        registerSimple(Positive::class, PositiveValidator())
+        registerSimple(PositiveOrZero::class, PositiveOrZeroValidator())
+        registerSimple(Negative::class, NegativeValidator())
+        registerSimple(NegativeOrZero::class, NegativeOrZeroValidator())
 
         registerAnnotationAware(MinLength::class) {annotation ->
             MinLengthValidator().also { it.initialize(annotation)}
@@ -35,6 +40,9 @@ class DefaultValidationRegistry : ValidatorRegistry {
         }
         registerAnnotationAware(GreaterThan::class) { annotation ->
             GreaterThanValidator().also { it.initialize(annotation)}
+        }
+        registerAnnotationAware(Regex::class) { annotation ->
+            RegexValidator().also { it.initialize(annotation) }
         }
         registerAnnotationAware(Password::class) { annotation ->
             PasswordValidator().also { it.initialize(annotation)}
@@ -50,6 +58,12 @@ class DefaultValidationRegistry : ValidatorRegistry {
         }
         registerAnnotationAware(Between::class) { annotation ->
             BetweenValidator().also { it.initialize(annotation)}
+        }
+        registerAnnotationAware(OneOf::class) {annotation ->
+            OneOfValidator().also { it.initialize(annotation) }
+        }
+        registerAnnotationAware<CustomValidation, Any>(CustomValidation::class) { annotation ->
+            CustomValidationValidator<Any>().also { it.initialize(annotation) }
         }
     }
 

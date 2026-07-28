@@ -99,6 +99,19 @@ class ValidationException(
 class RouteValidationException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 class RouteConflictException(message: String) : RuntimeException(message)
 class FileStorageException(message: String, cause: Throwable) : Exception(message, cause)
+class InsufficientInventoryException(
+    val variantId: String,
+    val required: Int,
+    val available: Int,
+    cause: Throwable? = null
+) : RuntimeException(
+    "Insufficient inventory for variant $variantId: requested $required, available $available",
+    cause
+)
+
+class InvalidCouponException(message: String) : RuntimeException(message)
+class EmptyCartException(cartId: String) : RuntimeException("Cart is empty: $cartId")
+class DuplicateTransactionException(message: String) : RuntimeException(message)
 suspend fun Throwable.dynamicRespond(call: ApplicationCall) {
     val accept = call.request.headers["Accept"] ?: ""
     val currentTemplate = call.getCurrentTemplate()

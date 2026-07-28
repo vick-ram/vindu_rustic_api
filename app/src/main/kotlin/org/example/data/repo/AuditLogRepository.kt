@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -10,17 +11,15 @@ import kotlinx.serialization.Serializable
 import org.example.data.mappers.AuditLogsMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.di.Qualifier
-import org.example.domain.models.system.AuditLogs
-import org.koin.core.annotation.Single
+import org.example.domain.models.system.AuditLog
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
 @Component
-class AuditLogsRepository @Inject constructor(
+class AuditLogRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     auditLogsMapper: AuditLogsMapper
-) : CrudRepository<AuditLogs, String>(
+) : CrudRepository<AuditLog, String>(
     connectionFactory = connectionFactory,
     tableName = "audit_logs",
     mapper = auditLogsMapper
@@ -33,7 +32,7 @@ class AuditLogsRepository @Inject constructor(
         entityId: String,
         offset: Int = 0,
         limit: Int = 50
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val sql = """
             SELECT * FROM $tableName 
             WHERE entity_type = $1 
@@ -56,7 +55,7 @@ class AuditLogsRepository @Inject constructor(
         actorType: String? = null,
         offset: Int = 0,
         limit: Int = 50
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val typeFilter = if (actorType != null) "AND actor_type = $1" else ""
 
         val sql = """
@@ -86,7 +85,7 @@ class AuditLogsRepository @Inject constructor(
         entityType: String? = null,
         offset: Int = 0,
         limit: Int = 50
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val entityFilter = if (entityType != null) "AND entity_type = $1" else ""
 
         val sql = """
@@ -119,7 +118,7 @@ class AuditLogsRepository @Inject constructor(
         actorId: String? = null,
         offset: Int = 0,
         limit: Int = 50
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val conditions = mutableListOf("created_at BETWEEN :startDate AND :endDate")
         val params = mutableMapOf<String, Any>(
             "startDate" to startDate,
@@ -163,10 +162,11 @@ class AuditLogsRepository @Inject constructor(
         changes: Map<String, Any>? = null,
         metadata: Map<String, Any>? = null,
         ipAddress: InetAddress? = null,
-        userAgent: String? = null
-    ): AuditLogs {
+        userAgent: String? = null,
+        connection: Connection? = null,
+    ): AuditLog {
         return create(
-            AuditLogs(
+            AuditLog(
                 actorId = actorId,
                 actorType = actorType,
                 action = action,
@@ -176,7 +176,8 @@ class AuditLogsRepository @Inject constructor(
                 metadata = metadata,
                 ipAddress = ipAddress,
                 userAgent = userAgent
-            )
+            ),
+            connection
         )
     }
 
@@ -203,7 +204,7 @@ class AuditLogsRepository @Inject constructor(
         entityType: String,
         entityId: String,
         limit: Int = 10
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val sql = """
             SELECT * FROM $tableName 
             WHERE entity_type = :entityType 
@@ -329,7 +330,7 @@ class AuditLogsRepository @Inject constructor(
         query: String,
         offset: Int = 0,
         limit: Int = 50
-    ): List<AuditLogs> {
+    ): List<AuditLog> {
         val sql = """
             SELECT * FROM $tableName 
             WHERE action ILIKE :query 

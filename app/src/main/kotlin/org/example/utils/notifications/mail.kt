@@ -4,7 +4,6 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.example.config.AppConfig
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
@@ -70,7 +69,7 @@ class EmailNotificationService(private val config: AppConfig) {
 
             DispatchResult(
                 notificationId = notificationId,
-                channel = NotificationChannel.EMAIL,
+                channel = "email",
                 success = true,
                 message = "Email sent for notification $notificationId"
             )

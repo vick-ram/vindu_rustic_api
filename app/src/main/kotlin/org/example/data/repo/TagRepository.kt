@@ -21,8 +21,7 @@ class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, ta
         val sql = "SELECT * FROM $tableName WHERE slug = :slug"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("slug", slug)
+            createNamedStatement(sql, mapOf("slug" to slug))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -44,14 +43,15 @@ class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, ta
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            tags.forEachIndexed { index, tag ->
-                statement.bind("name_$index", tag.name)
-                statement.bind("slug_$index", tag.slug)
-            }
+        val params = mutableMapOf<String, Any>()
+        tags.forEachIndexed { index, tag ->
+            params["name_$index"] = tag.name
+            params["slug_$index"] = tag.slug
+        }
 
-            statement.execute()
+        return connectionFactory.withTransaction { connection ->
+            connection.createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -63,8 +63,7 @@ class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, ta
         val sql = "SELECT * FROM $tableName WHERE LOWER(name) = LOWER(:name)"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("name", name)
+            createNamedStatement(sql, mapOf("name" to name))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -102,7 +101,8 @@ class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, ta
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
-                .awaitSingle() as Int
+                .awaitSingle()
+                .toInt()
         }
     }
 }

@@ -1,11 +1,11 @@
 package org.example.domain.models.inventory
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -22,7 +22,7 @@ data class Warehouse(
     @SerialName("is_active")
     val isActive: Boolean = true,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 ) {

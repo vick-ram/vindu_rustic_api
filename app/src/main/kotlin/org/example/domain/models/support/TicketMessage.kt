@@ -1,10 +1,9 @@
 package org.example.domain.models.support
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.MapStringAnySerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -22,10 +21,10 @@ data class TicketMessage(
     @SerialName("is_internal")
     val isInternal: Boolean = false,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val attachments: Map<String, Any>? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

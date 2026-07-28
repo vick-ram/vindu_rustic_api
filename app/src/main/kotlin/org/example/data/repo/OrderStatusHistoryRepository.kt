@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.OrderStatusHistoryMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -45,8 +47,7 @@ class OrderStatusHistoryRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("orderId", orderId)
+            createNamedStatement(sql, mapOf("orderId" to orderId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -97,8 +98,7 @@ class OrderStatusHistoryRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("orderId", orderId)
+            createNamedStatement(sql, mapOf("orderId" to orderId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -134,9 +134,10 @@ class OrderStatusHistoryRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class StatusDuration(
     val status: String,
-    val changedAt: OffsetDateTime,
-    val nextChangeAt: OffsetDateTime,
+    @Contextual val changedAt: OffsetDateTime,
+    @Contextual val nextChangeAt: OffsetDateTime,
     val durationHours: Double
 )

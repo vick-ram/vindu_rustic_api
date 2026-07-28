@@ -1,7 +1,6 @@
 package org.example.utils.notifications
 
 import org.example.config.AppConfig
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
@@ -48,7 +47,7 @@ class SMSService(private val config: AppConfig) {
 
             DispatchResult(
                 notificationId = notificationId,
-                channel = NotificationChannel.SMS,
+                channel = "sms",
                 success = true,
                 message = "SMS sent to $phoneNumber",
             )

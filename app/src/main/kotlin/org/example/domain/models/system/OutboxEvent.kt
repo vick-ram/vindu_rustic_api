@@ -1,10 +1,9 @@
 package org.example.domain.models.system
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.MapStringAnySerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -20,12 +19,12 @@ data class OutboxEvent(
     @SerialName("event_type")
     val eventType: String,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val payload: Map<String, Any>,
 
     val processed: Boolean = false,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("processed_at")
     val processedAt: OffsetDateTime? = null,
 
@@ -34,7 +33,7 @@ data class OutboxEvent(
     @SerialName("error_message")
     val errorMessage: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

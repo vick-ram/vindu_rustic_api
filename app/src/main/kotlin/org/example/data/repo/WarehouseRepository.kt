@@ -66,8 +66,7 @@ class WarehouseRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("warehouseId", warehouseId)
+            createNamedStatement(sql, mapOf("warehouseId" to warehouseId))
                 .execute()
                 .awaitSingle()
                 .map { row, metadata ->
@@ -96,8 +95,7 @@ class WarehouseRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
+            connection.createNamedStatement(sql, mapOf("id" to id))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -115,8 +113,7 @@ class WarehouseRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
+            connection.createNamedStatement(sql, mapOf("id" to id))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -151,8 +148,7 @@ class WarehouseRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("warehouseId", warehouseId)
+            createNamedStatement(sql, mapOf("warehouseId" to warehouseId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -170,18 +166,18 @@ class WarehouseRepository @Inject constructor(
 
     // Validate warehouse name uniqueness
     suspend fun isNameUnique(name: String, excludeId: String? = null): Boolean {
+        val params = mutableMapOf<String, Any>("name" to name)
+
         val sql = if (excludeId != null) {
+            params["excludeId"] to excludeId
             "SELECT COUNT(*) as count FROM $tableName WHERE LOWER(name) = LOWER(:name) AND id != :excludeId"
         } else {
             "SELECT COUNT(*) as count FROM $tableName WHERE LOWER(name) = LOWER(:name)"
         }
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql).bind("name", name)
-            if (excludeId != null) {
-                statement.bind("excludeId", excludeId)
-            }
-            statement.execute()
+             createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java) == 0L }
                 .awaitFirstOrNull() ?: true

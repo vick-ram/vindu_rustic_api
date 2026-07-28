@@ -2,8 +2,8 @@ package org.example.domain.models.identity
 
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
+import org.example.utils.Ulid
 
 @Serializable
 data class Role(

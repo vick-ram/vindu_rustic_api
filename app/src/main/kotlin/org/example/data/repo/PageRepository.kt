@@ -27,8 +27,7 @@ class PageRepository @Inject constructor(
         val sql = "SELECT * FROM $tableName WHERE slug = :slug AND status = 'published'"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("slug", slug)
+            createNamedStatement(sql, mapOf("slug" to slug))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -92,10 +91,11 @@ class PageRepository @Inject constructor(
 
         return connectionFactory.withTransaction { connection ->
             val now = OffsetDateTime.now()
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("publishedAt", now)
-                .bind("updatedAt", now)
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "publishedAt" to now,
+                "updatedAt" to now
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -115,9 +115,7 @@ class PageRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "updatedAt" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -127,18 +125,18 @@ class PageRepository @Inject constructor(
 
     // Check if slug exists (useful for validation)
     suspend fun slugExists(slug: String, excludeId: String? = null): Boolean {
+        val params = mutableMapOf<String, Any?>("slug" to slug)
+
         val sql = if (excludeId != null) {
+            params["excludedId"] = excludeId
             "SELECT COUNT(*) as count FROM $tableName WHERE slug = :slug AND id != :excludeId"
         } else {
             "SELECT COUNT(*) as count FROM $tableName WHERE slug = :slug"
         }
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql).bind("slug", slug)
-            if (excludeId != null) {
-                statement.bind("excludeId", excludeId)
-            }
-            statement.execute()
+            createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }
                 .awaitFirstOrNull() ?: false
@@ -170,20 +168,21 @@ class PageRepository @Inject constructor(
                     WHEN :status = 'published' AND published_at IS NULL THEN :publishedAt 
                     ELSE published_at 
                 END
-            WHERE id IN (${placeholders.joinToString(", ")})
+            WHERE id = ANY(:ids)
         """.trimIndent()
 
+        val now = OffsetDateTime.now()
+
+        val params = mutableMapOf<String, Any?>(
+            "status" to status,
+            "updatedAt" to now,
+            "publishedAt" to now,
+            "ids" to ids.toTypedArray()
+        )
+
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("status", status)
-                .bind("updatedAt", OffsetDateTime.now())
-                .bind("publishedAt", OffsetDateTime.now())
-
-            ids.forEachIndexed { index, id ->
-                statement.bind("id$index", id)
-            }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .rowsUpdated
                 .awaitSingle()

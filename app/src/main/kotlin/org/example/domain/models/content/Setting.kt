@@ -2,11 +2,12 @@ package org.example.domain.models.content
 
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.utils.MapStringAnySerializer
 import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -14,16 +15,16 @@ data class Setting(
     val id: String = Ulid.generate(),
     val key: String,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     val value: Map<String, Any>,
 
     val description: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 ) {

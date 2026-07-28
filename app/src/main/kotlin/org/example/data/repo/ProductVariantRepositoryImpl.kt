@@ -3,6 +3,8 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ProductVariantMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -22,12 +24,6 @@ class ProductVariantRepository @Inject constructor(
 ) {
     override val generatedColumns = listOf("id", "created_at", "updated_at")
 
-    // Override update to handle updated_at
-    override suspend fun update(id: String, model: ProductVariant): ProductVariant? {
-        validateVariant(model)
-        return super.update(id, model)
-    }
-
     // Get variants for a product
     suspend fun findByProductId(productId: String): List<ProductVariant> {
         val sql = """
@@ -44,8 +40,7 @@ class ProductVariantRepository @Inject constructor(
         val sql = "SELECT * FROM $tableName WHERE sku = :sku"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("sku", sku)
+            createNamedStatement(sql, mapOf("sku" to sku))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -84,9 +79,7 @@ class ProductVariantRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "updatedAt" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -107,10 +100,11 @@ class ProductVariantRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("productId", productId)
-                .bind("multiplier", priceMultiplier)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "productId" to productId,
+                "multiplier" to priceMultiplier,
+                "updatedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -132,8 +126,7 @@ class ProductVariantRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("productId", productId)
+            createNamedStatement(sql, mapOf("productId" to productId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -147,20 +140,12 @@ class ProductVariantRepository @Inject constructor(
                 .awaitFirstOrNull()
         }
     }
-
-    private fun validateVariant(variant: ProductVariant) {
-        if (variant.sku.isBlank()) {
-            throw IllegalArgumentException("SKU cannot be blank")
-        }
-        if (variant.price <= BigDecimal.ZERO) {
-            throw IllegalArgumentException("Price must be greater than zero")
-        }
-    }
 }
 
+@Serializable
 data class PriceStats(
-    val minPrice: BigDecimal,
-    val maxPrice: BigDecimal,
-    val avgPrice: BigDecimal,
+    @Contextual val minPrice: BigDecimal,
+    @Contextual val maxPrice: BigDecimal,
+    @Contextual val avgPrice: BigDecimal,
     val variantCount: Int
 )

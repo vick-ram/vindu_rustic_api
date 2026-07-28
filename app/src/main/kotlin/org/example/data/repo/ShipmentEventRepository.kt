@@ -19,7 +19,6 @@ class ShipmentEventRepository @Inject constructor(
 ) : CrudRepository<ShipmentEvent, String>(
     connectionFactory = connectionFactory,
     tableName = "shipment_events",
-    idColumn = "id",
     mapper = shipmentEventMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -67,8 +66,7 @@ class ShipmentEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("shipmentId", shipmentId)
+            createNamedStatement(sql, mapOf("shipmentId" to shipmentId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -91,8 +89,7 @@ class ShipmentEventRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("shipmentId", shipmentId)
+            createNamedStatement(sql, mapOf("shipmentId" to shipmentId))
                 .execute()
                 .awaitSingle()
                 .map { row, rowMetadata ->
@@ -123,30 +120,19 @@ class ShipmentEventRepository @Inject constructor(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            events.forEachIndexed { index, event ->
-                statement.bind("shipment_id_$index", event.shipmentId)
-                statement.bind("event_type_$index", event.eventType)
-                if (event.status != null) statement.bind(
-                    "status_$index",
-                    event.status
-                ) else statement.bind("status_$index", String::class.java)
-                if (event.location != null) statement.bind(
-                    "location_$index",
-                    event.location
-                ) else statement.bind("location_$index", String::class.java)
-                if (event.description != null) statement.bind(
-                    "description_$index",
-                    event.description
-                ) else statement.bind("description_$index", String::class.java)
-                if (event.occurredAt != null) statement.bind(
-                    "occurred_at_$index",
-                    event.occurredAt
-                ) else statement.bind("occurred_at_$index", OffsetDateTime::class.java)
-            }
+        val params = mutableMapOf<String, Any?>()
+        events.forEachIndexed { index, event ->
+            params["shipment_id_$index"] = event.shipmentId
+            params["event_type_$index"] = event.eventType
+            params["status_$index"] = event.status
+            params["location_$index"] = event.location
+            params["description_$index"] = event.description
+            params["occurred_at_$index"] = event.occurredAt
+        }
 
-            statement.execute()
+        return connectionFactory.withTransaction { connection ->
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()

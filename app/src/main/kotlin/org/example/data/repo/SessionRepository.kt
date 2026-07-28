@@ -23,8 +23,7 @@ class SessionRepository @Inject constructor(connectionFactory: ConnectionFactory
 
     suspend fun deleteAllForUser(userId: String) = connectionFactory.withTransaction { connection ->
         val sql = "DELETE FROM sessions WHERE user_id = :userId"
-        connection.createStatement(sql)
-            .bind("userId", userId)
+        connection.createNamedStatement(sql, mapOf("userId" to userId))
             .execute()
             .awaitSingle()
             .rowsUpdated

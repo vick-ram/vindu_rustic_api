@@ -1,9 +1,10 @@
 package org.example.domain.models.inventory
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -15,6 +16,7 @@ data class InventoryMovement(
 
     val warehouseId: String,
 
+    @OneOf("inbound", "outbound", "adjustment", "reservation_hold", "reservation_release")
     @SerialName(value = "movement_type")
     val movementType: String,
 
@@ -24,14 +26,14 @@ data class InventoryMovement(
     val referenceType: String? = null,
 
     @SerialName(value = "reference_id")
-    val referenceId: Long? = null,
+    val referenceId: String? = null,
 
     @SerialName(value = "performed_by")
     val performedBy: String? = null,
 
     val notes: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

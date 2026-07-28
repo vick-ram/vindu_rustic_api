@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ProductMediaMapper
@@ -16,11 +17,6 @@ class ProductMediaRepository @Inject constructor(
     connectionFactory = connectionFactory, tableName = "product_media", idColumn = "id", mapper = productMediaMapper
 ) {
     override val generatedColumns: List<String> = listOf("id", "created_at")
-
-    override suspend fun create(model: ProductMedia): ProductMedia {
-        validateMediaType(model.mediaType)
-        return super.create(model)
-    }
 
     // Get media for a product
     suspend fun findByProductId(productId: String): List<ProductMedia> {
@@ -68,9 +64,7 @@ class ProductMediaRepository @Inject constructor(
                     WHERE id = :id
                 """.trimIndent()
 
-                connection.createStatement(sql)
-                    .bind("id", mediaId)
-                    .bind("sortOrder", order)
+                connection.createNamedStatement(sql, mapOf("id" to mediaId, "sortOrder" to order))
                     .execute()
                     .awaitSingle()
             }
@@ -82,20 +76,12 @@ class ProductMediaRepository @Inject constructor(
         val sql = "DELETE FROM $tableName WHERE product_id = :productId"
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("productId", productId)
+            connection.createNamedStatement(sql, mapOf("productId" to productId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
                 .awaitSingle()
                 .toInt()
-        }
-    }
-
-    private fun validateMediaType(mediaType: String) {
-        val validTypes = listOf("image", "video", "document", "thumbnail")
-        if (mediaType !in validTypes) {
-            throw IllegalArgumentException("Invalid media type: $mediaType. Must be one of: ${validTypes.joinToString()}")
         }
     }
 }

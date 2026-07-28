@@ -35,6 +35,58 @@ annotation class GreaterThan(val value: Int, val message: String = "must be grea
 @ConstraintAnnotation
 @Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
+annotation class Regex(
+    val pattern: String,
+    val message: String = "has invalid format"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Url(
+    val message: String = "must be a valid URL"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Positive(
+    val message: String = "must be positive"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class PositiveOrZero(
+    val message: String = "must be positive or zero"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Negative(
+    val message: String = "must be negative"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class NegativeOrZero(
+    val message: String = "must be negative or zero"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class OneOf(
+    vararg val values: String,
+    val ignoreCase: Boolean = false,
+    val message: String = "must be one of {values}"
+)
+
+@ConstraintAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class Email(val message: String = "must be a valid email address")
 
 @ConstraintAnnotation

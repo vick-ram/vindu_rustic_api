@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.RowMetadata
 import kotlinx.coroutines.flow.toList
@@ -23,7 +24,6 @@ class RoleRepository @Inject constructor(
 ) : CrudRepository<Role, String>(
     connectionFactory = connectionFactory,
     tableName = "roles",
-    idColumn = "id",
     mapper = roleMapper
 ) {
     override val generatedColumns = listOf("id")
@@ -33,8 +33,7 @@ class RoleRepository @Inject constructor(
         val sql = "SELECT * FROM $tableName WHERE LOWER(name) = LOWER(:name)"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("name", name)
+            createNamedStatement(sql, mapOf("name" to name))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -81,8 +80,7 @@ class RoleRepository @Inject constructor(
         val sql = "SELECT COUNT(*) as count FROM $tableName WHERE LOWER(name) = LOWER(:name)"
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("name", name)
+            createNamedStatement(sql, mapOf("name" to name))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("count", Long::class.java)!! > 0 }
@@ -129,7 +127,7 @@ class UserRoleRepository(
 
     // Since UserRole has a composite key, we need custom implementations
 
-    override suspend fun create(model: UserRole): UserRole {
+    override suspend fun create(model: UserRole, connection: Connection?): UserRole {
         val sql = """
             INSERT INTO $tableName (user_id, role_id)
             VALUES (:userId, :roleId)
@@ -137,10 +135,10 @@ class UserRoleRepository(
             RETURNING *
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("userId", model.userId)
-                .bind("roleId", model.roleId)
+        val params = mapOf("userId" to model.userId, "roleId" to model.roleId)
+
+        val conn = connection ?: return connectionFactory.withTransaction {
+            it.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -148,6 +146,13 @@ class UserRoleRepository(
                     model // Return the original model if already exists
                 }
         }
+        return conn.createNamedStatement(sql, params)
+            .execute()
+            .awaitSingle()
+            .map(rowMapper)
+            .awaitFirstOrElse {
+                model // Return the original model if already exists
+            }
     }
 
     // Assign role to user
@@ -163,9 +168,7 @@ class UserRoleRepository(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("userId", userId)
-                .bind("roleId", roleId)
+            connection.createNamedStatement(sql, mapOf("userId" to userId, "roleId" to roleId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -202,9 +205,7 @@ class UserRoleRepository(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("userId", userId)
-                .bind("roleId", roleId)
+            createNamedStatement(sql, mapOf("userId" to userId, "roleId" to roleId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> (row.get("count", Long::class.java) ?: 0L) > 0 }
@@ -216,23 +217,21 @@ class UserRoleRepository(
     suspend fun bulkAssignRoles(userId: String, roleIds: List<String>): List<UserRole> {
         if (roleIds.isEmpty()) return emptyList()
 
-        val placeholders = List(roleIds.size) { index -> "(:userId, :roleId$index)" }
         val sql = """
-            INSERT INTO $tableName (user_id, role_id)
-            VALUES ${placeholders.joinToString(", ")}
-            ON CONFLICT (user_id, role_id) DO NOTHING
-            RETURNING *
-        """.trimIndent()
+        INSERT INTO $tableName (user_id, role_id)
+        SELECT :userId, UNNEST(:roleIds)
+        ON CONFLICT (user_id, role_id) DO NOTHING
+        RETURNING *
+    """.trimIndent()
+
+        val params = mapOf(
+            "userId" to userId,
+            "roleIds" to roleIds.toTypedArray()
+        )
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-                .bind("userId", userId)
-
-            roleIds.forEachIndexed { index, roleId ->
-                statement.bind("roleId$index", roleId)
-            }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+                .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .asFlow()
@@ -245,8 +244,7 @@ class UserRoleRepository(
         val sql = "DELETE FROM $tableName WHERE user_id = :userId"
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("userId", userId)
+            connection.createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated

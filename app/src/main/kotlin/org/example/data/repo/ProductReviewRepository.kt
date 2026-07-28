@@ -68,8 +68,7 @@ class ProductReviewRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("productId", productId)
+            createNamedStatement(sql, mapOf("productId" to productId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("avg_rating", Double::class.java) }
@@ -87,8 +86,7 @@ class ProductReviewRepository @Inject constructor(
         """.trimIndent()
 
         val results = connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("productId", productId)
+            createNamedStatement(sql, mapOf("productId" to productId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->

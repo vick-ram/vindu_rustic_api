@@ -7,7 +7,7 @@ import org.example.domain.models.catalog.Category
 
 @Injectable
 class CategoryService(
-    @Qualifier("categoryCache") private val categoryCache: CategoryCache
+    private val categoryCache: CategoryCache
 ) {
 
     suspend fun createCategory(category: Category): Category {

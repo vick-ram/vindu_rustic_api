@@ -50,7 +50,7 @@ class MinLengthValidator : ConstraintValidator<MinLength, String> {
     }
 }
 
-class MaxLengthValidator : ConstraintValidator<MaxLength ,String> {
+class MaxLengthValidator : ConstraintValidator<MaxLength, String> {
     private var maxLength: Int = 0
     private var customMessage: String = ""
 
@@ -84,7 +84,7 @@ class LessThanValidator : ConstraintValidator<LessThan, Int> {
         fieldName: String
     ): ValidationResult {
         val message = customMessage.replace("{value}", maxValue.toString())
-        return if (value >= maxValue ) {
+        return if (value >= maxValue) {
             ValidationResult.failure(message)
         } else ValidationResult.success()
     }
@@ -104,14 +104,130 @@ class GreaterThanValidator : ConstraintValidator<GreaterThan, Int> {
         fieldName: String
     ): ValidationResult {
         val message = customMessage.replace("{value}", minValue.toString())
-        return if (value <= minValue ) {
+        return if (value <= minValue) {
             ValidationResult.failure(message)
         } else ValidationResult.success()
     }
 }
 
+class RegexValidator : ConstraintValidator<Regex, String> {
+    private var pattern: String = ""
+    private var customMessage: String = ""
+
+    override fun initialize(annotation: Regex) {
+        this.pattern = annotation.pattern
+        this.customMessage = annotation.message
+    }
+
+    override fun validate(value: String, fieldName: String): ValidationResult {
+        val trimmed = value.trim()
+        return when {
+            trimmed.isBlank() -> ValidationResult.failure("$fieldName cannot be blank")
+            !trimmed.matches(kotlin.text.Regex(pattern)) -> {
+                val message = customMessage.ifBlank { "has invalid format" }
+                ValidationResult.failure("$fieldName $message")
+            }
+
+            else -> ValidationResult.success()
+        }
+    }
+}
+
+class UrlValidator : FieldValidator<String> {
+    private val urlRegex = kotlin.text.Regex(
+        "^(https?|ftp)://[^\\s/$.?#].[^\\s]*$"
+    )
+
+    override fun validate(
+        value: String,
+        fieldName: String
+    ): ValidationResult {
+        val trimmed = value.trim()
+        return when {
+            trimmed.isBlank() -> ValidationResult.failure("$fieldName cannot be blank")
+            !trimmed.matches(urlRegex) -> ValidationResult.failure("$fieldName must be a valid URL")
+            else -> ValidationResult.success()
+        }
+    }
+}
+
+class PositiveValidator : FieldValidator<Int> {
+    override fun validate(
+        value: Int,
+        fieldName: String
+    ): ValidationResult {
+        return if (value <= 0) {
+            ValidationResult.failure("$fieldName must be positive")
+        } else ValidationResult.success()
+    }
+}
+
+class PositiveOrZeroValidator : FieldValidator<Int> {
+    override fun validate(
+        value: Int,
+        fieldName: String
+    ): ValidationResult {
+        return if (value < 0) {
+            ValidationResult.failure("$fieldName must be positive or zero")
+        } else ValidationResult.success()
+    }
+}
+
+class NegativeValidator : FieldValidator<Int> {
+    override fun validate(
+        value: Int,
+        fieldName: String
+    ): ValidationResult {
+        return if (value >= 0) {
+            ValidationResult.failure("$fieldName must be negative")
+        } else ValidationResult.success()
+    }
+}
+
+class NegativeOrZeroValidator : FieldValidator<Int> {
+    override fun validate(
+        value: Int,
+        fieldName: String
+    ): ValidationResult {
+        return if (value > 0) {
+            ValidationResult.failure("$fieldName must be negative or zero")
+        } else ValidationResult.success()
+    }
+}
+
+class OneOfValidator : ConstraintValidator<OneOf, String> {
+    private var allowedValues: Array<out String> = emptyArray()
+    private var ignoreCase: Boolean = false
+    private var customMessage: String = ""
+
+    override fun initialize(annotation: OneOf) {
+        this.allowedValues = annotation.values
+        this.ignoreCase = annotation.ignoreCase
+        this.customMessage = annotation.message
+    }
+
+    override fun validate(
+        value: String,
+        fieldName: String
+    ): ValidationResult {
+        val trimmed = value.trim()
+        val valuesToCheck = if (ignoreCase) {
+            allowedValues.map { it.lowercase() }
+        } else {
+            allowedValues.toList()
+        }
+        val valueToCheck = if (ignoreCase) trimmed.lowercase() else trimmed
+
+        val message = customMessage.replace("{values}", allowedValues.joinToString(", "))
+
+        return if (valueToCheck !in valuesToCheck) {
+            ValidationResult.failure("$fieldName $message")
+        } else ValidationResult.success()
+    }
+}
+
 class EmailValidator : FieldValidator<String> {
-    private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+    private val emailRegex = kotlin.text.Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
 
     override fun validate(
         value: String,
@@ -126,7 +242,7 @@ class EmailValidator : FieldValidator<String> {
     }
 }
 
-class PasswordValidator : ConstraintValidator<Password ,String> {
+class PasswordValidator : ConstraintValidator<Password, String> {
     private var minLength: Int = 8
     private var requireUppercase: Boolean = true
     private var requireLowercase: Boolean = true
@@ -171,7 +287,7 @@ class PasswordValidator : ConstraintValidator<Password ,String> {
     }
 }
 
-class EnumValidator: ConstraintValidator<ValidEnum ,Enum<*>> {
+class EnumValidator : ConstraintValidator<ValidEnum, Enum<*>> {
     private var enumClass: KClass<out Enum<*>>? = null
 
     override fun initialize(annotation: ValidEnum) {
@@ -280,7 +396,7 @@ class DateFormatValidator : ConstraintValidator<DateFormat, LocalDate> {
         value: LocalDate,
         fieldName: String
     ): ValidationResult {
-        val message =customMessage.replace("{pattern}", pattern)
+        val message = customMessage.replace("{pattern}", pattern)
         val dateStr = value.toString()
 
         if (dateStr.isBlank()) {
@@ -310,7 +426,7 @@ class DateTimeFormatValidator : ConstraintValidator<DateTimeFormat, OffsetDateTi
         value: OffsetDateTime,
         fieldName: String
     ): ValidationResult {
-        val message =customMessage.replace("{pattern}", pattern)
+        val message = customMessage.replace("{pattern}", pattern)
         val dateTimeStr = value.toString()
 
         if (dateTimeStr.isBlank()) {
@@ -346,5 +462,20 @@ class BetweenValidator : ConstraintValidator<Between, Int> {
         return if (value !in min..max) {
             ValidationResult.failure(message)
         } else ValidationResult.success()
+    }
+}
+
+class CustomValidationValidator<T : Any> : ConstraintValidator<CustomValidation, T> {
+    private var validatorClass: KClass<out FieldValidator<T>>? = null
+
+    override fun initialize(annotation: CustomValidation) {
+        @Suppress("UNCHECKED_CAST")
+        this.validatorClass = annotation.validatorClass as KClass<out FieldValidator<T>>
+    }
+
+    override fun validate(value: T, fieldName: String): ValidationResult {
+        val validator = validatorClass?.java?.getDeclaredConstructor()?.newInstance()
+            ?: return ValidationResult.failure("Validator class not configured")
+        return validator.validate(value, fieldName)
     }
 }

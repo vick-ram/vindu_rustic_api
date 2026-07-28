@@ -6,7 +6,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.thymeleaf.*
 import org.example.plugins.AuthSession
 import org.example.plugins.CartSession
-import org.example.services.CartService
 import org.example.services.ProductService
 import org.example.services.RoleService
 import org.example.services.UserService

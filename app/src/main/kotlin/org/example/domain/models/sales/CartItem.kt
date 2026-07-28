@@ -1,11 +1,10 @@
 package org.example.domain.models.sales
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
-import org.example.utils.MapStringAnySerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -21,15 +20,15 @@ data class CartItem(
     @field:GreaterThan(value = 0)
     val quantity: Int,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     @SerialName("customization_details")
     val customizationDetails: Map<String, Any>? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 )

@@ -1,10 +1,11 @@
 package org.example.domain.models.catalog
 
 import io.ktor.http.content.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import org.example.utils.saveMedia
 import java.time.OffsetDateTime
 
@@ -28,7 +29,7 @@ data class Category(
     @SerialName(value = "sort_order")
     val sortOrder: Int = 0,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 ) {

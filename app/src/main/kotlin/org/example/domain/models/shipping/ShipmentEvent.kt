@@ -1,9 +1,10 @@
 package org.example.domain.models.shipping
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -13,6 +14,7 @@ data class ShipmentEvent(
     @SerialName("shipment_id")
     val shipmentId: String,
 
+    @OneOf("picked_up", "in_transit", "out_for_delivery", "delivered", "failed_attempt", "exception")
     @SerialName("event_type")
     val eventType: String,
 
@@ -20,11 +22,11 @@ data class ShipmentEvent(
     val location: String? = null,
     val description: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("occurred_at")
     val occurredAt: OffsetDateTime? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 )

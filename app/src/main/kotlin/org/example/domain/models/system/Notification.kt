@@ -1,10 +1,10 @@
 package org.example.domain.models.system
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.domain.models.NotificationChannel
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -31,16 +31,17 @@ data class Notification(
 
     val isRead: Boolean = false,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     val readAt: OffsetDateTime? = null,
 
-    val channel: NotificationChannel = NotificationChannel.DATABASE,
+    @OneOf("database", "fcm", "sms", "email")
+    val channel: String = "database",
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now()
 )

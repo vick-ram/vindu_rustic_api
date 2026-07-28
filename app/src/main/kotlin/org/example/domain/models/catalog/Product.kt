@@ -1,10 +1,12 @@
 package org.example.domain.models.catalog
 
-import io.ktor.http.Parameters
+import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
+import org.example.domain.validations.OneOf
 import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -21,7 +23,11 @@ data class Product(
     val shortDescription: String? = null,
 
     val description: String? = null,
+
+    @OneOf("draft", "published", "archived")
     val status: String = "draft",
+
+    @OneOf("standard", "digital", "customizable", "bundled")
     val productType: String = "standard",
 
     val brand: String? = null,
@@ -40,15 +46,15 @@ data class Product(
     val seoDescription: String? = null,
 
     @SerialName(value = "created_at")
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
     @SerialName(value = "updated_at")
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 
     @SerialName(value = "deleted_at")
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     val deletedAt: OffsetDateTime? = null
 ) {
     companion object {

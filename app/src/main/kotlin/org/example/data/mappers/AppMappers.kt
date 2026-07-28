@@ -28,6 +28,7 @@ import org.example.domain.models.payments.Payment
 import org.example.domain.models.payments.PaymentTransaction
 import org.example.domain.models.payments.Refund
 import org.example.domain.models.production.ProductionJob
+import org.example.domain.models.production.ProductionStage
 import org.example.domain.models.production.ProductionUpdate
 import org.example.domain.models.sales.CartItem
 import org.example.domain.models.sales.Order
@@ -43,7 +44,7 @@ import org.example.domain.models.support.Message
 import org.example.domain.models.support.Participant
 import org.example.domain.models.support.SupportTicket
 import org.example.domain.models.support.TicketMessage
-import org.example.domain.models.system.AuditLogs
+import org.example.domain.models.system.AuditLog
 import org.example.domain.models.system.DeviceToken
 import org.example.domain.models.system.Notification
 import org.example.domain.models.system.OutboxEvent
@@ -52,7 +53,7 @@ import org.example.domain.models.system.OutboxEvent
 class AddressMapper : BaseRowMapper<Address>(Address.serializer(), { it.id })
 
 @Injectable
-class AuditLogsMapper : BaseRowMapper<AuditLogs>(AuditLogs.serializer(), { it.id })
+class AuditLogsMapper : BaseRowMapper<AuditLog>(AuditLog.serializer(), { it.id })
 
 @Injectable
 class CategoryMapper : BaseRowMapper<Category>(Category.serializer(), { it.id })
@@ -73,7 +74,8 @@ class CouponMapper : BaseRowMapper<Coupon>(Coupon.serializer(), { it.id })
 class CouponUsageMapper : BaseRowMapper<CouponUsage>(CouponUsage.serializer(), { it.id })
 
 @Injectable
-class CustomProductAttachmentMapper : BaseRowMapper<CustomProductAttachment>(CustomProductAttachment.serializer(), { it.id })
+class CustomProductAttachmentMapper :
+    BaseRowMapper<CustomProductAttachment>(CustomProductAttachment.serializer(), { it.id })
 
 @Injectable
 class CustomProductQuoteMapper : BaseRowMapper<CustomProductQuote>(CustomProductQuote.serializer(), { it.id })
@@ -119,6 +121,9 @@ class PaymentTransactionMapper : BaseRowMapper<PaymentTransaction>(PaymentTransa
 
 @Injectable
 class ProductionJobMapper : BaseRowMapper<ProductionJob>(ProductionJob.serializer(), { it.id })
+
+@Injectable
+class ProductionStageMapper : BaseRowMapper<ProductionStage>(ProductionStage.serializer(), { it.id })
 
 @Injectable
 class ProductionUpdateMapper : BaseRowMapper<ProductionUpdate>(ProductionUpdate.serializer(), { it.id })
@@ -178,7 +183,7 @@ class UserMapper : BaseRowMapper<User>(User.serializer(), { it.id })
 class WarehouseMapper : BaseRowMapper<Warehouse>(Warehouse.serializer(), { it.id })
 
 @Injectable
-class CartItemMapper : BaseRowMapper<CartItem>(CartItem.serializer(), {it.id})
+class CartItemMapper : BaseRowMapper<CartItem>(CartItem.serializer(), { it.id })
 
 @Injectable
 class WishlistMapper : BaseRowMapper<Wishlist>(Wishlist.serializer(), { it.id })

@@ -1,11 +1,10 @@
 package org.example.domain.models.shipping
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.BigDecimalSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -33,18 +32,18 @@ data class Shipment(
     @SerialName("shipping_label_url")
     val shippingLabelUrl: String? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     val cost: BigDecimal? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "estimated_delivery_at")
     val estimatedDeliveryAt: OffsetDateTime? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "shipped_at")
     val shippedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "delivered_at")
     val deliveredAt: OffsetDateTime
 ) {

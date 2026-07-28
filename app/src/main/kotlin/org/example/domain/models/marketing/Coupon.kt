@@ -1,10 +1,10 @@
 package org.example.domain.models.marketing
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.BigDecimalSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -14,18 +14,19 @@ data class Coupon(
     val code: String,
     val description: String? = null,
 
+    @OneOf("percentage", "fixed_amount", "free_shipping")
     @SerialName("discount_type")
     val discountType: String,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName("discount_value")
     val discountValue: BigDecimal,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName("min_order_amount")
     val minOrderAmount: BigDecimal? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName("max_discount_amount")
     val maxDiscountAmount: BigDecimal? = null,
 
@@ -35,6 +36,7 @@ data class Coupon(
     @SerialName(value = "usage_count")
     val usageCount: Int = 0,
 
+    @OneOf("all", "category", "product", "variant")
     @SerialName(value = "applies_to_type")
     val appliesToType: String? = null,
 
@@ -44,15 +46,15 @@ data class Coupon(
     @SerialName("is_active")
     val isActive: Boolean = true,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "starts_at")
     val startsAt: OffsetDateTime? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "ends_at")
     val endsAt: OffsetDateTime? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

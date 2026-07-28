@@ -1,10 +1,11 @@
 package org.example.domain.models.support
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.NotBlank
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -19,7 +20,11 @@ data class SupportTicket(
     val orderId: String? =null,
 
     val subject: String,
+
+    @OneOf("open", "in_progress", "pending_customer", "resolved", "closed")
     val status: String = "open",
+
+    @OneOf("low", "normal", "high", "urgent")
     val priority: String = "normal",
 
     @SerialName("ticket_type")
@@ -28,15 +33,15 @@ data class SupportTicket(
     @SerialName("assigned_to")
     val assignedTo: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("resolved_at")
     val resolvedAt: OffsetDateTime? = null
 ) {

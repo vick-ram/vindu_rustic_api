@@ -2,28 +2,16 @@ package org.example.services
 
 import kotlinx.serialization.Serializable
 import org.example.config.AppConfig
-import org.example.config.security.JwtConfig
-import org.example.config.security.OtpPurpose
-import org.example.config.security.OtpService
-import org.example.config.security.OtpVerificationResult
-import org.example.config.security.PasswordHasher
-import org.example.config.security.TokenService
+import org.example.config.security.*
 import org.example.data.repo.SessionRepository
 import org.example.data.repo.UserRepository
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.identity.Session
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
 import org.example.domain.repo.NotificationAdapter
-import org.example.plugins.AuthenticationException
-import org.example.plugins.InvalidOtpException
-import org.example.plugins.NotFoundException
-import org.example.plugins.OtpExpiredException
-import org.example.plugins.TokenExpiredException
-import org.example.plugins.TooManyAttemptsException
-import org.example.plugins.TwoFactorRequiredException
+import org.example.plugins.*
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
@@ -90,13 +78,13 @@ class AuthService @Inject constructor(
         return generateTokens(user, ipAddress, deviceInfo)
     }
 
-    private fun get2FAChannels(user: User): List<NotificationChannel> {
-        val channels = mutableListOf<NotificationChannel>()
-        channels.add(NotificationChannel.EMAIL)
+    private fun get2FAChannels(user: User): List<String> {
+        val channels = mutableListOf<String>()
+        channels.add("email")
         if (user.phoneNumber != null) {
-            channels.add(NotificationChannel.SMS)
+            channels.add("sms")
         }
-        channels.add(NotificationChannel.DATABASE)
+        channels.add("database")
         return channels
     }
 
@@ -177,7 +165,7 @@ class AuthService @Inject constructor(
                 userId = user.id,
                 otp = emailOtp,
                 purpose = "email_verification",
-                channels = listOf(NotificationChannel.EMAIL)
+                channels = listOf("email")
             )
         }
 
@@ -187,7 +175,7 @@ class AuthService @Inject constructor(
                 userId = user.id,
                 otp = phoneOtp,
                 purpose = "phone_verification",
-                channels = listOf(NotificationChannel.SMS)
+                channels = listOf("sms")
             )
         }
     }
@@ -230,11 +218,11 @@ class AuthService @Inject constructor(
         val otp = otpService.generateOtp(userId, purpose)
 
         val channels = when (purpose) {
-            OtpPurpose.EMAIL_VERIFICATION -> listOf(NotificationChannel.EMAIL)
-            OtpPurpose.PHONE_VERIFICATION -> listOf(NotificationChannel.SMS)
-            OtpPurpose.PASSWORD_RESET -> listOf(NotificationChannel.EMAIL)
+            OtpPurpose.EMAIL_VERIFICATION -> listOf("email")
+            OtpPurpose.PHONE_VERIFICATION -> listOf("sms")
+            OtpPurpose.PASSWORD_RESET -> listOf("email")
             OtpPurpose.LOGIN_2FA -> get2FAChannels(user)
-            else -> listOf(NotificationChannel.EMAIL)
+            else -> listOf("email")
         }
 
         notificationAdapter.sendOtpNotification(

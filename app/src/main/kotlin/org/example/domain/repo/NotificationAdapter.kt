@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.example.di.Inject
 import org.example.di.Injectable
-import org.example.domain.models.NotificationChannel
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
 import org.slf4j.LoggerFactory
@@ -22,8 +21,8 @@ class NotificationAdapter @Inject constructor(
         userId: String,
         otp: String,
         purpose: String,
-        channels: List<NotificationChannel> = listOf(NotificationChannel.EMAIL)
-    ): Result<Map<NotificationChannel, DispatchResult>> {
+        channels: List<String> = listOf("email")
+    ): Result<Map<String, DispatchResult>> {
         return try {
             val notifications = channels.map { channel ->
                 NotificationTemplates.createOtpNotification(
@@ -108,7 +107,7 @@ class NotificationAdapter @Inject constructor(
                 kwargs = mapOf(
                     "notification" to json.encodeToJsonElement(notification),
                     "channels" to json.encodeToJsonElement(
-                        listOf(NotificationChannel.EMAIL, NotificationChannel.DATABASE)
+                        listOf("email", "database")
                     )
                 ),
                 priority = 1 // High priority
@@ -128,7 +127,7 @@ class NotificationAdapter @Inject constructor(
         return try {
             val notification = Notification(
                 userId = userId,
-                channel = NotificationChannel.EMAIL,
+                channel = "email",
                 title = "security_alert",
                 type = alertType,
                 metadata = details,
@@ -140,9 +139,9 @@ class NotificationAdapter @Inject constructor(
                     "notification" to json.encodeToJsonElement(notification),
                     "channels" to json.encodeToJsonElement(
                         listOf(
-                            NotificationChannel.EMAIL,
-                            NotificationChannel.SMS,
-                            NotificationChannel.DATABASE
+                            "email",
+                            "sms",
+                            "database"
                         )
                     )
                 ),
@@ -170,7 +169,7 @@ object NotificationTemplates {
 
     fun createOtpNotification(
         userId: String,
-        channel: NotificationChannel,
+        channel: String,
         otp: String,
         purpose: String,
         expiresInMinutes: Int = 5
@@ -197,7 +196,7 @@ object NotificationTemplates {
     fun createWelcomeNotification(userId: String, userName: String): Notification {
         return Notification(
             userId = userId,
-            channel = NotificationChannel.EMAIL,
+            channel = "email",
             title = "welcome",
             type = WELCOME,
             metadata = mapOf(
@@ -215,7 +214,7 @@ object NotificationTemplates {
     ): Notification {
         return Notification(
             userId = userId,
-            channel = NotificationChannel.EMAIL,
+            channel = "email",
             type = LOGIN_ALERT,
             title = "Login Alert",
             metadata = mapOf(

@@ -1,13 +1,11 @@
 package org.example.domain.models.sales
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.domain.validations.GreaterThan
 import org.example.domain.validations.NotBlank
-import org.example.utils.BigDecimalSerializer
-import org.example.utils.MapStringAnySerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -30,23 +28,23 @@ data class OrderItem(
     @field:GreaterThan(value = 0)
     val quantity: Int,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "unit_price")
     val unitPrice: BigDecimal,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     @SerialName(value = "total_price")
     val totalPrice: BigDecimal,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     @SerialName(value = "customization_snapshot")
     val customizationSnapshot: Map<String, Any>? = null,
 
-    @Serializable(with = MapStringAnySerializer::class)
+    @Contextual
     @SerialName(value = "product_snapshot")
     val productSnapshot: Map<String, Any>,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

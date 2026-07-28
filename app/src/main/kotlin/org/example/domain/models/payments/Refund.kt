@@ -1,10 +1,10 @@
 package org.example.domain.models.payments
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.BigDecimalSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
@@ -18,10 +18,12 @@ data class Refund(
     @SerialName("transaction_id")
     val transactionId: String? = null,
 
-    @Serializable(with = BigDecimalSerializer::class)
+    @Contextual
     val amount: BigDecimal,
 
     val reason: String? = null,
+
+    @OneOf("requested", "approved", "processed", "rejected", "failed")
     val status: String = "requested",
 
     @SerialName("requested_by")
@@ -30,11 +32,11 @@ data class Refund(
     @SerialName("processed_by")
     val processedBy: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "processed_at")
     val processedAt: OffsetDateTime? = null
 )

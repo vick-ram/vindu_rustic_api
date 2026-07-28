@@ -17,7 +17,6 @@ class InventoryReservationRepository @Inject constructor(
 ) : CrudRepository<InventoryReservation, String>(
     connectionFactory = connectionFactory,
     tableName = "inventory_reservations",
-    idColumn = "id",
     mapper = inventoryReservationMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -76,10 +75,11 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("variantId", variantId)
-                .bind("warehouseId", warehouseId)
-                .bind("now", OffsetDateTime.now())
+            createNamedStatement(sql, mapOf(
+                "variantId" to variantId,
+                "warehouseId" to warehouseId,
+                "now" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("reserved_quantity", Int::class.java) ?: 0 }
@@ -121,9 +121,7 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("orderId", orderId)
+            connection.createNamedStatement(sql, mapOf("id" to id, "orderId" to orderId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -140,8 +138,7 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
+            connection.createNamedStatement(sql, mapOf("id" to id))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -159,8 +156,7 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("cartId", cartId)
+            connection.createNamedStatement(sql, mapOf("cartId" to cartId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -179,8 +175,7 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("now", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("now" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -211,10 +206,7 @@ class InventoryReservationRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("additionalMinutes", additionalMinutes)
-                .bind("now", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "additionalMinutes" to additionalMinutes, "now" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)

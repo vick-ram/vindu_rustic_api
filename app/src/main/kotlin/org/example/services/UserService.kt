@@ -2,11 +2,14 @@ package org.example.services
 
 import org.example.data.cache.UserCache
 import org.example.data.repo.CrudCache
+import org.example.di.Inject
+import org.example.di.Injectable
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
 import java.net.InetAddress
 
-class UserService(private val userCache: UserCache) {
+@Injectable
+class UserService @Inject constructor(private val userCache: UserCache, private val authService: AuthService) {
 
     suspend fun createUser(user: User): User {
         return userCache.create(user)
@@ -18,7 +21,7 @@ class UserService(private val userCache: UserCache) {
         ipAddress: InetAddress? = null,
         deviceInfo: String? = null,
     ): TokenResponse {
-        return userCache.login(email, password, ipAddress, deviceInfo)
+        return authService.login(email, password, ipAddress, deviceInfo)
     }
 
     suspend fun updateUser(id: String, user: User): User? {
@@ -45,8 +48,8 @@ class UserService(private val userCache: UserCache) {
         return userCache.delete(id)
     }
 
-    suspend fun logout(userId: String ,accessToken: String): Boolean {
-        userCache.logout(userId, accessToken)
+    suspend fun logout(userId: String, accessToken: String): Boolean {
+        authService.logout(userId, accessToken)
         return true
     }
 }

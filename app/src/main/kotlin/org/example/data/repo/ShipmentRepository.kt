@@ -3,6 +3,8 @@ package org.example.data.repo
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ShipmentMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -42,8 +44,7 @@ class ShipmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("trackingNumber", trackingNumber)
+            createNamedStatement(sql, mapOf("trackingNumber" to trackingNumber))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -124,10 +125,8 @@ class ShipmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            val statement = connection.createStatement(sql)
-            params.forEach { (key, value) -> statement.bind(key, value) }
-
-            statement.execute()
+            connection.createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
@@ -148,9 +147,7 @@ class ShipmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("deliveredAt", deliveredAt)
+            connection.createNamedStatement(sql, mapOf("id" to id, "deliveredAt" to deliveredAt))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -211,7 +208,10 @@ class ShipmentRepository @Inject constructor(
         startDate: OffsetDateTime? = null,
         endDate: OffsetDateTime? = null
     ): ShipmentStats {
+        val params = mutableMapOf<String, Any>()
         val dateFilter = if (startDate != null && endDate != null) {
+            params["startDate"] = startDate
+            params["endDate"] = endDate
             "WHERE shipped_at BETWEEN :startDate AND :endDate"
         } else ""
 
@@ -228,13 +228,8 @@ class ShipmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            if (startDate != null && endDate != null) {
-                statement.bind("startDate", startDate)
-                statement.bind("endDate", endDate)
-            }
-
-            statement.execute()
+            createNamedStatement(sql, params)
+            .execute()
                 .awaitSingle()
                 .map { row, _ ->
                     ShipmentStats(
@@ -260,9 +255,7 @@ class ShipmentRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("shippingLabelUrl", shippingLabelUrl)
+            connection.createNamedStatement(sql, mapOf("id" to id, "shippingLabelUrl" to shippingLabelUrl))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -271,11 +264,12 @@ class ShipmentRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class ShipmentStats(
     val totalShipments: Int,
     val delivered: Int,
     val inTransit: Int,
     val avgDeliveryHours: Double,
-    val totalShippingCost: BigDecimal,
+    @Contextual val totalShippingCost: BigDecimal,
     val uniqueCouriers: Int
 )

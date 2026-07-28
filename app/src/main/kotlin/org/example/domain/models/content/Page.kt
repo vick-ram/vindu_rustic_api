@@ -1,10 +1,11 @@
 package org.example.domain.models.content
 
 import io.ktor.http.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -20,20 +21,21 @@ data class Page(
     @SerialName("meta_description")
     val metaDescription: String? = null,
 
+    @OneOf("draft", "published", "archived")
     val status: String = "draft",
 
     @SerialName("created_by")
     val createdBy: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("published_at")
     val publishedAt: OffsetDateTime? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("updated_at")
     val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 ) {

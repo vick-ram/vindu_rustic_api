@@ -8,7 +8,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.sessions.clear
-import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.server.thymeleaf.ThymeleafContent
@@ -17,7 +16,6 @@ import org.example.domain.models.identity.LoginCredentials
 import org.example.domain.models.identity.User
 import org.example.plugins.AuthSession
 import org.example.plugins.CartSession
-import org.example.services.CartService
 import org.example.services.RoleService
 import org.example.services.UserService
 import org.example.utils.now

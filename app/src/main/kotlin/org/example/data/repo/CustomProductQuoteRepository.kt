@@ -41,8 +41,7 @@ class CustomProductQuoteRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("requestId", requestId)
+            createNamedStatement(sql, mapOf("requestId" to requestId))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -63,11 +62,13 @@ class CustomProductQuoteRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "status" to status,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "status" to status,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get valid quotes (not expired)
@@ -80,10 +81,12 @@ class CustomProductQuoteRepository @Inject constructor(
             ORDER BY created_at DESC
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "requestId" to requestId,
-            "now" to OffsetDateTime.now()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "requestId" to requestId,
+                "now" to OffsetDateTime.now()
+            )
+        )
     }
 
     // Accept a quote
@@ -99,10 +102,10 @@ class CustomProductQuoteRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
-                .bind("now", OffsetDateTime.now())
+            connection.createNamedStatement(
+                sql,
+                mapOf("id" to id, "updatedAt" to OffsetDateTime.now(), "now" to OffsetDateTime.now())
+            )
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -121,9 +124,11 @@ class CustomProductQuoteRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(
+                sql, mapOf(
+                    "id" to id, "updatedAt" to OffsetDateTime.now()
+                )
+            )
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -145,9 +150,7 @@ class CustomProductQuoteRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("updatedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf("id" to id, "updatedAt" to OffsetDateTime.now()))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -167,9 +170,10 @@ class CustomProductQuoteRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("updatedAt", OffsetDateTime.now())
-                .bind("now", OffsetDateTime.now())
+            connection.createNamedStatement(
+                sql,
+                mapOf("updatedAt" to OffsetDateTime.now(), "now" to OffsetDateTime.now())
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -191,10 +195,12 @@ class CustomProductQuoteRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "createdBy" to createdBy,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "createdBy" to createdBy,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 }

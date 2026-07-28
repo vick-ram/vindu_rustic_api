@@ -7,7 +7,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.example.config.ApplicationPlugin
+import org.example.utils.BigDecimalSerializer
 import org.example.utils.InetAddressSerializer
+import org.example.utils.MapStringAnySerializer
 import org.example.utils.OffsetDateTimeSerializer
 
 object SerializationModule : ApplicationPlugin {
@@ -20,8 +22,13 @@ object SerializationModule : ApplicationPlugin {
                 serializersModule = SerializersModule {
                     contextual(OffsetDateTimeSerializer)
                     contextual(InetAddressSerializer)
+                    contextual(MapStringAnySerializer)
+                    contextual(BigDecimalSerializer)
                 }
             })
         }
     }
 }
+
+val <T> kotlinx.serialization.KSerializer<T>.nullable: kotlinx.serialization.KSerializer<T?>
+    get() = @Suppress("UNCHECKED_CAST") (this as kotlinx.serialization.KSerializer<T?>)

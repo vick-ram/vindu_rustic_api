@@ -3,7 +3,7 @@ package org.example.domain.models.support
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -44,7 +44,7 @@ data class Participant(
 )
 
 @Serializable
-data class Message (
+data class Message(
     val id: String = Ulid.generate(),
 
     @SerialName("conversation_id")

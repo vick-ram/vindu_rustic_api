@@ -1,5 +1,6 @@
 package org.example.data.repo
 
+import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -82,10 +83,11 @@ class RefundRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("processedBy", processedBy)
-                .bind("processedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "processedBy" to processedBy,
+                "processedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -109,10 +111,11 @@ class RefundRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("id", id)
-                .bind("processedBy", processedBy)
-                .bind("processedAt", OffsetDateTime.now())
+            connection.createNamedStatement(sql, mapOf(
+                "id" to id,
+                "processedBy" to processedBy,
+                "processedAt" to OffsetDateTime.now()
+            ))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -130,8 +133,7 @@ class RefundRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("paymentId", paymentId)
+            createNamedStatement(sql, mapOf("paymentId" to paymentId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("total_refunded", BigDecimal::class.java) ?: BigDecimal.ZERO }
@@ -152,8 +154,7 @@ class RefundRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("paymentId", paymentId)
+            createNamedStatement(sql, mapOf("paymentId" to paymentId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -183,9 +184,10 @@ class RefundRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("startDate", startDate)
-                .bind("endDate", endDate)
+            createNamedStatement(sql, mapOf(
+                "startDate" to startDate,
+                "endDate" to endDate
+            ))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -215,9 +217,9 @@ class RefundRepository @Inject constructor(
     }
 
     // Create refund with validation
-    override suspend fun create(model: Refund): Refund {
+    override suspend fun create(model: Refund,connection: Connection?): Refund {
         validateRefund(model)
-        return super.create(model)
+        return super.create(model, connection)
     }
 
     private suspend fun validateRefund(refund: Refund) {

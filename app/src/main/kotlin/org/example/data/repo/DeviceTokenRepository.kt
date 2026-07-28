@@ -5,12 +5,11 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.DeviceTokenMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.domain.models.Platform
 import org.example.domain.models.system.DeviceToken
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component
@@ -45,8 +44,7 @@ class DeviceTokenRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("token", token)
+            createNamedStatement(sql, mapOf("token" to token))
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
@@ -58,7 +56,7 @@ class DeviceTokenRepository @Inject constructor(
     suspend fun registerToken(
         userId: String,
         token: String,
-        platform: Platform = Platform.WEB
+        platform: String = "web"
     ): DeviceToken {
         // Deactivate old token if exists
         val existingToken = findByToken(token)
@@ -97,8 +95,7 @@ class DeviceTokenRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("token", token)
+            connection.createNamedStatement(sql, mapOf("token" to token))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -116,8 +113,7 @@ class DeviceTokenRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("userId", userId)
+            connection.createNamedStatement(sql, mapOf("userId" to userId))
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -128,7 +124,7 @@ class DeviceTokenRepository @Inject constructor(
 
     // Get tokens by platform
     suspend fun findByPlatform(
-        platform: Platform,
+        platform: String,
         isActive: Boolean = true,
         offset: Int = 0,
         limit: Int = 100
@@ -141,12 +137,14 @@ class DeviceTokenRepository @Inject constructor(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(sql, mapOf(
-            "platform" to platform.name,
-            "isActive" to isActive,
-            "limit" to limit,
-            "offset" to offset.toLong()
-        ))
+        return executeQuery(
+            sql, mapOf(
+                "platform" to platform,
+                "isActive" to isActive,
+                "limit" to limit,
+                "offset" to offset.toLong()
+            )
+        )
     }
 
     // Get active tokens for multiple users (for bulk notifications)
@@ -162,11 +160,14 @@ class DeviceTokenRepository @Inject constructor(
             ORDER BY user_id, platform
         """.trimIndent()
 
+        val params = mutableMapOf<String, Any>()
+
+        userIds.forEachIndexed { index, userId ->
+            params["userId$index"] = userId
+        }
+
         return connectionFactory.useConnection {
-            val statement = createStatement(sql)
-            userIds.forEachIndexed { index, userId ->
-                statement.bind("userId$index", userId)
-            }
+            val statement = createNamedStatement(sql, params)
 
             statement.execute()
                 .awaitSingle()
@@ -217,8 +218,10 @@ class DeviceTokenRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.withTransaction { connection ->
-            connection.createStatement(sql)
-                .bind("cutoffDate", OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            connection.createNamedStatement(
+                sql,
+                mapOf("cutoffDate" to OffsetDateTime.now().minusDays(olderThanDays.toLong()))
+            )
                 .execute()
                 .awaitSingle()
                 .rowsUpdated
@@ -228,6 +231,7 @@ class DeviceTokenRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class TokenStats(
     val totalTokens: Int,
     val activeTokens: Int,

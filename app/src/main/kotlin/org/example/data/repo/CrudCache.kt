@@ -77,6 +77,17 @@ open class CrudCache<Model: Any, ID: Any>(
         }
     }
 
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    suspend fun removeFromCache(id: String) {
+        try {
+            @Suppress("UNCHECKED_CAST")
+            val key = generateCacheKey(id as ID)
+            redis.del(key)
+        } catch (e: Exception) {
+            logger.error("Failed to remove entity from cache for ID: $id", e)
+        }
+    }
+
     open suspend fun create(model: Model): Model {
         val created = delegate.create(model)
         val id = getId(created)
@@ -161,7 +172,7 @@ open class CrudCache<Model: Any, ID: Any>(
     }
 
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    private suspend fun deleteKeysByPattern(pattern: String) {
+    suspend fun deleteKeysByPattern(pattern: String) {
         try {
             val scanArgs = ScanArgs.Builder.matches(pattern).limit(100)
             var scanCursor: KeyScanCursor<String>? = redis.scan(ScanCursor.INITIAL, scanArgs)

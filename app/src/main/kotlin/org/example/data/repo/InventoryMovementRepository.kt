@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.InventoryMovementMapper
 import org.example.di.Component
 import org.example.di.Inject
@@ -19,7 +20,6 @@ class InventoryMovementRepository @Inject constructor(
 ) : CrudRepository<InventoryMovement, String>(
     connectionFactory = connectionFactory,
     tableName = "inventory_movements",
-    idColumn = "id",
     mapper = inventoryMovementMapper
 ) {
     override val generatedColumns = listOf("id", "created_at")
@@ -118,9 +118,7 @@ class InventoryMovementRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("variantId", variantId)
-                .bind("warehouseId", warehouseId)
+            createNamedStatement(sql, mapOf("variantId" to variantId, "warehouseId" to warehouseId))
                 .execute()
                 .awaitSingle()
                 .map { row, _ -> row.get("current_stock", Int::class.java) ?: 0 }
@@ -158,9 +156,7 @@ class InventoryMovementRepository @Inject constructor(
         }
 
         val results = connectionFactory.useConnection {
-            createStatement(sql).apply {
-                params.forEach { (key, value) -> bind(key, value) }
-            }
+            createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -210,9 +206,10 @@ class InventoryMovementRepository @Inject constructor(
         """.trimIndent()
 
         return connectionFactory.useConnection {
-            createStatement(sql)
-                .bind("warehouseId", warehouseId)
-                .bind("threshold", threshold)
+            createNamedStatement(sql, mapOf(
+                "warehouseId" to warehouseId,
+                "threshold" to threshold
+            ))
                 .execute()
                 .awaitSingle()
                 .map { row, _ ->
@@ -237,16 +234,19 @@ class InventoryMovementRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class MovementTypeSummary(
     val movementType: String,
     val totalQuantity: Int,
     val movementCount: Int
 )
 
+@Serializable
 data class MovementSummary(
     val summaries: List<MovementTypeSummary>
 )
 
+@Serializable
 data class LowStockVariant(
     val variantId: String,
     val warehouseId: String,

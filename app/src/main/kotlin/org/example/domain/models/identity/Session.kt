@@ -1,10 +1,10 @@
 package org.example.domain.models.identity
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
 import org.example.utils.InetAddressSerializer
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
@@ -25,11 +25,11 @@ data class Session(
     @SerialName("user_agent")
     val userAgent: String? = null,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("expires_at")
     val expiresAt: OffsetDateTime,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 )

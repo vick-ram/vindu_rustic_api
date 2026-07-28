@@ -3,10 +3,10 @@ package org.example.domain.models.customization
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.utils.Ulid
 import org.example.utils.saveMedia
 import java.time.OffsetDateTime
 
@@ -26,7 +26,7 @@ data class CustomProductAttachment(
     @SerialName(value = "file_size")
     val fileSize: Long? = null, // bytes
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName(value = "created_at")
     val createdAt: OffsetDateTime = OffsetDateTime.now()
 ) {

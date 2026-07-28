@@ -5,8 +5,12 @@ import io.ktor.websocket.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.domain.validations.*
+import org.example.domain.validations.Email
+import org.example.domain.validations.NotBlank
+import org.example.domain.validations.OneOf
+import org.example.domain.validations.Password
+import org.example.domain.validations.Phone
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 
@@ -66,7 +70,8 @@ data class User(
     @SerialName(value = "phone_verified")
     val phoneVerified: Boolean = false,
 
-    val status: String = "ACTIVE",
+    @OneOf("active", "suspended", "deactivated")
+    val status: String = "active",
 
     @SerialName("two_factor_enabled")
     val twoFactorEnabled : Boolean = false,

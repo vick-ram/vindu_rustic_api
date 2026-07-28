@@ -8,7 +8,6 @@ import io.ktor.server.routing.*
 import org.example.domain.models.sales.CartRequest
 import org.example.domain.models.sales.RemoveFromCart
 import org.example.domain.models.sales.UpdateCartQuantity
-import org.example.services.CartService
 import org.example.utils.respondApi
 
 class CartController(

@@ -1,9 +1,10 @@
 package org.example.domain.models.inventory
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.example.data.db.config.Ulid
-import org.example.utils.OffsetDateTimeSerializer
+import org.example.domain.validations.OneOf
+import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
 @Serializable
@@ -23,13 +24,15 @@ data class InventoryReservation(
     val orderId: String? = null,
 
     val quantity: Int,
+
+    @OneOf("active", "completed", "expired", "cancelled")
     val status: String = "active",
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("expires_at")
     val expiresAt: OffsetDateTime,
 
-    @Serializable(with = OffsetDateTimeSerializer::class)
+    @Contextual
     @SerialName("created_at")
     val createdAt:OffsetDateTime = OffsetDateTime.now()
 )

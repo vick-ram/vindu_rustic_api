@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.domain.repo.RowMapper
 import java.time.OffsetDateTime
 import java.util.function.BiFunction
+import kotlin.reflect.KClass
 
 
 object NamedParamSql {
@@ -31,14 +32,16 @@ object NamedParamSql {
 }
 
 /** Wrap nullable values so bindNull gets the right type — r2dbc has no way to infer it from null alone. */
-data class TypedNull(val type: Class<*>)
+data class TypedNull<T: Any>(val type: KClass<T>)
+
+inline fun <reified T: Any> nullValue() = TypedNull(T::class)
 
 fun Statement.bindNamedParams(order: List<String>, params: Map<String, Any?>): Statement {
     order.forEachIndexed { i, name ->
         // Handle null tracking safely via containsKey or fallback
         if (!params.containsKey(name)) error("Missing binding for :$name")
         when (val value = params[name]) {
-            is TypedNull -> this.bindNull(i, value.type)
+            is TypedNull<*> -> this.bindNull(i, value.type.java)
             null -> this.bindNull(i, String::class.java)
             else -> this.bind(i, value)
         }
@@ -50,6 +53,28 @@ fun Connection.createNamedStatement(sql: String, params: Map<String, Any?>): Sta
     val (positionalSql, order) = NamedParamSql.convert(sql)
     val statement = this.createStatement(positionalSql)
     return statement.bindNamedParams(order, params)
+}
+
+class DynamicQueryBuilder(private val baseSql: String) {
+    private val conditions = mutableListOf<String>()
+    private val params = mutableMapOf<String, Any>()
+
+    fun whereNotNull(clause: String, paramName: String, value: Any?): DynamicQueryBuilder {
+        if (value != null) {
+            conditions.add(clause)
+            params[paramName] = value
+        }
+        return this
+    }
+
+    fun build(): Pair<String, Map<String, Any>> {
+        val sql = if (conditions.isEmpty()) {
+            baseSql
+        } else {
+            "$baseSql WHERE " + conditions.joinToString(" AND ")
+        }
+        return sql to params
+    }
 }
 
 abstract class CrudRepository<Model : Any, ID : Any>(
@@ -70,7 +95,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
     // Columns returned after INSERT
     protected open val returningColumns: List<String> = listOf("*")
 
-    open suspend fun create(model: Model): Model {
+    open suspend fun create(model: Model, connection: Connection? = null): Model {
         val rowData = mapper.toRow(model)
         val columns = rowData.keys.filter { it !in generatedColumns }
         val placeholders = columns.joinToString(", ") { ":$it" }
@@ -82,27 +107,40 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             RETURNING ${returningColumns.joinToString(", ")}
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val params = rowData.filterKeys { it in columns }
+        val params = rowData.filterKeys { it in columns }
+
+        val conn = connection ?: return connectionFactory.withTransaction { connection ->
             connection.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitSingle()
         }
+
+        return conn.createNamedStatement(sql, params)
+            .execute()
+            .awaitSingle()
+            .map(rowMapper)
+            .awaitSingle()
     }
 
-    open suspend fun read(id: ID): Model? {
+    open suspend fun read(id: ID, connection: Connection? = null): Model? {
         val sql = "SELECT * FROM $tableName WHERE $idColumn = :id"
         val params = mapOf<String, Any?>("id" to id)
 
-        return connectionFactory.useConnection {
+        val conn = connection ?: return connectionFactory.useConnection {
             createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
         }
+
+        return conn.createNamedStatement(sql, params)
+            .execute()
+            .awaitSingle()
+            .map(rowMapper)
+            .awaitFirstOrNull()
     }
 
     open suspend fun readAll(
@@ -137,7 +175,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         }
     }
 
-    open suspend fun update(id: ID, model: Model): Model? {
+    open suspend fun update(id: ID, model: Model, connection: Connection? = null): Model? {
         val rowData = mapper.toRow(model)
         val setClauses = rowData.keys
             .filter { it != idColumn && it !in generatedColumns }
@@ -150,12 +188,13 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             RETURNING ${returningColumns.joinToString(", ")}
         """.trimIndent()
 
-        return connectionFactory.withTransaction { connection ->
-            val params = mutableMapOf<String, Any?>(
-                "id" to id,
-                "updated_at" to OffsetDateTime.now()
-            )
-            params.putAll(rowData.filterKeys { it != idColumn && it !in generatedColumns })
+        val params = mutableMapOf<String, Any?>(
+            "id" to id,
+            "updated_at" to OffsetDateTime.now()
+        )
+        params.putAll(rowData.filterKeys { it != idColumn && it !in generatedColumns })
+
+        val conn = connection ?: return connectionFactory.withTransaction { connection ->
 
             connection.createNamedStatement(sql, params)
                 .execute()
@@ -163,6 +202,11 @@ abstract class CrudRepository<Model : Any, ID : Any>(
                 .map(rowMapper)
                 .awaitFirstOrNull()
         }
+        return conn.createNamedStatement(sql, params)
+            .execute()
+            .awaitSingle()
+            .map(rowMapper)
+            .awaitFirstOrNull()
     }
 
     open suspend fun delete(id: ID): Boolean {
@@ -183,7 +227,8 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         query: String,
         language: String = "english",
         offset: Int = 0,
-        limit: Int = 20
+        limit: Int = 20,
+        connection: Connection? = null
     ): List<Model> {
         val tsQuery = buildTsQuery(query)
         val sql = """
@@ -199,7 +244,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
                 "query" to tsQuery,
                 "limit" to limit,
                 "offset" to offset
-            ), rowMapper
+            ), connection, rowMapper
         )
     }
 
@@ -234,7 +279,8 @@ abstract class CrudRepository<Model : Any, ID : Any>(
     suspend fun suggest(
         prefix: String,
         searchField: String = "name",
-        limit: Int = 10
+        limit: Int = 10,
+        connection: Connection? = null
     ): List<Model> {
         val sql = """
             SELECT * FROM $tableName
@@ -248,7 +294,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
                 "prefix" to "$prefix%",
                 "exact_prefix" to prefix,
                 "limit" to limit
-            ), rowMapper
+            ), connection, rowMapper
         )
     }
 
@@ -257,7 +303,8 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         filters: Map<String, Any?> = emptyMap(),
         sortBy: String? = null,
         offset: Int = 0,
-        limit: Int = 20
+        limit: Int = 20,
+        connection: Connection? = null
     ): List<Model> {
         val conditions = mutableListOf<String>()
         val params = mutableMapOf<String, Any?>()
@@ -296,7 +343,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         params["limit"] = limit
         params["offset"] = offset
 
-        return executeQuery(sql, params, rowMapper)
+        return executeQuery(sql, params, connection, rowMapper)
     }
 
     private fun buildTsQuery(query: String): String {
@@ -317,19 +364,24 @@ abstract class CrudRepository<Model : Any, ID : Any>(
     protected suspend fun <R : Any> executeQuery(
         sql: String,
         params: Map<String, Any?> = emptyMap(),
+        connection: Connection? = null,
         mapper: BiFunction<Row, RowMetadata, R> = BiFunction { row, _ -> row as R }
     ): List<R> {
-        return connectionFactory.useConnection {
-            val (positionalSql, order) = NamedParamSql.convert(sql)
-            val statement = createStatement(positionalSql)
-            statement.bindNamedParams(order, params)
-
-            statement.execute()
-                .awaitSingle() // Returns an R2DBC Result object
-                .map(mapper)   // Returns a Publisher<R>
-                .asFlow()      // Now works because R is guaranteed to be non-nullable
+        val conn = connection ?: return connectionFactory.useConnection {
+            createNamedStatement(sql, params)
+                .execute()
+                .awaitSingle()
+                .map(mapper)
+                .asFlow()
                 .toList()
         }
+
+        return conn.createNamedStatement(sql, params)
+            .execute()
+            .awaitSingle()
+            .map(mapper)
+            .asFlow()
+            .toList()
     }
 
     // Generic join method for complex queries
