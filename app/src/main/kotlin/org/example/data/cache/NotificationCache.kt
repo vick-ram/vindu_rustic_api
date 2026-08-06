@@ -4,18 +4,19 @@ import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.example.data.mappers.NotificationMapper
 import org.example.data.repo.*
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
-import org.example.plugins.NotFoundException
+import org.example.exceptions.NotFoundException
 import org.example.utils.notifications.EmailNotificationService
 import org.example.utils.notifications.FcmNotificationService
 import org.example.utils.notifications.SMSService
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Single
-class NotificationCache(
+@Component
+class NotificationCache @Inject constructor(
     redis: RedisCoroutinesCommands<String, String>,
     notificationMapper: NotificationMapper,
     private val notificationRepository: NotificationRepository,

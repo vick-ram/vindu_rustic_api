@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.example.config.ApplicationPlugin
+import org.example.utils.AnySerializer
 import org.example.utils.BigDecimalSerializer
 import org.example.utils.InetAddressSerializer
 import org.example.utils.MapStringAnySerializer
@@ -23,6 +24,7 @@ object SerializationModule : ApplicationPlugin {
                     contextual(OffsetDateTimeSerializer)
                     contextual(InetAddressSerializer)
                     contextual(MapStringAnySerializer)
+                    contextual(Any::class, AnySerializer)
                     contextual(BigDecimalSerializer)
                 }
             })

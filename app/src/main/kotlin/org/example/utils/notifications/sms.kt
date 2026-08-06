@@ -1,8 +1,9 @@
 package org.example.utils.notifications
 
 import org.example.config.AppConfig
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.system.DispatchResult
-import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -11,8 +12,8 @@ import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 
-@Single
-class SMSService(private val config: AppConfig) {
+@Component
+class SMSService @Inject constructor(private val config: AppConfig) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private val snsClient by lazy {

@@ -10,7 +10,6 @@ import org.example.data.mappers.InventoryMovementMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.inventory.InventoryMovement
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component

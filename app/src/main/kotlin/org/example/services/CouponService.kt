@@ -1,13 +1,14 @@
 package org.example.services
 
 import org.example.data.cache.CouponCache
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.marketing.Coupon
 import org.example.domain.models.marketing.CouponUsage
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
-@Single
-class CouponService(private val couponCache: CouponCache) {
+@Component
+class CouponService @Inject constructor(private val couponCache: CouponCache) {
 
     suspend fun getCouponByCode(code: String): Coupon? {
         return couponCache.findByCode(code)

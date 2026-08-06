@@ -5,6 +5,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.example.domain.validations.Between
+import org.example.domain.validations.NotBlank
 import org.example.utils.OffsetDateTimeSerializer
 import org.example.utils.Ulid
 import java.time.OffsetDateTime
@@ -13,17 +14,21 @@ import java.time.OffsetDateTime
 data class ProductReview(
     val id: String = Ulid.generate(),
 
+    @NotBlank("productId cannot be blank")
     @SerialName(value = "product_id")
     val productId: String,
 
+    @NotBlank("userId cannot be blank")
     @SerialName(value = "user_id")
     val userId: String,
 
+    @NotBlank("orderItemId cannot be blank")
     @SerialName(value = "order_item_id")
     val orderItemId: String,
 
-    @field:Between(min = 1, max = 5)
-    val rating: Int, // 1-5
+    @Between(min = 1, max = 5)
+    val rating: Int,
+
     val title: String,
     val review: String,
 

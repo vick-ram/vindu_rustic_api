@@ -1,13 +1,11 @@
 package org.example.data.repo
 
-import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.ProductMediaMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.catalog.ProductMedia
-import org.koin.core.annotation.Single
 
 @Component
 class ProductMediaRepository @Inject constructor(

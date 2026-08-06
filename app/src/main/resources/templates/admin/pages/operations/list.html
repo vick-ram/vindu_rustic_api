@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/main.html}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Operations</title>
+</head>
+<body>
+<section layout:fragment="content" class="mt-1">
+    <div class="controls-container">
+        <div>
+            <h1 th:text="${title}">Operations</h1>
+            <p th:if="${message}" th:text="${message}"></p>
+        </div>
+    </div>
+
+    <div class="t-table-wrap">
+        <div th:if="${#lists.isEmpty(items)}" class="t-empty">No records found.</div>
+        <ul th:unless="${#lists.isEmpty(items)}" class="flex column gap-2" aria-label="Operations records">
+            <li th:each="item : ${items}" class="card" th:text="${item}">Record</li>
+        </ul>
+    </div>
+</section>
+</body>
+</html>

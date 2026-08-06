@@ -9,7 +9,6 @@ import org.example.data.mappers.ShipmentMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.shipping.Shipment
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 

@@ -8,9 +8,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CategoryMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.di.Qualifier
 import org.example.domain.models.catalog.Category
-import org.koin.core.annotation.Single
 
 @Component
 class CategoryRepository @Inject constructor(
@@ -57,6 +55,6 @@ class CategoryRepository @Inject constructor(
     }
 
     suspend fun searchCategories(query: String, offset: Int, limit: Int): List<Category>  {
-        return search(query = query, limit = limit, offset = offset)
+        return search(query = query, limit = limit, offset = offset).toList()
     }
 }

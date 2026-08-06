@@ -5,6 +5,7 @@ import io.lettuce.core.KeyScanCursor
 import io.lettuce.core.ScanArgs
 import io.lettuce.core.ScanCursor
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -124,9 +125,9 @@ open class CrudCache<Model: Any, ID: Any>(
         val entities = delegate.readAll(offset, limit, queryParams)
 
         // Cache non-empty results
-        if (entities.isNotEmpty()) {
+        if (entities.toList().isNotEmpty()) {
             try {
-                val jsonValue = Json.encodeToString(collectionSerializer, entities)
+                val jsonValue = Json.encodeToString(collectionSerializer, entities.toList())
                 if (config.ttl != null) {
                     redis.setex(cacheKey, config.ttl!!, jsonValue)
                 } else {
@@ -137,7 +138,7 @@ open class CrudCache<Model: Any, ID: Any>(
             }
         }
 
-        return entities
+        return entities.toList()
     }
 
     open suspend fun update(id: ID, entity: Model): Model? {

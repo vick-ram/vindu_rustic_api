@@ -9,7 +9,6 @@ import org.example.data.mappers.TagMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.catalog.Tag
-import org.koin.core.annotation.Single
 
 @Component
 class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, tagMapper: TagMapper) :
@@ -85,7 +84,7 @@ class TagRepository @Inject constructor(connectionFactory: ConnectionFactory, ta
     }
 
     suspend fun searchTags(query: String, offset: Int, limit: Int): List<Tag> {
-        return search(query = query, offset = offset, limit = limit)
+        return search(query = query, offset = offset, limit = limit).toList()
     }
 
     suspend fun deleteUnusedTags(): Int {

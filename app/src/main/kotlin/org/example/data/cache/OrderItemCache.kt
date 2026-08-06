@@ -13,17 +13,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 
-@Component
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Component
 class OrderItemCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val repository: OrderItemRepository,
-    serializer: KSerializer<OrderItem>
 ) : CrudCache<OrderItem, String>(
     redis = redis,
     delegate = repository,
     getId = { it.id },
-    serializer = serializer,
+    serializer = OrderItem.serializer(),
     config = object : CacheConfig {
         override val cacheName = "order_items"
         override val ttl = 86400L // 24 hours default TTL — historical data is highly immutable

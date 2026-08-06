@@ -28,10 +28,10 @@ import org.example.domain.models.sales.OrderStatusHistory
 import org.example.domain.models.shipping.Shipment
 import org.example.domain.models.system.AuditLog
 import org.example.domain.models.system.OutboxEvent
-import org.example.plugins.EmptyCartException
-import org.example.plugins.InsufficientInventoryException
-import org.example.plugins.InvalidCouponException
-import org.example.plugins.NotFoundException
+import org.example.exceptions.EmptyCartException
+import org.example.exceptions.InsufficientInventoryException
+import org.example.exceptions.InvalidCouponException
+import org.example.exceptions.NotFoundException
 import java.math.BigDecimal
 import java.net.InetAddress
 import java.time.OffsetDateTime
@@ -276,7 +276,7 @@ class OrderRepository @Inject constructor(
 
         val order = Order(
             userId = userId,
-            orderNumber = org.example.utils.generateOrderNumber(),
+            orderNumber = generateOrderNumber(),
             shippingAddressId = shippingAddress.id,
             billingAddressId = billingAddressId,
             status = "pending",

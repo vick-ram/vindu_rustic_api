@@ -9,10 +9,8 @@ import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.sales.CartItem
 import org.example.domain.models.sales.ShoppingCart
-import org.example.domain.models.sales.WishlistItem
-import org.example.plugins.InsufficientInventoryException
-import org.example.plugins.NotFoundException
-import org.koin.core.annotation.Single
+import org.example.exceptions.InsufficientInventoryException
+import org.example.exceptions.NotFoundException
 import java.time.OffsetDateTime
 import kotlin.uuid.Uuid
 

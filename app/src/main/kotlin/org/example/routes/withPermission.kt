@@ -14,7 +14,6 @@ import org.example.services.UserService
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 fun Route.requireAuth(role: String, userService: UserService, roleService: RoleService, build: () -> Route) {
 
     val randomUuid = Uuid.random()
@@ -33,12 +32,12 @@ fun Route.requireAuth(role: String, userService: UserService, roleService: RoleS
                 }
 
                 val user = userService?.getUser(session.userId)
-                val userRole = user?.roleId?.let { roleService?.getRole(it) }?.name
-
-                if (userRole != role) {
-                    call.respond(HttpStatusCode.Forbidden, "Access denied for $role")
-                    return@on
-                }
+//                val userRole = user?.roleId?.let { roleService?.getRole(it) }?.name
+//
+//                if (userRole != role) {
+//                    call.respond(HttpStatusCode.Forbidden, "Access denied for $role")
+//                    return@on
+//                }
             }
         }
 

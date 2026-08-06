@@ -1,9 +1,14 @@
 package org.example.services
 
+import kotlinx.coroutines.flow.toList
+import org.example.data.repo.RoleRepository
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.identity.Role
 
-class RoleService(private val roleRepository: RoleRepository) {
-    suspend fun createRole(role: Role): Role? {
+@Component
+class RoleService @Inject constructor(private val roleRepository: RoleRepository) {
+    suspend fun createRole(role: Role): Role {
         return roleRepository.create(role)
     }
 
@@ -12,15 +17,11 @@ class RoleService(private val roleRepository: RoleRepository) {
     }
 
     suspend fun getRoles(offset: Int = 0, limit: Int =  10, queryParams: Map<String, String>): List<Role> {
-        return roleRepository.readAll(offset, limit, queryParams)
+        return roleRepository.readAll(offset, limit, queryParams).toList()
     }
     
     suspend fun updateRole(id: String, role: Role): Role? {
         return roleRepository.update(id, role)
-    }
-
-    suspend fun searchRole(query: String, offset: Int, limit: Int): List<Role> {
-        return roleRepository.searchRole(query, offset, limit)
     }
 
     suspend fun deleteRole(id: String): Boolean {

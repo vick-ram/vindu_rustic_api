@@ -15,8 +15,7 @@ data class Setting(
     val id: String = Ulid.generate(),
     val key: String,
 
-    @Contextual
-    val value: Map<String, Any>,
+    val value: Map<String, @Contextual Any>,
 
     val description: String? = null,
 

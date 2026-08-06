@@ -3,27 +3,33 @@ package org.example.data.cache
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.Json
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
-import org.example.data.repo.ProductVariantRepository
 import org.example.data.repo.PriceStats
+import org.example.data.repo.ProductVariantRepository
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.ProductVariant
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-class ProductVariantCache(
+@Component
+class ProductVariantCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val variantRepo: ProductVariantRepository,
-    config: CacheConfig
 ) : CrudCache<ProductVariant, String>(
     redis = redis,
     delegate = variantRepo,
     getId = { it.id }, // Assumes ProductVariant has an 'id' field of type String
     serializer = ProductVariant.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "product_variant"
+        override val ttl: Long = 3600L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ProductVariantCache::class.java)
     private val variantListSerializer = ListSerializer(ProductVariant.serializer())
@@ -100,8 +106,6 @@ class ProductVariantCache(
         }
         return deleted
     }
-
-    // --- Domain Read Queries (Cached) ---
 
     suspend fun findByProductId(productId: String): List<ProductVariant> {
         val cacheKey = "${config.cacheName}:product:$productId"
@@ -185,9 +189,3 @@ class ProductVariantCache(
         }
     }
 }
-
-/**
- * Extension properties ensuring syntax compilation clarity with nullable targets.
- */
-private val <T> kotlinx.serialization.KSerializer<T>.nullable: kotlinx.serialization.KSerializer<T?>
-    get() = @Suppress("UNCHECKED_CAST") (this as kotlinx.serialization.KSerializer<T?>)

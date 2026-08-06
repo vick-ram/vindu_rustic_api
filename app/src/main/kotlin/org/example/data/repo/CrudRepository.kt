@@ -5,6 +5,13 @@ import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.Row
 import io.r2dbc.spi.RowMetadata
 import io.r2dbc.spi.Statement
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -12,8 +19,31 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.domain.repo.RowMapper
 import java.time.OffsetDateTime
 import java.util.function.BiFunction
+import kotlin.math.ceil
 import kotlin.reflect.KClass
 
+data class Pageable(
+    val page: Int = 1,
+    val size: Int = 20
+) {
+    init {
+        require(page >= 1) { "Page number must be 1 or greater" }
+        require(size >= 1) { "Page size must be 1 or greater" }
+    }
+
+    val offset: Long get() = (page - 1).toLong() * size
+}
+
+data class Page<T>(
+    val items: Flow<T>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int
+) {
+    val hasNext: Boolean get() = page < totalPages
+    val hasPrevious: Boolean get() = page > 1
+}
 
 object NamedParamSql {
     private val PARAM_REGEX = Regex(":(\\w+)(?!:)")
@@ -32,9 +62,9 @@ object NamedParamSql {
 }
 
 /** Wrap nullable values so bindNull gets the right type — r2dbc has no way to infer it from null alone. */
-data class TypedNull<T: Any>(val type: KClass<T>)
+data class TypedNull<T : Any>(val type: KClass<T>)
 
-inline fun <reified T: Any> nullValue() = TypedNull(T::class)
+inline fun <reified T : Any> nullValue() = TypedNull(T::class)
 
 fun Statement.bindNamedParams(order: List<String>, params: Map<String, Any?>): Statement {
     order.forEachIndexed { i, name ->
@@ -53,28 +83,6 @@ fun Connection.createNamedStatement(sql: String, params: Map<String, Any?>): Sta
     val (positionalSql, order) = NamedParamSql.convert(sql)
     val statement = this.createStatement(positionalSql)
     return statement.bindNamedParams(order, params)
-}
-
-class DynamicQueryBuilder(private val baseSql: String) {
-    private val conditions = mutableListOf<String>()
-    private val params = mutableMapOf<String, Any>()
-
-    fun whereNotNull(clause: String, paramName: String, value: Any?): DynamicQueryBuilder {
-        if (value != null) {
-            conditions.add(clause)
-            params[paramName] = value
-        }
-        return this
-    }
-
-    fun build(): Pair<String, Map<String, Any>> {
-        val sql = if (conditions.isEmpty()) {
-            baseSql
-        } else {
-            "$baseSql WHERE " + conditions.joinToString(" AND ")
-        }
-        return sql to params
-    }
 }
 
 abstract class CrudRepository<Model : Any, ID : Any>(
@@ -101,53 +109,59 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         val placeholders = columns.joinToString(", ") { ":$it" }
         val columnNames = columns.joinToString(", ")
 
+        val updateSet = columns.joinToString(", ") { "$it = EXCLUDED.$it" }
         val sql = """
             INSERT INTO $tableName ($columnNames)
             VALUES ($placeholders)
+            ON CONFLICT (id)
+            DO UPDATE SET $updateSet
             RETURNING ${returningColumns.joinToString(", ")}
         """.trimIndent()
 
         val params = rowData.filterKeys { it in columns }
 
-        val conn = connection ?: return connectionFactory.withTransaction { connection ->
-            connection.createNamedStatement(sql, params)
+        suspend fun executeQuery(conn: Connection): Model {
+            return conn.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitSingle()
         }
-
-        return conn.createNamedStatement(sql, params)
-            .execute()
-            .awaitSingle()
-            .map(rowMapper)
-            .awaitSingle()
+        return if (connection != null) {
+            executeQuery(connection)
+        } else {
+            connectionFactory.withTransaction { conn ->
+                executeQuery(conn)
+            }
+        }
     }
 
     open suspend fun read(id: ID, connection: Connection? = null): Model? {
         val sql = "SELECT * FROM $tableName WHERE $idColumn = :id"
         val params = mapOf<String, Any?>("id" to id)
 
-        val conn = connection ?: return connectionFactory.useConnection {
-            createNamedStatement(sql, params)
+        suspend fun execQuery(conn: Connection): Model? {
+            return conn.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
         }
-
-        return conn.createNamedStatement(sql, params)
-            .execute()
-            .awaitSingle()
-            .map(rowMapper)
-            .awaitFirstOrNull()
+        return if (connection != null) {
+            execQuery(connection)
+        } else {
+            connectionFactory.useConnection {
+                execQuery(this)
+            }
+        }
     }
 
-    open suspend fun readAll(
+    open fun readAll(
         offset: Int,
         limit: Int,
-        queryParams: Map<String, String>?
-    ): List<Model> {
+        queryParams: Map<String, String>? = null,
+        connection: Connection? = null
+    ): Flow<Model> {
         val whereClause = buildWhereClause(queryParams)
         val sql = """
             SELECT * FROM $tableName 
@@ -164,15 +178,51 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         queryParams?.forEach { (key, value) ->
             params["filter_$key"] = "%${value.lowercase()}%" // Fixed: Avoid key namespace collisions
         }
+        return streamQuery(sql, params, connection, rowMapper)
+    }
 
-        return connectionFactory.useConnection {
-            createNamedStatement(sql, params)
-                .execute()
-                .awaitSingle()
-                .map(rowMapper)
-                .asFlow()
-                .toList()
+    open suspend fun readPage(
+        pageable: Pageable,
+        queryParams: Map<String, String>? = null,
+        connection: Connection? = null
+    ): Page<Model> = coroutineScope {
+        val whereClause = buildWhereClause(queryParams)
+
+        val countSql = "SELECT COUNT(*) as count FROM $tableName $whereClause"
+        val dataSql = """
+            SELECT * FROM $tableName 
+            $whereClause
+            ORDER BY COALESCE(updated_at, created_at) DESC
+            LIMIT :limit OFFSET :offset
+        """.trimIndent()
+
+        val baseParams = mutableMapOf<String, Any?>()
+        queryParams?.forEach { (key, value) ->
+            baseParams["filter_$key"] = "%${value.lowercase()}%"
         }
+
+        val dataParams = baseParams + mapOf(
+            "limit" to pageable.size,
+            "offset" to pageable.offset
+        )
+
+        val totalElementsDeferred = async {
+            streamQuery(countSql, baseParams, connection) { row, _ ->
+                row.get("count", Long::class.java) ?: 0L
+            }.firstOrNull() ?: 0L
+        }
+
+        val items = streamQuery(dataSql, dataParams, connection, rowMapper)
+        val totalElements = totalElementsDeferred.await()
+        val totalPages = if (totalElements == 0L) 0 else ceil(totalElements.toDouble() / pageable.size).toInt()
+
+        Page(
+            items = items,
+            page = pageable.page,
+            size = pageable.size,
+            totalElements = totalElements,
+            totalPages = totalPages
+        )
     }
 
     open suspend fun update(id: ID, model: Model, connection: Connection? = null): Model? {
@@ -194,19 +244,58 @@ abstract class CrudRepository<Model : Any, ID : Any>(
         )
         params.putAll(rowData.filterKeys { it != idColumn && it !in generatedColumns })
 
-        val conn = connection ?: return connectionFactory.withTransaction { connection ->
-
-            connection.createNamedStatement(sql, params)
+        suspend fun execQuery(conn: Connection): Model? {
+            return conn.createNamedStatement(sql, params)
                 .execute()
                 .awaitSingle()
                 .map(rowMapper)
                 .awaitFirstOrNull()
         }
-        return conn.createNamedStatement(sql, params)
-            .execute()
-            .awaitSingle()
-            .map(rowMapper)
-            .awaitFirstOrNull()
+        return if (connection != null) {
+            execQuery(connection)
+        } else {
+            connectionFactory.withTransaction { conn ->
+                execQuery(conn)
+            }
+        }
+    }
+
+    open suspend fun patch(id: ID, fieldsToUpdate: Map<String, Any?>, connection: Connection? = null): Model? {
+        val validFields = fieldsToUpdate.filterKeys { it != idColumn && it !in generatedColumns }
+        if (validFields.isEmpty()) return read(id, connection)
+
+        val setClauses = validFields.keys.joinToString(", ") { "$it = :$it" }
+        val sql = """
+            UPDATE $tableName 
+            SET $setClauses, updated_at = :updated_at 
+            WHERE $idColumn = :id 
+            RETURNING ${returningColumns.joinToString(", ")}
+        """.trimIndent()
+
+        val params = mutableMapOf<String, Any?>(
+            "id" to id,
+            "updated_at" to OffsetDateTime.now()
+        )
+        params.putAll(validFields)
+
+        suspend fun execQuery(conn: Connection): Model? {
+            return conn.createNamedStatement(sql, params)
+                .execute()
+                .awaitSingle()
+                .map(rowMapper)
+                .awaitFirstOrNull()
+        }
+        return if (connection != null) {
+            execQuery(connection)
+        } else {
+            connectionFactory.withTransaction { conn ->
+                execQuery(conn)
+            }
+        }
+    }
+
+    open suspend fun patchSingle(id: ID, column: String, value: Any?, connection: Connection? = null): Model? {
+        return patch(id, mapOf(column to value), connection)
     }
 
     open suspend fun delete(id: ID): Boolean {
@@ -223,13 +312,13 @@ abstract class CrudRepository<Model : Any, ID : Any>(
     }
 
     // Full-text search with ranking
-    suspend fun search(
+    fun search(
         query: String,
         language: String = "english",
         offset: Int = 0,
         limit: Int = 20,
         connection: Connection? = null
-    ): List<Model> {
+    ): Flow<Model> {
         val tsQuery = buildTsQuery(query)
         val sql = """
             SELECT * FROM $tableName
@@ -238,7 +327,7 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             LIMIT :limit OFFSET :offset
         """.trimIndent()
 
-        return executeQuery(
+        return streamQuery(
             sql, mapOf(
                 "language" to language,
                 "query" to tsQuery,
@@ -384,41 +473,28 @@ abstract class CrudRepository<Model : Any, ID : Any>(
             .toList()
     }
 
-    // Generic join method for complex queries
-    protected suspend fun <R : Any> executeJoinQuery(
-        selectClause: String,
-        joinClauses: List<String>,
-        whereClause: String = "",
-        orderClause: String = "",
+    @OptIn(ExperimentalCoroutinesApi::class)
+    protected fun <R : Any> streamQuery(
+        sql: String,
         params: Map<String, Any?> = emptyMap(),
-        limit: Int? = null,
-        offset: Int? = null,
+        connection: Connection? = null,
         mapper: BiFunction<Row, RowMetadata, R>
-    ): List<R> {
-        val sql = buildString {
-            append("SELECT $selectClause")
-            append("\nFROM $tableName")
-            joinClauses.forEach { append("\n$it") }
-            if (whereClause.isNotBlank()) append("\nWHERE $whereClause")
-            if (orderClause.isNotBlank()) append("\n$orderClause")
-            limit?.let { append("\nLIMIT :limit") }
-            offset?.let { append("\nOFFSET :offset") }
-        }
-
-        val allParams = params.toMutableMap()
-        limit?.let { allParams["limit"] = it }
-        offset?.let { allParams["offset"] = it.toLong() }
-
-        return connectionFactory.useConnection {
-            val (positionalSql, order) = NamedParamSql.convert(sql)
-            val statement = createStatement(positionalSql)
-            statement.bindNamedParams(order, allParams)
-
-            statement.execute()
-                .awaitSingle()
-                .map(mapper)
+    ): Flow<R> {
+        return if (connection != null) {
+            connection.createNamedStatement(sql, params)
+                .execute()
                 .asFlow()
-                .toList()
+                .flatMapConcat { result -> result.map(mapper).asFlow() }
+        } else {
+            flow {
+                connectionFactory.useConnection {
+                    createNamedStatement(sql, params)
+                        .execute()
+                        .asFlow()
+                        .flatMapConcat { result -> result.map(mapper).asFlow() }
+                        .collect { emit(it) }
+                }
+            }
         }
     }
 

@@ -6,21 +6,23 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.*
 import org.example.config.AppConfig
 import org.example.data.repo.DeviceTokenRepository
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.system.DispatchResult
 import org.example.domain.models.system.Notification
-import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import java.io.File
 import com.google.firebase.messaging.Notification as FCMNotification
 
-@Single
-class FcmNotificationService(private val config: AppConfig) {
+@Component
+class FcmNotificationService @Inject constructor(private val config: AppConfig) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val firebaseMessaging = FirebaseMessaging.getInstance()
+    private var firebaseMessaging: FirebaseMessaging
 
     init {
         initializeFirebase()
+        firebaseMessaging = FirebaseMessaging.getInstance()
     }
 
     suspend fun send(notificationId: String, tokens: List<String>, title: String, body: String, data: Map<String, String>, deviceTokenRepository: DeviceTokenRepository): DispatchResult {
@@ -96,20 +98,37 @@ class FcmNotificationService(private val config: AppConfig) {
     }
 
     private fun initializeFirebase() {
-        config.fcm.credentialPath?.let { path ->
-            val serviceAccount = File(path).inputStream()
-            val options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build()
+        if (FirebaseApp.getApps().isNotEmpty()) return
 
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options)
-            }
-        } ?: run {
-            if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp()
-            }
+        val credentialPath = config.fcm.credentialPath
+
+        if (credentialPath.isNullOrBlank()) {
+            FirebaseApp.initializeApp()
+            return
         }
+
+        val resourcePath = credentialPath.removePrefix("/")
+
+        val inputStream = javaClass.classLoader.getResourceAsStream(resourcePath)
+
+        if (inputStream == null) {
+            javaClass.classLoader.getResources("")
+                .asIterator()
+                .forEach { logger.info("  - $it") }
+            return
+        }
+
+        // Debug: Read and log the first 100 characters
+        val content = inputStream.bufferedReader().use { it.readText() }
+
+        // Reset stream for GoogleCredentials
+        val streamForFirebase = content.byteInputStream()
+
+        val options = FirebaseOptions.builder()
+            .setCredentials(GoogleCredentials.fromStream(streamForFirebase))
+            .build()
+
+        FirebaseApp.initializeApp(options)
     }
 
     fun sendToDevice(token: String, title: String, body: String, data: Map<String, String>): String {

@@ -7,25 +7,25 @@ import org.example.data.mappers.UserMapper
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
 import org.example.data.repo.UserRepository
-import org.example.domain.models.identity.TokenResponse
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.identity.User
-import org.koin.core.annotation.Single
-import java.net.InetAddress
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Single
-class UserCache(
+@Component
+class UserCache @Inject constructor(
     redis: RedisCoroutinesCommands<String, String>,
     val userRepository: UserRepository,
     userMapper: UserMapper,
-    serializer: KSerializer<User>,
-    config: CacheConfig
 ): CrudCache<User, String>(
     redis = redis,
     delegate = userRepository,
     getId = { user -> userMapper.getId(user) as String },
-    serializer = serializer,
-    config = config
+    serializer = User.serializer(),
+    config = object : CacheConfig {
+        override val cacheName: String = "user_cache"
+        override val ttl: Long = 3600L
+    }
 ) {
 
     suspend fun readByEmail(email: String): User? {

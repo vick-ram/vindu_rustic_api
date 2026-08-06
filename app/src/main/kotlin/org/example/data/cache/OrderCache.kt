@@ -49,7 +49,7 @@ class OrderCache @Inject constructor(
             // 1. Evict structural collections and secondary unique lookups
             redis.del("${config.cacheName}:number:${updatedOrder.orderNumber}")
             redis.del("${config.cacheName}:user:${updatedOrder.userId}")
-            redis.del("${config.cacheName}:email:${updatedOrder.email}")
+//            redis.del("${config.cacheName}:email:${updatedOrder.email}")
 
             // 2. Refresh the primary index cache immediately
             putInCache(updatedOrder.id, updatedOrder)

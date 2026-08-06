@@ -9,7 +9,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -86,6 +88,51 @@ object MapStringAnySerializer : KSerializer<Map<String, Any>> {
                 this.content
             } else {
                 this.booleanOrNull ?: this.longOrNull ?: this.doubleOrNull ?: this.content
+            }
+        }
+        is JsonObject -> this.mapValues { it.value.toNativeAny() }
+        is JsonArray -> this.map { it.toNativeAny() }
+    }
+}
+
+object AnySerializer : KSerializer<Any> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("Any", PrimitiveKind.STRING) // Or delegating to JsonElement.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: Any) {
+        val jsonEncoder = encoder as? JsonEncoder
+            ?: error("AnySerializer only supports JSON serialization")
+        jsonEncoder.encodeJsonElement(value.toJsonElement())
+    }
+
+    override fun deserialize(decoder: Decoder): Any {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: error("AnySerializer only supports JSON deserialization")
+        return jsonDecoder.decodeJsonElement().toNativeAny() ?: error("Null value not supported for Any")
+    }
+
+    private fun Any?.toJsonElement(): JsonElement = when (this) {
+        null -> JsonNull
+        is JsonElement -> this
+        is Boolean -> JsonPrimitive(this)
+        is Number -> JsonPrimitive(this)
+        is String -> JsonPrimitive(this)
+        is Map<*, *> -> JsonObject(this.entries.associate { it.key.toString() to it.value.toJsonElement() })
+        is List<*> -> JsonArray(this.map { it.toJsonElement() })
+        else -> JsonPrimitive(this.toString()) // Fallback string representation
+    }
+
+    // Helper: Convert JsonElement to native Kotlin types
+    private fun JsonElement.toNativeAny(): Any? = when (this) {
+        is JsonNull -> null
+        is JsonPrimitive -> {
+            if (this.isString) {
+                this.content
+            } else {
+                this.booleanOrNull
+                    ?: this.longOrNull
+                    ?: this.doubleOrNull
+                    ?: this.content
             }
         }
         is JsonObject -> this.mapValues { it.value.toNativeAny() }

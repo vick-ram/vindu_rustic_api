@@ -9,22 +9,26 @@ import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
 import org.example.data.repo.WishlistItemRepository
 import org.example.data.repo.WishlistItemWithProduct
+import org.example.di.Injectable
 import org.example.domain.models.sales.WishlistItem
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Injectable
 class WishlistItemCache(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val wishlistItemRepo: WishlistItemRepository,
-    private val wishlistCache: WishlistCache, // Inter-cache dependency to invalidate parent counters
-    config: CacheConfig
+    private val wishlistCache: WishlistCache,
 ) : CrudCache<WishlistItem, String>(
     redis = redis,
     delegate = wishlistItemRepo,
     getId = { it.id },
     serializer = WishlistItem.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "WishlistItem"
+        override val ttl: Long = 1800L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(WishlistItemCache::class.java)
     private val itemListSerializer = ListSerializer(WishlistItem.serializer())

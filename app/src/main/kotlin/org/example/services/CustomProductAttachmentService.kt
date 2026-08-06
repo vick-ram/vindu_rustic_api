@@ -1,5 +1,6 @@
 package org.example.services
 
+import kotlinx.serialization.Serializable
 import org.example.data.cache.CustomProductAttachmentCache
 import org.example.di.Injectable
 import org.example.domain.models.customization.CustomProductAttachment
@@ -179,6 +180,7 @@ class CustomProductAttachmentService(
     }
 }
 
+@Serializable
 data class FileUpload(
     val data: ByteArray,
     val fileName: String,

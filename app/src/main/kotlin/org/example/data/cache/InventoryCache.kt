@@ -6,12 +6,13 @@ import org.example.data.mappers.InventoryMapper
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
 import org.example.data.repo.InventoryRepository
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.inventory.Inventory
-import org.koin.core.annotation.Single
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Single
-class InventoryCache(
+@Component
+class InventoryCache @Inject constructor(
     redis: RedisCoroutinesCommands<String, String>,
     inventoryMapper: InventoryMapper,
     private val inventoryRepository: InventoryRepository

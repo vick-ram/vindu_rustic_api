@@ -7,23 +7,29 @@ import org.example.data.repo.CacheConfig
 import org.example.data.repo.ShoppingCartRepository
 import org.example.data.repo.CartWithItemCount
 import org.example.data.repo.CrudCache
+import org.example.di.Inject
+import org.example.di.Injectable
 import org.example.domain.models.sales.ShoppingCart
+import org.example.plugins.nullable
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 import kotlin.uuid.toKotlinUuid
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-class ShoppingCartCache(
+@Injectable
+class ShoppingCartCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val cartRepo: ShoppingCartRepository,
-    config: CacheConfig
 ) : CrudCache<ShoppingCart, String>(
     redis = redis,
     delegate = cartRepo,
     getId = { it.id },
     serializer = ShoppingCart.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "shopping_cart_cache"
+        override val ttl: Long = 3600L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ShoppingCartCache::class.java)
 
@@ -65,8 +71,6 @@ class ShoppingCartCache(
         }
         return result
     }
-
-    // --- Overridden Crud Operations to Handle Index Evictions ---
 
     override suspend fun create(model: ShoppingCart): ShoppingCart {
         val created = super.create(model)
@@ -114,8 +118,6 @@ class ShoppingCartCache(
             cartRepo.getCartWithItemCount(cartId)
         }
     }
-
-    // --- Composite Dynamic Read/Write Operations ---
 
     suspend fun getOrCreateForUser(userId: String): ShoppingCart {
         // Leverages read-through caching pipeline
@@ -168,8 +170,6 @@ class ShoppingCartCache(
         return deletedCount
     }
 
-    // --- Eviction Orchestration Helpers ---
-
     /**
      * Invalidates targeted side indexes associated with the active domain entity.
      */
@@ -177,12 +177,6 @@ class ShoppingCartCache(
         invalidateCollectionCaches()
         removeFromCache("${config.cacheName}:count:${cart.id}")
         cart.userId?.let { removeFromCache("${config.cacheName}:user:$it") }
-        cart.guestToken?.let { removeFromCache("${config.cacheName}:guest:$it") }
+        removeFromCache("${config.cacheName}:guest:${cart.guestToken}")
     }
 }
-
-/**
- * Extension property facilitating clean compilation patterns with nullable objects.
- */
-private val <T> kotlinx.serialization.KSerializer<T>.nullable: kotlinx.serialization.KSerializer<T?>
-    get() = @Suppress("UNCHECKED_CAST") (this as kotlinx.serialization.KSerializer<T?>)

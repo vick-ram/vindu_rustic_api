@@ -96,8 +96,6 @@ dependencies {
 
     //DI
     implementation(libs.koin.ktor)
-    implementation(libs.koin.annotations)
-    ksp(libs.koin.ksp.compiler)
     implementation(libs.koin.logger)
 
     implementation(libs.skiko)

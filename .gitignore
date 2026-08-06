@@ -1,5 +1,9 @@
 # Ignore Gradle project-specific cache directory
 .gradle
+.agents
+.codex
+.idea
+app/src/main/resources/google-services.json
 
 # Ignore Gradle build output directory
 build

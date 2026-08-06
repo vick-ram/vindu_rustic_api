@@ -7,7 +7,7 @@ import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.marketing.Coupon
 import org.example.domain.models.marketing.CouponUsage
-import org.example.plugins.NotFoundException
+import org.example.exceptions.NotFoundException
 import org.example.utils.Ulid
 import java.math.BigDecimal
 import java.time.OffsetDateTime

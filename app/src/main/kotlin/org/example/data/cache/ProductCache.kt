@@ -3,29 +3,30 @@ package org.example.data.cache
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.json.Json
-import org.example.data.repo.CacheConfig
-import org.example.data.repo.CrudCache
-import org.example.data.repo.ProductRepository
-import org.example.data.repo.ProductSearchResult
-import org.example.data.repo.ProductStats
-import org.example.data.repo.ProductWithStock
+import org.example.data.repo.*
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.catalog.Product
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-class ProductCache(
+@Component
+class ProductCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val productRepo: ProductRepository,
-    config: CacheConfig
 ) : CrudCache<Product, String>(
     redis = redis,
     delegate = productRepo,
-    getId = { it.id }, // Assuming Product has an 'id' property of type String
+    getId = { it.id },
     serializer = Product.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "products"
+        override val ttl: Long = 3600L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ProductCache::class.java)
     private val productListSerializer = ListSerializer(Product.serializer())
@@ -170,7 +171,8 @@ class ProductCache(
         offset: Int = 0,
         limit: Int = 50
     ): List<Product> {
-        val cacheKey = "${config.cacheName}:daterange:${startDate.toEpochSecond()}:${endDate.toEpochSecond()}:$status:$offset:$limit"
+        val cacheKey =
+            "${config.cacheName}:daterange:${startDate.toEpochSecond()}:${endDate.toEpochSecond()}:$status:$offset:$limit"
         return typedCacheOrFetch(cacheKey, productListSerializer) {
             productRepo.findByDateRange(startDate, endDate, status, offset, limit)
         }
@@ -188,15 +190,17 @@ class ProductCache(
         return productRepo.isSlugUnique(slug, excludeId)
     }
 
-    suspend fun getLowStockProducts(warehouseId: String? = null, threshold: Int = 10, limit: Int = 20): List<ProductWithStock> {
+    suspend fun getLowStockProducts(
+        warehouseId: String? = null,
+        threshold: Int = 10,
+        limit: Int = 20
+    ): List<ProductWithStock> {
         // Real-time stock shouldn't be long-cached, but we cache with short parameters if needed
         val cacheKey = "${config.cacheName}:lowstock:$warehouseId:$threshold:$limit"
         return typedCacheOrFetch(cacheKey, ListSerializer(ProductWithStock.serializer())) {
             productRepo.getLowStockProducts(warehouseId, threshold, limit)
         }
     }
-
-    // --- Write Actions (Evict & Sync Cache) ---
 
     suspend fun updateStatus(id: String, status: String): Product? {
         val updated = productRepo.updateStatus(id, status)
@@ -234,7 +238,7 @@ class ProductCache(
 
     // --- Private Cache Eviction Orchestration ---
 
-    private suspend fun handleStateMutation(id: String, updatedProduct: Product?) {
+    suspend fun handleStateMutation(id: String, updatedProduct: Product?) {
         if (updatedProduct != null) {
             putInCache(id, updatedProduct)
         } else {
@@ -246,7 +250,7 @@ class ProductCache(
     /**
      * Drops all query collections and indices from Redis while keeping base entity caches active.
      */
-    private suspend fun invalidateProductQueryCaches() {
+    suspend fun invalidateProductQueryCaches() {
         invalidateCollectionCaches() // Base method handling `cacheName:collection:*`
         deleteKeysByPattern("${config.cacheName}:slug:*")
         deleteKeysByPattern("${config.cacheName}:category:*")
@@ -264,9 +268,3 @@ class ProductCache(
         deleteKeysByPattern("${config.cacheName}:lowstock:*")
     }
 }
-
-/**
- * Kotlinx Serialization Extension to cleanly serialize nullable products inside a lambda block.
- */
-private val <T> kotlinx.serialization.KSerializer<T>.nullable: kotlinx.serialization.KSerializer<T?>
-    get() = @Suppress("UNCHECKED_CAST") (this as kotlinx.serialization.KSerializer<T?>)

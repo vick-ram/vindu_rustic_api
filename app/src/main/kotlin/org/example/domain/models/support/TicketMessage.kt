@@ -21,8 +21,7 @@ data class TicketMessage(
     @SerialName("is_internal")
     val isInternal: Boolean = false,
 
-    @Contextual
-    val attachments: Map<String, Any>? = null,
+    val attachments: Map<String, @Contextual Any>? = null,
 
     @Contextual
     @SerialName(value = "created_at")

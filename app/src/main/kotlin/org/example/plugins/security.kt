@@ -1,31 +1,22 @@
 package org.example.plugins
 
-import com.google.gson.Gson
-import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
-import io.ktor.server.plugins.hsts.HSTS
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.forwardedheaders.*
+import io.ktor.server.plugins.hsts.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
-import io.ktor.util.*
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.Serializable
 import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
 import org.example.config.security.JwtConfig
-import org.example.domain.models.sales.CartItem
-import org.example.domain.validations.validate
-import org.example.services.CustomJwtPrincipal
-import org.example.utils.*
+import org.example.utils.RedisSessionStorage
 import org.koin.ktor.ext.inject
-import java.math.BigDecimal
-import java.util.*
-import kotlin.uuid.ExperimentalUuidApi
 
 object SecurityModule : ApplicationPlugin {
     @OptIn(ExperimentalLettuceCoroutinesApi::class)

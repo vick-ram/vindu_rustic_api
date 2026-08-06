@@ -9,7 +9,6 @@ import org.example.data.mappers.ProductVariantMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.catalog.ProductVariant
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 

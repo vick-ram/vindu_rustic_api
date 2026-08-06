@@ -1,5 +1,6 @@
 package org.example.services
 
+import kotlinx.coroutines.flow.toList
 import org.example.data.repo.OrderConfirmation
 import org.example.data.repo.OrderDetails
 import org.example.data.repo.OrderRepository
@@ -31,7 +32,7 @@ class OrderService(
     }
 
     suspend fun getOrders(offset: Int, limit: Int, queryParams: Map<String, String>?): List<Order> {
-        return orderRepository.readAll(offset, limit, queryParams)
+        return orderRepository.readAll(offset, limit, queryParams).toList()
     }
 
     suspend fun getOrderById(id: String): OrderDetails? {

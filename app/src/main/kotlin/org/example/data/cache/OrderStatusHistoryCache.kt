@@ -20,12 +20,11 @@ import org.slf4j.LoggerFactory
 class OrderStatusHistoryCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val repository: OrderStatusHistoryRepository,
-    serializer: KSerializer<OrderStatusHistory>
 ) : CrudCache<OrderStatusHistory, String>(
     redis = redis,
     delegate = repository,
     getId = { it.id },
-    serializer = serializer,
+    serializer = OrderStatusHistory.serializer(),
     config = object : CacheConfig {
         override val cacheName = "order_status_history"
         override val ttl = 86400L // 24 hours baseline TTL for append-only data

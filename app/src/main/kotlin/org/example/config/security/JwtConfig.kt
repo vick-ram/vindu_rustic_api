@@ -4,12 +4,12 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import org.example.config.AppConfig
-import org.example.config.SecurityConfig
-import org.koin.core.annotation.Single
+import org.example.di.Component
+import org.example.di.Inject
 import java.util.*
 
-@Single
-class JwtConfig(private val appConfig: AppConfig) {
+@Component
+class JwtConfig @Inject constructor(appConfig: AppConfig) {
     private val config = appConfig.security
 
     val verifier: JWTVerifier = JWT

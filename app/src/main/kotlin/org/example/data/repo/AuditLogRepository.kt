@@ -409,10 +409,8 @@ data class ActionCount(
 data class EntityChange(
     val id: String,
     val action: String,
-    @Contextual
-    val changes: Map<String, Any>?,
+    val changes: Map<String, @Contextual Any>?,
     val actorId: String?,
     val actorType: String,
-    @Contextual
-    val createdAt: OffsetDateTime
+    @Contextual val createdAt: OffsetDateTime
 )

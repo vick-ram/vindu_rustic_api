@@ -17,17 +17,16 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-@Component
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Component
 class PaymentTransactionCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val repository: PaymentTransactionRepository,
-    serializer: KSerializer<PaymentTransaction>
 ) : CrudCache<PaymentTransaction, String>(
     redis = redis,
     delegate = repository,
     getId = { it.id },
-    serializer = serializer,
+    serializer = PaymentTransaction.serializer(),
     config = object : CacheConfig {
         override val cacheName = "payment_transactions"
         override val ttl = 1800L // 30-minute short lifecycle TTL for fast-moving transaction steps

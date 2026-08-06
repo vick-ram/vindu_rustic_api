@@ -29,9 +29,8 @@ data class PaymentTransaction(
     @OneOf("success", "failure", "pending")
     val status: String,
 
-    @Contextual
     @SerialName("provider_response")
-    val providerResponse: Map<String, Any>? = null,
+    val providerResponse: Map<String, @Contextual Any>? = null,
 
     @SerialName("error_message")
     val errorMessage: String? = null,

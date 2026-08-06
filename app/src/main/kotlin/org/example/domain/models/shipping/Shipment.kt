@@ -41,25 +41,25 @@ data class Shipment(
 
     @Contextual
     @SerialName(value = "shipped_at")
-    val shippedAt: OffsetDateTime = OffsetDateTime.now(),
+    val shippedAt: OffsetDateTime? = null,
 
     @Contextual
     @SerialName(value = "delivered_at")
-    val deliveredAt: OffsetDateTime
+    val deliveredAt: OffsetDateTime? = null
 ) {
     companion object {
         fun formParameters(parameters: Parameters): Shipment {
-            val orderId = parameters["orderId"].toString()
-            val courier = parameters["courier"].toString()
-            val warehouseId = parameters["warehouseId"].toString()
-            val trackingNumber = parameters["trackingNumber"].toString()
-            val trackingUrl = parameters["trackingUrl"].toString()
-            val shippingLabelUrl = parameters["shippingLabelUrl"].toString()
+            val orderId = requireNotNull(parameters["orderId"]) { "orderId is required" }
+            val courier = parameters["courier"]
+            val warehouseId = parameters["warehouseId"]
+            val trackingNumber = parameters["trackingNumber"]
+            val trackingUrl = parameters["trackingUrl"]
+            val shippingLabelUrl = parameters["shippingLabelUrl"]
             val cost = parameters["cost"]?.toBigDecimal() ?: BigDecimal.ZERO
-            val serviceLevel = parameters["serviceLevel"].toString()
-            val shippedAt = parameters["shippedAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
-            val estimatedDeliveryAt = parameters["estimatedDeliveryAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
-            val deliveredAt = parameters["deliveredAt"]?.let { OffsetDateTime.parse(it) } as OffsetDateTime
+            val serviceLevel = parameters["serviceLevel"]
+            val shippedAt = parameters["shippedAt"]?.let(OffsetDateTime::parse)
+            val estimatedDeliveryAt = parameters["estimatedDeliveryAt"]?.let(OffsetDateTime::parse)
+            val deliveredAt = parameters["deliveredAt"]?.let(OffsetDateTime::parse)
 
             return Shipment(
                 orderId = orderId,

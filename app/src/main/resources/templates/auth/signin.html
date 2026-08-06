@@ -20,6 +20,7 @@
 
                         <!-- Login Form -->
                         <form method="post" th:action="@{/signin}" class="mb-3">
+                            <input type="hidden" name="redirectUrl" th:value="${redirectUrl}">
                             <div class="form-group">
                                 <label for="email" class="label">Email</label>
                                 <input type="text" class="py-2" id="email" name="email" required

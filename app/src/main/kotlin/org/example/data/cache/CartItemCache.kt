@@ -16,13 +16,15 @@ import org.slf4j.LoggerFactory
 class CartItemCache @Inject constructor(
     redis: RedisCoroutinesCommands<String, String>,
     private val cartItemRepository: CartItemRepository,
-    config: CacheConfig
 ) : CrudCache<CartItem, String>(
     redis = redis,
     delegate = cartItemRepository,
     getId = { it.id },
     serializer = CartItem.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "cart_item"
+        override val ttl: Long = 3600L
+    }
 ) {
     private val logger = LoggerFactory.getLogger(CartItemCache::class.java)
 

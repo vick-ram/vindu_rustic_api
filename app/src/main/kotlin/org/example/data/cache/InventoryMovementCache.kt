@@ -24,12 +24,11 @@ import java.time.OffsetDateTime
 class InventoryMovementCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val repository: InventoryMovementRepository,
-    serializer: KSerializer<InventoryMovement>
 ) : CrudCache<InventoryMovement, String>(
     redis = redis,
     delegate = repository,
-    getId = { it.id }, // Assuming your entity exposes its ULID string as .id
-    serializer = serializer,
+    getId = { it.id },
+    serializer = InventoryMovement.serializer(),
     config = object : CacheConfig {
         override val cacheName = "inventory_movements"
         override val ttl = 3600L // 1 hour default TTL for standard entries

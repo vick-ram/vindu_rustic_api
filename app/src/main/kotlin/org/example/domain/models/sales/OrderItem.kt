@@ -36,13 +36,11 @@ data class OrderItem(
     @SerialName(value = "total_price")
     val totalPrice: BigDecimal,
 
-    @Contextual
     @SerialName(value = "customization_snapshot")
-    val customizationSnapshot: Map<String, Any>? = null,
+    val customizationSnapshot: Map<String, @Contextual Any>? = null,
 
-    @Contextual
     @SerialName(value = "product_snapshot")
-    val productSnapshot: Map<String, Any>,
+    val productSnapshot: Map<String, @Contextual Any>,
 
     @Contextual
     @SerialName(value = "created_at")

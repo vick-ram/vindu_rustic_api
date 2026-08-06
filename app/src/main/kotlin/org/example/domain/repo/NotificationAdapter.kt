@@ -12,8 +12,7 @@ import java.time.OffsetDateTime
 
 @Injectable
 class NotificationAdapter @Inject constructor(
-    private val celeryApp: CeleryApp,
-    private val json: Json
+    private val celeryApp: CeleryApp
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -38,7 +37,7 @@ class NotificationAdapter @Inject constructor(
                 val taskResult = celeryApp.sendTask(
                     taskName = "dispatch_notification",
                     kwargs = mapOf(
-                        "notification" to json.encodeToJsonElement(notification)
+                        "notification" to Json.encodeToJsonElement(notification)
                     )
                 )
                 notification.channel to taskResult
@@ -49,8 +48,8 @@ class NotificationAdapter @Inject constructor(
                 val multiResult = celeryApp.sendTask(
                     taskName = "dispatch_multi_channel_notification",
                     kwargs = mapOf(
-                        "notification" to json.encodeToJsonElement(notifications.first()),
-                        "channels" to json.encodeToJsonElement(channels)
+                        "notification" to Json.encodeToJsonElement(notifications.first()),
+                        "channels" to Json.encodeToJsonElement(channels)
                     )
                 )
                 logger.info("Multi-channel dispatch queued: ${notifications.first().id}")
@@ -78,7 +77,7 @@ class NotificationAdapter @Inject constructor(
             celeryApp.sendTask(
                 taskName = "dispatch_notification",
                 kwargs = mapOf(
-                    "notification" to json.encodeToJsonElement(notification)
+                    "notification" to Json.encodeToJsonElement(notification)
                 )
             )
             true
@@ -105,8 +104,8 @@ class NotificationAdapter @Inject constructor(
             celeryApp.sendTask(
                 taskName = "dispatch_multi_channel_notification",
                 kwargs = mapOf(
-                    "notification" to json.encodeToJsonElement(notification),
-                    "channels" to json.encodeToJsonElement(
+                    "notification" to Json.encodeToJsonElement(notification),
+                    "channels" to Json.encodeToJsonElement(
                         listOf("email", "database")
                     )
                 ),
@@ -136,8 +135,8 @@ class NotificationAdapter @Inject constructor(
             celeryApp.sendTask(
                 taskName = "dispatch_multi_channel_notification",
                 kwargs = mapOf(
-                    "notification" to json.encodeToJsonElement(notification),
-                    "channels" to json.encodeToJsonElement(
+                    "notification" to Json.encodeToJsonElement(notification),
+                    "channels" to Json.encodeToJsonElement(
                         listOf(
                             "email",
                             "sms",

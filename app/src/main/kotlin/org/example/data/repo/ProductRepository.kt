@@ -10,7 +10,6 @@ import org.example.data.mappers.ProductMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.catalog.Product
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component
@@ -185,7 +184,7 @@ class ProductRepository @Inject constructor(
         offset: Int = 0,
         limit: Int = 20
     ): List<Product> {
-        return search(query, offset = offset, limit = limit)
+        return search(query, offset = offset, limit = limit).toList()
     }
 
     // Full-text search with ranking
@@ -227,13 +226,7 @@ class ProductRepository @Inject constructor(
         }
     }
 
-    // Update product status
     suspend fun updateStatus(id: String, status: String): Product? {
-        val validStatuses = listOf("draft", "published", "archived")
-        if (status !in validStatuses) {
-            throw IllegalArgumentException("Invalid product status: $status. Must be one of: ${validStatuses.joinToString()}")
-        }
-
         val sql = """
             UPDATE $tableName 
             SET status = :status,
@@ -440,8 +433,6 @@ class ProductRepository @Inject constructor(
         if (status !in validStatuses) {
             throw IllegalArgumentException("Invalid product status: $status")
         }
-
-        val placeholders = List(ids.size) { index -> ":id$index" }
 
         val sql = """
             UPDATE $tableName 

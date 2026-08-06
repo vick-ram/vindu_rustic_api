@@ -7,7 +7,6 @@ import org.example.data.mappers.SettingsMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.content.Setting
-import org.koin.core.annotation.Single
 
 @Component
 class SettingRepository @Inject constructor(

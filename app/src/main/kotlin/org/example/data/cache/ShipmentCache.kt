@@ -8,6 +8,7 @@ import org.example.data.repo.CacheConfig
 import org.example.data.repo.CrudCache
 import org.example.data.repo.ShipmentRepository
 import org.example.data.repo.ShipmentStats
+import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.shipping.Shipment
 import org.slf4j.Logger
@@ -16,16 +17,19 @@ import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Component
 class ShipmentCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
-    private val shipmentRepo: ShipmentRepository,
-    config: CacheConfig
+    private val shipmentRepo: ShipmentRepository
 ) : CrudCache<Shipment, String>(
     redis = redis,
     delegate = shipmentRepo,
     getId = { it.id },
     serializer = Shipment.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName = "shipments"
+        override val ttl = 3600L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ShipmentCache::class.java)
     private val shipmentListSerializer = ListSerializer(Shipment.serializer())

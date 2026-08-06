@@ -1,0 +1,17 @@
+openapi: 3.0.1
+info:
+  title: Vindu Rustic API
+  description: Automatically generated from DynamicRouteFactory
+  version: 1.0.0
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      description: JWT bearer authentication
+      scheme: bearer
+      bearerFormat: JWT
+    Session:
+      type: apiKey
+      description: Session cookie authentication
+      name: SESSION
+      in: cookie

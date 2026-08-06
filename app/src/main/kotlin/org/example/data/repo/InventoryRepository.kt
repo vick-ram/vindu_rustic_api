@@ -8,8 +8,7 @@ import org.example.data.mappers.InventoryMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.inventory.Inventory
-import org.example.plugins.NotFoundException
-import org.koin.core.annotation.Single
+import org.example.exceptions.NotFoundException
 import java.time.OffsetDateTime
 
 @Component

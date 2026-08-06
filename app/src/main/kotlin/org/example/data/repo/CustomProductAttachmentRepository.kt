@@ -8,9 +8,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.CustomProductAttachmentMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.di.Qualifier
 import org.example.domain.models.customization.CustomProductAttachment
-import org.koin.core.annotation.Single
 
 @Component
 class CustomProductAttachmentRepository @Inject constructor(

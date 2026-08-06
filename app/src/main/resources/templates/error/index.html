@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${errorCode == '404' ? '404 - Page Not Found' : '500 - Server Error'}">Error Page</title>
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text-main: #334155;
+      --text-muted: #64748b;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+      --card-bg: #ffffff;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --radius-main: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .error-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-main);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .content-section {
+      flex: 1;
+      padding: 3.5rem 3rem;
+    }
+
+    .visual-section {
+      flex: 1;
+      background: #f1f5f9;
+      padding: 3.5rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      position: relative;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #eff6ff;
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+
+    .description {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    /* Search input bar */
+    .search-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .search-btn {
+      background: var(--accent-color);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .search-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Action Buttons & Links */
+    .actions-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .primary-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-color);
+      color: #ffffff;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      color: var(--primary-color);
+      border: 1px solid #cbd5e1;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent-color);
+    }
+
+    /* Inline CSS Visual Elements */
+    .error-graphics {
+      width: 100%;
+      max-width: 260px;
+      height: 260px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 404 Bag Illustration */
+    .shopping-bag {
+      width: 140px;
+      height: 170px;
+      background: #ffffff;
+      border: 4px solid var(--primary-color);
+      border-radius: 12px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bag-handle {
+      width: 60px;
+      height: 50px;
+      border: 4px solid var(--primary-color);
+      border-bottom: none;
+      border-radius: 30px 30px 0 0;
+      position: absolute;
+      top: -45px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .magnifier {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border: 5px solid var(--accent-color);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      top: 40px;
+      right: 10px;
+    }
+
+    .magnifier::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 40px;
+      background: var(--accent-color);
+      bottom: -30px;
+      right: -10px;
+      transform: rotate(-45deg);
+      border-radius: 4px;
+    }
+
+    /* 500 Server Gear Illustration */
+    .server-box {
+      width: 160px;
+      height: 140px;
+      background: #ffffff;
+      border: 4px solid var(--primary-color);
+      border-radius: 10px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 15px;
+    }
+
+    .server-line {
+      height: 8px;
+      background: #cbd5e1;
+      border-radius: 4px;
+      width: 70%;
+    }
+
+    .server-light {
+      position: absolute;
+      right: 15px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    .warning-badge {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 50px;
+      height: 50px;
+      background: #f59e0b;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border: 4px solid #ffffff;
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 768px) {
+      .error-card {
+        flex-direction: column-reverse;
+      }
+
+      .content-section, .visual-section {
+        padding: 2rem 1.5rem;
+      }
+
+      .visual-section {
+        min-height: 240px;
+        width: 100%;
+      }
+
+      .title {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="error-card">
+
+  <!-- Text and Action Area -->
+  <div class="content-section">
+
+    <!-- 404 Text Block -->
+    <div th:if="${errorCode == '404' or errorCode == null}">
+      <span class="badge" th:text="${status != null ? status : 'Error 404'}">404 Error</span>
+      <h1 class="title">Page Not Found</h1>
+      <p class="description" th:text="${message != null ? message : 'The item or page you are looking for might have been moved, renamed, or is temporarily unavailable.'}">
+        The item or page you are looking for might have been moved, renamed, or is temporarily unavailable.
+      </p>
+    </div>
+
+    <!-- 500 Text Block -->
+    <div th:if="${errorCode == '500'}">
+      <span class="badge" style="color: #dc2626; background: #fef2f2;" th:text="${status != null ? status : 'Error 500'}">500 Internal Error</span>
+      <h1 class="title">Something Went Wrong</h1>
+      <p class="description" th:text="${message != null ? message : 'Our servers are encountering a temporary bump in the road. Our team has been notified.'}">
+        Our servers are encountering a temporary bump in the road. Our team has been notified and is fixing it.
+      </p>
+    </div>
+
+    <!-- Recovery Search Form -->
+    <form action="/search" method="get" class="search-form">
+      <input type="text" name="q" class="search-input" placeholder="Search products, brands, or categories..." required>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    <!-- CTAs and Links -->
+    <div class="actions-wrapper">
+      <div class="primary-actions">
+        <a href="/" th:href="@{/}" class="btn-primary">Return to Store</a>
+        <a href="/cart" th:href="@{/cart}" class="btn-secondary">View Cart</a>
+      </div>
+
+      <div class="nav-links">
+        <a href="/categories" th:href="@{/categories}">Categories</a>
+        <a href="/deals" th:href="@{/deals}">Deals</a>
+        <a href="/support" th:href="@{/support}">Support & Help</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visual Container -->
+  <div class="visual-section">
+
+    <!-- Image Fallback (If th:src is provided via Spring context) -->
+    <div th:if="${imageUrl != null}">
+      <img th:src="${imageUrl}" alt="Error graphic" style="max-width: 100%; height: auto;">
+    </div>
+
+    <!-- Inline Visual Component (Used if no image file is supplied) -->
+    <div th:if="${imageUrl == null}">
+
+      <!-- 404 Illustration -->
+      <div th:if="${errorCode == '404' or errorCode == null}" class="error-graphics">
+        <div class="shopping-bag">
+          <div class="bag-handle"></div>
+        </div>
+        <div class="magnifier"></div>
+      </div>
+
+      <!-- 500 Illustration -->
+      <div th:if="${errorCode == '500'}" class="error-graphics">
+        <div class="server-box">
+          <div class="server-line"></div>
+          <div class="server-line" style="width: 50%;"></div>
+          <div class="server-line" style="width: 80%;"></div>
+          <div class="server-light"></div>
+        </div>
+        <div class="warning-badge">!</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

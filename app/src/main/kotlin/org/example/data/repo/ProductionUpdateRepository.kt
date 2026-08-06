@@ -12,7 +12,6 @@ import org.example.data.mappers.ProductionUpdateMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.production.ProductionUpdate
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component

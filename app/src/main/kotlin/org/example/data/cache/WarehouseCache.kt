@@ -9,21 +9,25 @@ import org.example.data.repo.CrudCache
 import org.example.data.repo.WarehouseRepository
 import org.example.data.repo.WarehouseStockSummary
 import org.example.data.repo.WarehouseWithAddress
+import org.example.di.Injectable
 import org.example.domain.models.inventory.Warehouse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
+@Injectable
 class WarehouseCache(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val warehouseRepo: WarehouseRepository,
-    config: CacheConfig
 ) : CrudCache<Warehouse, String>(
     redis = redis,
     delegate = warehouseRepo,
     getId = { it.id },
     serializer = Warehouse.serializer(),
-    config = config
+    config = object : CacheConfig {
+        override val cacheName: String = "warehouse"
+        override val ttl: Long = 3600L
+    }
 ) {
     private val logger: Logger = LoggerFactory.getLogger(WarehouseCache::class.java)
     private val warehouseListSerializer = ListSerializer(Warehouse.serializer())

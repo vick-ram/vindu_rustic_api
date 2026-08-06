@@ -9,7 +9,6 @@ import org.example.data.mappers.ProductReviewMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.catalog.ProductReview
-import org.koin.core.annotation.Single
 
 @Component
 class ProductReviewRepository @Inject constructor(

@@ -11,14 +11,13 @@ import org.example.data.mappers.WishlistItemMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.sales.WishlistItem
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
 @Component
 class WishlistItemRepository @Inject constructor(
-    private val cartItemRepo: CartItemRepository,
     connectionFactory: ConnectionFactory,
-    wishlistItemMapper: WishlistItemMapper
+    wishlistItemMapper: WishlistItemMapper,
+    private val cartItemRepo: CartItemRepository
 ) : CrudRepository<WishlistItem, String>(
     connectionFactory = connectionFactory,
     tableName = "wishlist_items",

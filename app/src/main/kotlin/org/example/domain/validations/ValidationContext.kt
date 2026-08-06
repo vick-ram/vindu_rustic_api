@@ -1,7 +1,6 @@
 package org.example.domain.validations
 
-import org.example.plugins.ValidationError
-import org.example.plugins.ValidationException
+import org.example.exceptions.ValidationException
 
 class ValidationContext<T: Any>(private val entity: T) {
     private val engine = ValidationEngine()

@@ -7,9 +7,7 @@ import kotlinx.serialization.Serializable
 import org.example.data.mappers.CartItemMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.di.Qualifier
 import org.example.domain.models.sales.CartItem
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component

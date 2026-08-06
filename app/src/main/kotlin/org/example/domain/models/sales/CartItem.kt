@@ -20,9 +20,8 @@ data class CartItem(
     @field:GreaterThan(value = 0)
     val quantity: Int,
 
-    @Contextual
     @SerialName("customization_details")
-    val customizationDetails: Map<String, Any>? = null,
+    val customizationDetails: Map<String, @Contextual Any>? = null,
 
     @Contextual
     @SerialName("created_at")

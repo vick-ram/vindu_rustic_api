@@ -8,9 +8,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.example.data.mappers.AddressMapper
 import org.example.di.Component
 import org.example.di.Inject
-import org.example.di.Qualifier
 import org.example.domain.models.identity.Address
-import org.koin.core.annotation.Single
 import java.math.BigDecimal
 
 @Component

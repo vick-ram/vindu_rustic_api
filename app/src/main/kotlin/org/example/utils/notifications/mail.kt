@@ -4,13 +4,14 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import org.example.config.AppConfig
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.system.DispatchResult
-import org.koin.core.annotation.Single
 import org.slf4j.LoggerFactory
 import java.util.*
 
-@Single
-class EmailNotificationService(private val config: AppConfig) {
+@Component
+class EmailNotificationService @Inject constructor(private val config: AppConfig) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private val session: Session by lazy { createSession() }

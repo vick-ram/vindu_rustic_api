@@ -1,8 +1,11 @@
 package org.example.services
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.example.config.AppConfig
-import org.example.config.security.*
+import org.example.config.security.JwtConfig
+import org.example.config.security.PasswordHasher
 import org.example.data.repo.SessionRepository
 import org.example.data.repo.UserRepository
 import org.example.di.Component
@@ -11,7 +14,7 @@ import org.example.domain.models.identity.Session
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
 import org.example.domain.repo.NotificationAdapter
-import org.example.plugins.*
+import org.example.exceptions.*
 import java.net.InetAddress
 import java.time.OffsetDateTime
 
@@ -91,14 +94,16 @@ class AuthService @Inject constructor(
     suspend fun verify2FAAndLogin(
         userId: String,
         otp: String,
-        ipAddress: InetAddress? = null,
+        ipAddress: String? = null,
         deviceInfo: String? = null
     ): TokenResponse {
         when (val result = otpService.verifyOtp(userId, OtpPurpose.LOGIN_2FA, otp)) {
             is OtpVerificationResult.Success -> {
                 val user = userRepository.read(userId)
                     ?: throw NotFoundException("user not found")
-                return generateTokens(user, ipAddress, deviceInfo)
+                return generateTokens(user, withContext(Dispatchers.IO) {
+                    InetAddress.getByName(ipAddress)
+                }, deviceInfo)
             }
             is OtpVerificationResult.Expired -> {
                 throw OtpExpiredException()
@@ -112,7 +117,7 @@ class AuthService @Inject constructor(
                     alertType = "too_many_2fa_attempts",
                     details = mapOf(
                         "attempts" to "max",
-                        "ipAddress" to (ipAddress?.hostAddress ?: "Unknown"),
+                        "ipAddress" to (ipAddress ?: "Unknown"),
                         "timestamp" to OffsetDateTime.now().toString()
                     )
                 )
@@ -330,7 +335,3 @@ sealed class ResetPasswordResult {
     object UserNotFound : ResetPasswordResult()
 }
 
-sealed class Enable2FAResult {
-    data class Success(val message: String) : Enable2FAResult()
-    object UserNotFound : Enable2FAResult()
-}

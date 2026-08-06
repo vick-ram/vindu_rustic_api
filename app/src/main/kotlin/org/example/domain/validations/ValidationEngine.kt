@@ -1,7 +1,6 @@
 package org.example.domain.validations
 
-import org.example.plugins.ValidationError
-import org.example.plugins.ValidationException
+import org.example.exceptions.ValidationException
 
 class ValidationEngine(private val registry: ValidatorRegistry = DefaultValidationRegistry()) {
     fun <T: Any> validate(entity: T): Map<String, List<String>> {

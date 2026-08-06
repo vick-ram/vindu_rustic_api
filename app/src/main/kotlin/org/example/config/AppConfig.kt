@@ -1,8 +1,6 @@
 package org.example.config
 
-import io.ktor.server.application.Application
-import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
+import io.ktor.server.application.*
 
 data class AppConfig(
     val database: DatabaseConfig,
@@ -119,23 +117,23 @@ data class AppConfig(
                     cancellationUrl = env.getRequired("pesapal.cancellationUrl"),
                 ),
                 server = ServerConfig(
-                    host = env.get("server.host", "0.0.0.0"),
-                    port = env.getInt("server.port", 8080),
-                    development = env.getBoolean("server.development", false),
+                    host = env.get("ktor.deployment.host", "0.0.0.0"),
+                    port = env.getInt("ktor.deployment.port", 8080),
+                    development = env.getBoolean("ktor.development", false),
                     ssl = SslConfig(
-                        enabled = env.getBoolean("server.ssl.enabled", false),
-                        keyStorePath = env.getOptional("server.ssl.keyStorePath"),
-                        keyStorePassword = env.getOptional("server.ssl.keyStorePassword"),
-                        privateKeyPassword = env.getOptional("server.ssl.privateKeyPassword")
+                        enabled = env.getBoolean("ktor.ssl.enabled", false),
+                        keyStorePath = env.getOptional("ktor.ssl.keyStorePath"),
+                        keyStorePassword = env.getOptional("ktor.ssl.keyStorePassword"),
+                        privateKeyPassword = env.getOptional("ktor.ssl.privateKeyPassword")
                     )
                 ),
                 redis = RedisConfig(
                     host = env.get("redis.host", "localhost"),
                     port = env.getInt("redis.port", 6379),
-                    database = env.get("redis.database", "0")
+                    database = env.getInt("redis.database", 0)
                 ),
                 storage = StorageConfig(
-                    uploadDir = env.getRequired("")
+                    uploadDir = env.getRequired("storage.dir")
                 )
             )
         }
@@ -257,7 +255,7 @@ data class ServerConfig(
 data class RedisConfig(
     val host: String,
     val port: Int,
-    val database: String
+    val database: Int
 )
 
 data class SMSConfig(

@@ -7,7 +7,6 @@ import org.example.data.mappers.InventoryReservationMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.inventory.InventoryReservation
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component

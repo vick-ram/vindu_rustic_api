@@ -9,7 +9,7 @@ ktor:
       - resources
   serverPort: $PORT
   logLevel: $LOG_LEVEL
-  development: true
+  development: false
   redis:
     host: localhost
     port: 6379
@@ -39,7 +39,7 @@ jwt:
 
 session:
   encryptionKey: $SESSION_SECRET_ENCRYPTION_KEY
-  signKey: $SESSION_SECRET_SIGN_IN
+  secretKey: $SESSION_SECRET_SIGN_IN
 
 database:
   port: $DB_PORT
@@ -58,6 +58,8 @@ database:
   prepStmtCacheSqlLimit: 2048
   useServerPrepStmts: false
   runMigrations: false
+storage:
+  dir: /uploads
 
 pesapal:
   baseUrl: $PESAPAL_BASE_URL
@@ -66,9 +68,16 @@ pesapal:
   ipnUrl: $PESAPAL_IPN_URL
   callbackUrl: $PESAPAL_CALLBACK_URL
   cancellationUrl: $PESAPAL_CANCELLATION_URL
-google:
-  clientID: $GOOGLE_CLIENT_ID
-  clientSecret: $GOOGLE_CLIENT_SECRET
+oauth:
+  google:
+    clientId: $GOOGLE_CLIENT_ID
+    clientSecret: $GOOGLE_CLIENT_SECRET
+  instagram:
+    clientId: $INSTAGRAM_CLIENT_ID
+    clientSecret: $INSTAGRAM_CLIENT_SECRET
+  apple:
+    clientId: $APPLE_CLIENT_ID
+    clientSecret: $APPLE_CLIENT_SECRET
 email:
   fromEmail: $SMTP_FROM_EMAIL
   host: $SMTP_HOST

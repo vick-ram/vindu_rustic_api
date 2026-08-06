@@ -24,7 +24,7 @@ data class ShipmentEvent(
 
     @Contextual
     @SerialName("occurred_at")
-    val occurredAt: OffsetDateTime? = null,
+    val occurredAt: OffsetDateTime = OffsetDateTime.now(),
 
     @Contextual
     @SerialName("created_at")

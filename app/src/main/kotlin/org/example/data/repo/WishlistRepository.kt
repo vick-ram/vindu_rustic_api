@@ -13,7 +13,7 @@ import org.example.domain.models.sales.CartItem
 import org.example.domain.models.sales.Wishlist
 import org.example.domain.models.sales.WishlistItem
 import org.example.domain.models.system.AuditLog
-import org.example.plugins.NotFoundException
+import org.example.exceptions.NotFoundException
 
 @Component
 class WishlistRepository @Inject constructor(

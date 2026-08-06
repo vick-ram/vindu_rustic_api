@@ -90,8 +90,6 @@ sns-client = { module = "software.amazon.awssdk:sns", version.ref = "sns" }
 
 #DI
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
-koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin" }
-koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin" }
 koin-logger = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin" }
 kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertion = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }

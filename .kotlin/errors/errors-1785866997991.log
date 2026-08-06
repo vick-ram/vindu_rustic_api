@@ -1,0 +1,1014 @@
+kotlin version: 2.4.0
+error message: org.jetbrains.kotlin.fir.pipeline.IrGenerationExtensionException: Back-end: Please report this problem https://kotl.in/issue
+/home/vickram/IdeaProjects/vindu_rustic_api/app/src/main/kotlin/org/example/domain/models/support/TicketMessage.kt:9:1
+Problem with `@Serializable
+data class TicketMessage {
+  constructor(id: String = Ulid.generate(), ticketId: String, senderId: String, message: String, isInternal: Boolean = false, attachments: Map<String, Any>? = null, createdAt: OffsetDateTime = now() /*!! OffsetDateTime */) /* primary */ {
+    super/*Any*/()
+    /* <init>() */
+
+  }
+
+  val id: String
+    field = id
+    get
+
+  @SerialName(value = "ticket_id")
+  val ticketId: String
+    field = ticketId
+    get
+
+  @SerialName(value = "sender_id")
+  val senderId: String
+    field = senderId
+    get
+
+  val message: String
+    field = message
+    get
+
+  @SerialName(value = "is_internal")
+  val isInternal: Boolean
+    field = isInternal
+    get
+
+  @Contextual
+  val attachments: Map<String, Any>?
+    field = attachments
+    get
+
+  @Contextual
+  @SerialName(value = "created_at")
+  val createdAt: OffsetDateTime
+    field = createdAt
+    get
+
+  companion object Companion {
+    val $childSerializers: Array<Lazy<KSerializer<Any>>>
+      field = arrayOf<Lazy<KSerializer<Any>>>(elements = [null, null, null, null, null, null, lazy<KSerializer<OffsetDateTime>>(mode = LazyThreadSafetyMode.PUBLICATION, initializer = local fun <anonymous>(): KSerializer<OffsetDateTime> {
+        return ContextualSerializer(serializableClass = OffsetDateTime::class, fallbackSerializer = null, typeArgumentsSerializers = arrayOf<KSerializer<out OffsetDateTime>>(elements = []))
+      }
+)])
+      private get(): Array<Lazy<KSerializer<Any>>> {
+        return <this>.#$childSerializers
+      }
+
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    fun serializer(): KSerializer<TicketMessage>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
+  object $serializer : GeneratedSerializer<TicketMessage> {
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    override fun serialize(encoder: Encoder, value: TicketMessage)
+
+    override fun deserialize(decoder: Decoder): TicketMessage
+
+    override val descriptor: SerialDescriptor
+      override get
+
+    override fun childSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override fun typeParametersSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  operator fun component1(): String {
+    return <this>.#id
+  }
+
+  operator fun component2(): String {
+    return <this>.#ticketId
+  }
+
+  operator fun component3(): String {
+    return <this>.#senderId
+  }
+
+  operator fun component4(): String {
+    return <this>.#message
+  }
+
+  operator fun component5(): Boolean {
+    return <this>.#isInternal
+  }
+
+  operator fun component6(): Map<String, Any>? {
+    return <this>.#attachments
+  }
+
+  operator fun component7(): OffsetDateTime {
+    return <this>.#createdAt
+  }
+
+  fun copy(id: String = <this>.#id, ticketId: String = <this>.#ticketId, senderId: String = <this>.#senderId, message: String = <this>.#message, isInternal: Boolean = <this>.#isInternal, attachments: Map<String, Any>? = <this>.#attachments, createdAt: OffsetDateTime = <this>.#createdAt): TicketMessage {
+    return TicketMessage(id = id, ticketId = ticketId, senderId = senderId, message = message, isInternal = isInternal, attachments = attachments, createdAt = createdAt)
+  }
+
+  override fun toString(): String {
+    return "TicketMessage(" + "id=" + <this>.#id + ", " + "ticketId=" + <this>.#ticketId + ", " + "senderId=" + <this>.#senderId + ", " + "message=" + <this>.#message + ", " + "isInternal=" + <this>.#isInternal + ", " + "attachments=" + <this>.#attachments + ", " + "createdAt=" + <this>.#createdAt + ")"
+  }
+
+  override fun hashCode(): Int {
+    var result: Int = <this>.#id.hashCode()
+    result = result.times(other = 31).plus(other = <this>.#ticketId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#senderId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#message.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#isInternal.hashCode())
+    result = result.times(other = 31).plus(other = when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = null) -> 0
+      else -> <this>.#attachments.hashCode()
+    })
+    result = result.times(other = 31).plus(other = <this>.#createdAt.hashCode())
+    return result
+  }
+
+  override operator fun equals(other: Any?): Boolean {
+    when {
+      EQEQEQ(arg0 = <this>, arg1 = other) -> return true
+    }
+    when {
+      other !is TicketMessage -> return false
+    }
+    val tmp0_other_with_cast: TicketMessage = other /*as TicketMessage */
+    when {
+      EQEQ(arg0 = <this>.#id, arg1 = tmp0_other_with_cast.#id).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#ticketId, arg1 = tmp0_other_with_cast.#ticketId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#senderId, arg1 = tmp0_other_with_cast.#senderId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#message, arg1 = tmp0_other_with_cast.#message).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#isInternal, arg1 = tmp0_other_with_cast.#isInternal).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = tmp0_other_with_cast.#attachments).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#createdAt, arg1 = tmp0_other_with_cast.#createdAt).not() -> return false
+    }
+    return true
+  }
+
+  @JvmStatic
+  internal /* static */ fun write$Self(self: TicketMessage, output: CompositeEncoder, serialDesc: SerialDescriptor)
+
+  internal constructor(seen0: Int, id: String?, ticketId: String?, senderId: String?, message: String?, isInternal: Boolean, attachments: Map<String, Any>?, createdAt: OffsetDateTime?, serializationConstructorMarker: SerializationConstructorMarker?) {
+    when {
+      EQEQ(arg0 = 14, arg1 = 14.and(other = seen0)).not() -> throwMissingFieldException(seen = seen0, goldenMask = 14, descriptor = $serializer.<get-descriptor>())
+    }
+    super/*Any*/()
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 1)) -> <this>.#id = Ulid.generate()
+      else -> <this>.#id = id
+    }
+    <this>.#ticketId = ticketId
+    <this>.#senderId = senderId
+    <this>.#message = message
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 16)) -> <this>.#isInternal = false
+      else -> <this>.#isInternal = isInternal
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 32)) -> <this>.#attachments = null
+      else -> <this>.#attachments = attachments
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 64)) -> <this>.#createdAt = now() /*!! OffsetDateTime */
+      else -> <this>.#createdAt = createdAt
+    }
+  }
+
+}
+
+`
+Details: kotlinx.serialization compiler plugin internal error: unable to transform declaration, see cause
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.applyIrGenerationExtensions(convertToIr.kt:583)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.runActualizationPipeline(convertToIr.kt:281)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.convertToIrAndActualize(convertToIr.kt:154)
+	at org.jetbrains.kotlin.fir.pipeline.ConvertToIrKt.convertToIrAndActualize-MT2kVtw(convertToIr.kt:119)
+	at org.jetbrains.kotlin.fir.pipeline.ConvertToIrKt.convertToIrAndActualize-MT2kVtw$default(convertToIr.kt:92)
+	at org.jetbrains.kotlin.cli.jvm.compiler.legacy.pipeline.JvmCompilerPipelineKt.convertToIrAndActualizeForJvm-_I1IR-w(jvmCompilerPipeline.kt:95)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:31)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:26)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:20)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:63)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:53)
+	at org.jetbrains.kotlin.config.phaser.NamedCompilerPhase.invoke(CompilerPhase.kt:102)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:22)
+	at org.jetbrains.kotlin.config.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:53)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.runPhasedPipeline(AbstractCliPipeline.kt:135)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.executeAndReturnPipeLineArtifact(AbstractCliPipeline.kt:89)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.executeAndReturnPipeLineArtifact$default(AbstractCliPipeline.kt:49)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.execute(AbstractCliPipeline.kt:40)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:54)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:45)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:94)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:366)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:211)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:53)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:539)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:451)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileNonIncrementally(IncrementalCompilerRunner.kt:327)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:139)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:782)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:108)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2046)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.jetbrains.kotlin.backend.common.CompilationException: Back-end: Please report this problem https://kotl.in/issue
+/home/vickram/IdeaProjects/vindu_rustic_api/app/src/main/kotlin/org/example/domain/models/support/TicketMessage.kt:9:1
+Problem with `@Serializable
+data class TicketMessage {
+  constructor(id: String = Ulid.generate(), ticketId: String, senderId: String, message: String, isInternal: Boolean = false, attachments: Map<String, Any>? = null, createdAt: OffsetDateTime = now() /*!! OffsetDateTime */) /* primary */ {
+    super/*Any*/()
+    /* <init>() */
+
+  }
+
+  val id: String
+    field = id
+    get
+
+  @SerialName(value = "ticket_id")
+  val ticketId: String
+    field = ticketId
+    get
+
+  @SerialName(value = "sender_id")
+  val senderId: String
+    field = senderId
+    get
+
+  val message: String
+    field = message
+    get
+
+  @SerialName(value = "is_internal")
+  val isInternal: Boolean
+    field = isInternal
+    get
+
+  @Contextual
+  val attachments: Map<String, Any>?
+    field = attachments
+    get
+
+  @Contextual
+  @SerialName(value = "created_at")
+  val createdAt: OffsetDateTime
+    field = createdAt
+    get
+
+  companion object Companion {
+    val $childSerializers: Array<Lazy<KSerializer<Any>>>
+      field = arrayOf<Lazy<KSerializer<Any>>>(elements = [null, null, null, null, null, null, lazy<KSerializer<OffsetDateTime>>(mode = LazyThreadSafetyMode.PUBLICATION, initializer = local fun <anonymous>(): KSerializer<OffsetDateTime> {
+        return ContextualSerializer(serializableClass = OffsetDateTime::class, fallbackSerializer = null, typeArgumentsSerializers = arrayOf<KSerializer<out OffsetDateTime>>(elements = []))
+      }
+)])
+      private get(): Array<Lazy<KSerializer<Any>>> {
+        return <this>.#$childSerializers
+      }
+
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    fun serializer(): KSerializer<TicketMessage>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
+  object $serializer : GeneratedSerializer<TicketMessage> {
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    override fun serialize(encoder: Encoder, value: TicketMessage)
+
+    override fun deserialize(decoder: Decoder): TicketMessage
+
+    override val descriptor: SerialDescriptor
+      override get
+
+    override fun childSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override fun typeParametersSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  operator fun component1(): String {
+    return <this>.#id
+  }
+
+  operator fun component2(): String {
+    return <this>.#ticketId
+  }
+
+  operator fun component3(): String {
+    return <this>.#senderId
+  }
+
+  operator fun component4(): String {
+    return <this>.#message
+  }
+
+  operator fun component5(): Boolean {
+    return <this>.#isInternal
+  }
+
+  operator fun component6(): Map<String, Any>? {
+    return <this>.#attachments
+  }
+
+  operator fun component7(): OffsetDateTime {
+    return <this>.#createdAt
+  }
+
+  fun copy(id: String = <this>.#id, ticketId: String = <this>.#ticketId, senderId: String = <this>.#senderId, message: String = <this>.#message, isInternal: Boolean = <this>.#isInternal, attachments: Map<String, Any>? = <this>.#attachments, createdAt: OffsetDateTime = <this>.#createdAt): TicketMessage {
+    return TicketMessage(id = id, ticketId = ticketId, senderId = senderId, message = message, isInternal = isInternal, attachments = attachments, createdAt = createdAt)
+  }
+
+  override fun toString(): String {
+    return "TicketMessage(" + "id=" + <this>.#id + ", " + "ticketId=" + <this>.#ticketId + ", " + "senderId=" + <this>.#senderId + ", " + "message=" + <this>.#message + ", " + "isInternal=" + <this>.#isInternal + ", " + "attachments=" + <this>.#attachments + ", " + "createdAt=" + <this>.#createdAt + ")"
+  }
+
+  override fun hashCode(): Int {
+    var result: Int = <this>.#id.hashCode()
+    result = result.times(other = 31).plus(other = <this>.#ticketId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#senderId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#message.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#isInternal.hashCode())
+    result = result.times(other = 31).plus(other = when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = null) -> 0
+      else -> <this>.#attachments.hashCode()
+    })
+    result = result.times(other = 31).plus(other = <this>.#createdAt.hashCode())
+    return result
+  }
+
+  override operator fun equals(other: Any?): Boolean {
+    when {
+      EQEQEQ(arg0 = <this>, arg1 = other) -> return true
+    }
+    when {
+      other !is TicketMessage -> return false
+    }
+    val tmp0_other_with_cast: TicketMessage = other /*as TicketMessage */
+    when {
+      EQEQ(arg0 = <this>.#id, arg1 = tmp0_other_with_cast.#id).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#ticketId, arg1 = tmp0_other_with_cast.#ticketId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#senderId, arg1 = tmp0_other_with_cast.#senderId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#message, arg1 = tmp0_other_with_cast.#message).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#isInternal, arg1 = tmp0_other_with_cast.#isInternal).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = tmp0_other_with_cast.#attachments).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#createdAt, arg1 = tmp0_other_with_cast.#createdAt).not() -> return false
+    }
+    return true
+  }
+
+  @JvmStatic
+  internal /* static */ fun write$Self(self: TicketMessage, output: CompositeEncoder, serialDesc: SerialDescriptor)
+
+  internal constructor(seen0: Int, id: String?, ticketId: String?, senderId: String?, message: String?, isInternal: Boolean, attachments: Map<String, Any>?, createdAt: OffsetDateTime?, serializationConstructorMarker: SerializationConstructorMarker?) {
+    when {
+      EQEQ(arg0 = 14, arg1 = 14.and(other = seen0)).not() -> throwMissingFieldException(seen = seen0, goldenMask = 14, descriptor = $serializer.<get-descriptor>())
+    }
+    super/*Any*/()
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 1)) -> <this>.#id = Ulid.generate()
+      else -> <this>.#id = id
+    }
+    <this>.#ticketId = ticketId
+    <this>.#senderId = senderId
+    <this>.#message = message
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 16)) -> <this>.#isInternal = false
+      else -> <this>.#isInternal = isInternal
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 32)) -> <this>.#attachments = null
+      else -> <this>.#attachments = attachments
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 64)) -> <this>.#createdAt = now() /*!! OffsetDateTime */
+      else -> <this>.#createdAt = createdAt
+    }
+  }
+
+}
+
+`
+Details: kotlinx.serialization compiler plugin internal error: unable to transform declaration, see cause
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializerClassLowering.lower(SerializationLoweringExtension.kt:243)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt$runOnFileInOrder$1.visitClass(SerializationLoweringExtension.kt:52)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitClass(IrVisitorVoid.kt:44)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitClass(IrVisitorVoid.kt:18)
+	at org.jetbrains.kotlin.ir.declarations.IrClass.accept(IrClass.kt:72)
+	at org.jetbrains.kotlin.ir.declarations.IrPackageFragment.acceptChildren(IrPackageFragment.kt:27)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorsKt.acceptChildrenVoid(IrVisitors.kt:23)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt$runOnFileInOrder$1.visitElement(SerializationLoweringExtension.kt:48)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitPackageFragment(IrVisitorVoid.kt:168)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:184)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:180)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:18)
+	at org.jetbrains.kotlin.ir.declarations.IrFile.accept(IrFile.kt:27)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorsKt.acceptVoid(IrVisitors.kt:11)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt.runOnFileInOrder(SerializationLoweringExtension.kt:46)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtension.generate(SerializationLoweringExtension.kt:207)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.applyIrGenerationExtensions(convertToIr.kt:577)
+	... 45 more
+Caused by: java.lang.IllegalStateException: Serializer for element of type kotlin.Any has not been found
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializerSearchUtilKt.findTypeSerializerOrContext(SerializerSearchUtil.kt:81)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.regularArgs(Instantiator.kt:273)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.serializerInstance(Instantiator.kt:95)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.instantiate(Instantiator.kt:400)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.argsForContextSerializer(Instantiator.kt:191)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.serializerInstance(Instantiator.kt:76)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.serializerInstance(BaseIrGenerator.kt:535)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.formEncodeDecodePropertyCall(BaseIrGenerator.kt:263)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.formEncodeDecodePropertyCall$default(BaseIrGenerator.kt:253)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.serializeAllProperties(BaseIrGenerator.kt:201)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateWriteSelfMethod$lambda$0(SerializableIrGenerator.kt:355)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.IrBuilderWithPluginContext.addFunctionBody(IrBuilderWithPluginContext.kt:50)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateWriteSelfMethod(SerializableIrGenerator.kt:295)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateSyntheticMethods(SerializableIrGenerator.kt:383)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generate(SerializableIrGenerator.kt:367)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator$Companion.generate(SerializableIrGenerator.kt:394)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializerClassLowering.lower(SerializationLoweringExtension.kt:159)
+	... 61 more
+
+
+error message: org.jetbrains.kotlin.fir.pipeline.IrGenerationExtensionException: Back-end: Please report this problem https://kotl.in/issue
+/home/vickram/IdeaProjects/vindu_rustic_api/app/src/main/kotlin/org/example/domain/models/support/TicketMessage.kt:9:1
+Problem with `@Serializable
+data class TicketMessage {
+  constructor(id: String = Ulid.generate(), ticketId: String, senderId: String, message: String, isInternal: Boolean = false, attachments: Map<String, Any>? = null, createdAt: OffsetDateTime = now() /*!! OffsetDateTime */) /* primary */ {
+    super/*Any*/()
+    /* <init>() */
+
+  }
+
+  val id: String
+    field = id
+    get
+
+  @SerialName(value = "ticket_id")
+  val ticketId: String
+    field = ticketId
+    get
+
+  @SerialName(value = "sender_id")
+  val senderId: String
+    field = senderId
+    get
+
+  val message: String
+    field = message
+    get
+
+  @SerialName(value = "is_internal")
+  val isInternal: Boolean
+    field = isInternal
+    get
+
+  @Contextual
+  val attachments: Map<String, Any>?
+    field = attachments
+    get
+
+  @Contextual
+  @SerialName(value = "created_at")
+  val createdAt: OffsetDateTime
+    field = createdAt
+    get
+
+  companion object Companion {
+    val $childSerializers: Array<Lazy<KSerializer<Any>>>
+      field = arrayOf<Lazy<KSerializer<Any>>>(elements = [null, null, null, null, null, null, lazy<KSerializer<OffsetDateTime>>(mode = LazyThreadSafetyMode.PUBLICATION, initializer = local fun <anonymous>(): KSerializer<OffsetDateTime> {
+        return ContextualSerializer(serializableClass = OffsetDateTime::class, fallbackSerializer = null, typeArgumentsSerializers = arrayOf<KSerializer<out OffsetDateTime>>(elements = []))
+      }
+)])
+      private get(): Array<Lazy<KSerializer<Any>>> {
+        return <this>.#$childSerializers
+      }
+
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    fun serializer(): KSerializer<TicketMessage>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
+  object $serializer : GeneratedSerializer<TicketMessage> {
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    override fun serialize(encoder: Encoder, value: TicketMessage)
+
+    override fun deserialize(decoder: Decoder): TicketMessage
+
+    override val descriptor: SerialDescriptor
+      override get
+
+    override fun childSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override fun typeParametersSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  operator fun component1(): String {
+    return <this>.#id
+  }
+
+  operator fun component2(): String {
+    return <this>.#ticketId
+  }
+
+  operator fun component3(): String {
+    return <this>.#senderId
+  }
+
+  operator fun component4(): String {
+    return <this>.#message
+  }
+
+  operator fun component5(): Boolean {
+    return <this>.#isInternal
+  }
+
+  operator fun component6(): Map<String, Any>? {
+    return <this>.#attachments
+  }
+
+  operator fun component7(): OffsetDateTime {
+    return <this>.#createdAt
+  }
+
+  fun copy(id: String = <this>.#id, ticketId: String = <this>.#ticketId, senderId: String = <this>.#senderId, message: String = <this>.#message, isInternal: Boolean = <this>.#isInternal, attachments: Map<String, Any>? = <this>.#attachments, createdAt: OffsetDateTime = <this>.#createdAt): TicketMessage {
+    return TicketMessage(id = id, ticketId = ticketId, senderId = senderId, message = message, isInternal = isInternal, attachments = attachments, createdAt = createdAt)
+  }
+
+  override fun toString(): String {
+    return "TicketMessage(" + "id=" + <this>.#id + ", " + "ticketId=" + <this>.#ticketId + ", " + "senderId=" + <this>.#senderId + ", " + "message=" + <this>.#message + ", " + "isInternal=" + <this>.#isInternal + ", " + "attachments=" + <this>.#attachments + ", " + "createdAt=" + <this>.#createdAt + ")"
+  }
+
+  override fun hashCode(): Int {
+    var result: Int = <this>.#id.hashCode()
+    result = result.times(other = 31).plus(other = <this>.#ticketId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#senderId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#message.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#isInternal.hashCode())
+    result = result.times(other = 31).plus(other = when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = null) -> 0
+      else -> <this>.#attachments.hashCode()
+    })
+    result = result.times(other = 31).plus(other = <this>.#createdAt.hashCode())
+    return result
+  }
+
+  override operator fun equals(other: Any?): Boolean {
+    when {
+      EQEQEQ(arg0 = <this>, arg1 = other) -> return true
+    }
+    when {
+      other !is TicketMessage -> return false
+    }
+    val tmp0_other_with_cast: TicketMessage = other /*as TicketMessage */
+    when {
+      EQEQ(arg0 = <this>.#id, arg1 = tmp0_other_with_cast.#id).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#ticketId, arg1 = tmp0_other_with_cast.#ticketId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#senderId, arg1 = tmp0_other_with_cast.#senderId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#message, arg1 = tmp0_other_with_cast.#message).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#isInternal, arg1 = tmp0_other_with_cast.#isInternal).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = tmp0_other_with_cast.#attachments).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#createdAt, arg1 = tmp0_other_with_cast.#createdAt).not() -> return false
+    }
+    return true
+  }
+
+  @JvmStatic
+  internal /* static */ fun write$Self(self: TicketMessage, output: CompositeEncoder, serialDesc: SerialDescriptor)
+
+  internal constructor(seen0: Int, id: String?, ticketId: String?, senderId: String?, message: String?, isInternal: Boolean, attachments: Map<String, Any>?, createdAt: OffsetDateTime?, serializationConstructorMarker: SerializationConstructorMarker?) {
+    when {
+      EQEQ(arg0 = 14, arg1 = 14.and(other = seen0)).not() -> throwMissingFieldException(seen = seen0, goldenMask = 14, descriptor = $serializer.<get-descriptor>())
+    }
+    super/*Any*/()
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 1)) -> <this>.#id = Ulid.generate()
+      else -> <this>.#id = id
+    }
+    <this>.#ticketId = ticketId
+    <this>.#senderId = senderId
+    <this>.#message = message
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 16)) -> <this>.#isInternal = false
+      else -> <this>.#isInternal = isInternal
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 32)) -> <this>.#attachments = null
+      else -> <this>.#attachments = attachments
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 64)) -> <this>.#createdAt = now() /*!! OffsetDateTime */
+      else -> <this>.#createdAt = createdAt
+    }
+  }
+
+}
+
+`
+Details: kotlinx.serialization compiler plugin internal error: unable to transform declaration, see cause
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.applyIrGenerationExtensions(convertToIr.kt:583)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.runActualizationPipeline(convertToIr.kt:281)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.convertToIrAndActualize(convertToIr.kt:154)
+	at org.jetbrains.kotlin.fir.pipeline.ConvertToIrKt.convertToIrAndActualize-MT2kVtw(convertToIr.kt:119)
+	at org.jetbrains.kotlin.fir.pipeline.ConvertToIrKt.convertToIrAndActualize-MT2kVtw$default(convertToIr.kt:92)
+	at org.jetbrains.kotlin.cli.jvm.compiler.legacy.pipeline.JvmCompilerPipelineKt.convertToIrAndActualizeForJvm-_I1IR-w(jvmCompilerPipeline.kt:95)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:31)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:26)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFir2IrPipelinePhase.executePhase(JvmFir2IrPipelinePhase.kt:20)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:63)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:53)
+	at org.jetbrains.kotlin.config.phaser.NamedCompilerPhase.invoke(CompilerPhase.kt:102)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:22)
+	at org.jetbrains.kotlin.config.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:53)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.runPhasedPipeline(AbstractCliPipeline.kt:135)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.executeAndReturnPipeLineArtifact(AbstractCliPipeline.kt:89)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.executeAndReturnPipeLineArtifact$default(AbstractCliPipeline.kt:49)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.execute(AbstractCliPipeline.kt:40)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:54)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:45)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:94)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:366)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:211)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:53)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:539)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:451)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileNonIncrementally(IncrementalCompilerRunner.kt:327)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:139)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.compileIncrementallyInProcess(JvmCompilationOperationImpl.kt:289)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.compileIncrementallyInProcess(JvmCompilationOperationImpl.kt:55)
+	at org.jetbrains.kotlin.buildtools.internal.BaseCompilationOperationImpl.compileInProcess(BaseCompilationOperationImpl.kt:261)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.compileInProcess(JvmCompilationOperationImpl.kt:222)
+	at org.jetbrains.kotlin.buildtools.internal.BaseCompilationOperationImpl.executeCancellableImpl(BaseCompilationOperationImpl.kt:88)
+	at org.jetbrains.kotlin.buildtools.internal.BaseCompilationOperationImpl.executeCancellableImpl(BaseCompilationOperationImpl.kt:55)
+	at org.jetbrains.kotlin.buildtools.internal.CancellableBuildOperationImpl.executeImpl(CancellableBuildOperationImpl.kt:58)
+	at org.jetbrains.kotlin.buildtools.internal.BuildOperationImpl.execute(BuildOperationImpl.kt:33)
+	at org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl$BuildSessionImpl.executeOperation$lambda$1(KotlinToolchainsImpl.kt:74)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.jetbrains.kotlin.backend.common.CompilationException: Back-end: Please report this problem https://kotl.in/issue
+/home/vickram/IdeaProjects/vindu_rustic_api/app/src/main/kotlin/org/example/domain/models/support/TicketMessage.kt:9:1
+Problem with `@Serializable
+data class TicketMessage {
+  constructor(id: String = Ulid.generate(), ticketId: String, senderId: String, message: String, isInternal: Boolean = false, attachments: Map<String, Any>? = null, createdAt: OffsetDateTime = now() /*!! OffsetDateTime */) /* primary */ {
+    super/*Any*/()
+    /* <init>() */
+
+  }
+
+  val id: String
+    field = id
+    get
+
+  @SerialName(value = "ticket_id")
+  val ticketId: String
+    field = ticketId
+    get
+
+  @SerialName(value = "sender_id")
+  val senderId: String
+    field = senderId
+    get
+
+  val message: String
+    field = message
+    get
+
+  @SerialName(value = "is_internal")
+  val isInternal: Boolean
+    field = isInternal
+    get
+
+  @Contextual
+  val attachments: Map<String, Any>?
+    field = attachments
+    get
+
+  @Contextual
+  @SerialName(value = "created_at")
+  val createdAt: OffsetDateTime
+    field = createdAt
+    get
+
+  companion object Companion {
+    val $childSerializers: Array<Lazy<KSerializer<Any>>>
+      field = arrayOf<Lazy<KSerializer<Any>>>(elements = [null, null, null, null, null, null, lazy<KSerializer<OffsetDateTime>>(mode = LazyThreadSafetyMode.PUBLICATION, initializer = local fun <anonymous>(): KSerializer<OffsetDateTime> {
+        return ContextualSerializer(serializableClass = OffsetDateTime::class, fallbackSerializer = null, typeArgumentsSerializers = arrayOf<KSerializer<out OffsetDateTime>>(elements = []))
+      }
+)])
+      private get(): Array<Lazy<KSerializer<Any>>> {
+        return <this>.#$childSerializers
+      }
+
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    fun serializer(): KSerializer<TicketMessage>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
+  object $serializer : GeneratedSerializer<TicketMessage> {
+    private constructor() /* primary */ {
+      super/*Any*/()
+      /* <init>() */
+
+    }
+
+    override fun serialize(encoder: Encoder, value: TicketMessage)
+
+    override fun deserialize(decoder: Decoder): TicketMessage
+
+    override val descriptor: SerialDescriptor
+      override get
+
+    override fun childSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override fun typeParametersSerializers(): Array<KSerializer<*>>
+
+    /* fake */ override operator fun equals(other: Any?): Boolean
+
+    /* fake */ override fun hashCode(): Int
+
+    /* fake */ override fun toString(): String
+
+  }
+
+  operator fun component1(): String {
+    return <this>.#id
+  }
+
+  operator fun component2(): String {
+    return <this>.#ticketId
+  }
+
+  operator fun component3(): String {
+    return <this>.#senderId
+  }
+
+  operator fun component4(): String {
+    return <this>.#message
+  }
+
+  operator fun component5(): Boolean {
+    return <this>.#isInternal
+  }
+
+  operator fun component6(): Map<String, Any>? {
+    return <this>.#attachments
+  }
+
+  operator fun component7(): OffsetDateTime {
+    return <this>.#createdAt
+  }
+
+  fun copy(id: String = <this>.#id, ticketId: String = <this>.#ticketId, senderId: String = <this>.#senderId, message: String = <this>.#message, isInternal: Boolean = <this>.#isInternal, attachments: Map<String, Any>? = <this>.#attachments, createdAt: OffsetDateTime = <this>.#createdAt): TicketMessage {
+    return TicketMessage(id = id, ticketId = ticketId, senderId = senderId, message = message, isInternal = isInternal, attachments = attachments, createdAt = createdAt)
+  }
+
+  override fun toString(): String {
+    return "TicketMessage(" + "id=" + <this>.#id + ", " + "ticketId=" + <this>.#ticketId + ", " + "senderId=" + <this>.#senderId + ", " + "message=" + <this>.#message + ", " + "isInternal=" + <this>.#isInternal + ", " + "attachments=" + <this>.#attachments + ", " + "createdAt=" + <this>.#createdAt + ")"
+  }
+
+  override fun hashCode(): Int {
+    var result: Int = <this>.#id.hashCode()
+    result = result.times(other = 31).plus(other = <this>.#ticketId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#senderId.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#message.hashCode())
+    result = result.times(other = 31).plus(other = <this>.#isInternal.hashCode())
+    result = result.times(other = 31).plus(other = when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = null) -> 0
+      else -> <this>.#attachments.hashCode()
+    })
+    result = result.times(other = 31).plus(other = <this>.#createdAt.hashCode())
+    return result
+  }
+
+  override operator fun equals(other: Any?): Boolean {
+    when {
+      EQEQEQ(arg0 = <this>, arg1 = other) -> return true
+    }
+    when {
+      other !is TicketMessage -> return false
+    }
+    val tmp0_other_with_cast: TicketMessage = other /*as TicketMessage */
+    when {
+      EQEQ(arg0 = <this>.#id, arg1 = tmp0_other_with_cast.#id).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#ticketId, arg1 = tmp0_other_with_cast.#ticketId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#senderId, arg1 = tmp0_other_with_cast.#senderId).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#message, arg1 = tmp0_other_with_cast.#message).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#isInternal, arg1 = tmp0_other_with_cast.#isInternal).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#attachments, arg1 = tmp0_other_with_cast.#attachments).not() -> return false
+    }
+    when {
+      EQEQ(arg0 = <this>.#createdAt, arg1 = tmp0_other_with_cast.#createdAt).not() -> return false
+    }
+    return true
+  }
+
+  @JvmStatic
+  internal /* static */ fun write$Self(self: TicketMessage, output: CompositeEncoder, serialDesc: SerialDescriptor)
+
+  internal constructor(seen0: Int, id: String?, ticketId: String?, senderId: String?, message: String?, isInternal: Boolean, attachments: Map<String, Any>?, createdAt: OffsetDateTime?, serializationConstructorMarker: SerializationConstructorMarker?) {
+    when {
+      EQEQ(arg0 = 14, arg1 = 14.and(other = seen0)).not() -> throwMissingFieldException(seen = seen0, goldenMask = 14, descriptor = $serializer.<get-descriptor>())
+    }
+    super/*Any*/()
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 1)) -> <this>.#id = Ulid.generate()
+      else -> <this>.#id = id
+    }
+    <this>.#ticketId = ticketId
+    <this>.#senderId = senderId
+    <this>.#message = message
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 16)) -> <this>.#isInternal = false
+      else -> <this>.#isInternal = isInternal
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 32)) -> <this>.#attachments = null
+      else -> <this>.#attachments = attachments
+    }
+    when {
+      EQEQ(arg0 = 0, arg1 = seen0.and(other = 64)) -> <this>.#createdAt = now() /*!! OffsetDateTime */
+      else -> <this>.#createdAt = createdAt
+    }
+  }
+
+}
+
+`
+Details: kotlinx.serialization compiler plugin internal error: unable to transform declaration, see cause
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializerClassLowering.lower(SerializationLoweringExtension.kt:243)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt$runOnFileInOrder$1.visitClass(SerializationLoweringExtension.kt:52)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitClass(IrVisitorVoid.kt:44)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitClass(IrVisitorVoid.kt:18)
+	at org.jetbrains.kotlin.ir.declarations.IrClass.accept(IrClass.kt:72)
+	at org.jetbrains.kotlin.ir.declarations.IrPackageFragment.acceptChildren(IrPackageFragment.kt:27)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorsKt.acceptChildrenVoid(IrVisitors.kt:23)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt$runOnFileInOrder$1.visitElement(SerializationLoweringExtension.kt:48)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitPackageFragment(IrVisitorVoid.kt:168)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:184)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:180)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorVoid.visitFile(IrVisitorVoid.kt:18)
+	at org.jetbrains.kotlin.ir.declarations.IrFile.accept(IrFile.kt:27)
+	at org.jetbrains.kotlin.ir.visitors.IrVisitorsKt.acceptVoid(IrVisitors.kt:11)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtensionKt.runOnFileInOrder(SerializationLoweringExtension.kt:46)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationLoweringExtension.generate(SerializationLoweringExtension.kt:207)
+	at org.jetbrains.kotlin.fir.pipeline.Fir2IrPipeline.applyIrGenerationExtensions(convertToIr.kt:577)
+	... 40 more
+Caused by: java.lang.IllegalStateException: Serializer for element of type kotlin.Any has not been found
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializerSearchUtilKt.findTypeSerializerOrContext(SerializerSearchUtil.kt:81)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.regularArgs(Instantiator.kt:273)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.serializerInstance(Instantiator.kt:95)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.instantiate(Instantiator.kt:400)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.argsForContextSerializer(Instantiator.kt:191)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.Instantiator.serializerInstance(Instantiator.kt:76)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.serializerInstance(BaseIrGenerator.kt:535)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.formEncodeDecodePropertyCall(BaseIrGenerator.kt:263)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.formEncodeDecodePropertyCall$default(BaseIrGenerator.kt:253)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.BaseIrGenerator.serializeAllProperties(BaseIrGenerator.kt:201)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateWriteSelfMethod$lambda$0(SerializableIrGenerator.kt:355)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.IrBuilderWithPluginContext.addFunctionBody(IrBuilderWithPluginContext.kt:50)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateWriteSelfMethod(SerializableIrGenerator.kt:295)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generateSyntheticMethods(SerializableIrGenerator.kt:383)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator.generate(SerializableIrGenerator.kt:367)
+	at org.jetbrains.kotlinx.serialization.compiler.backend.ir.SerializableIrGenerator$Companion.generate(SerializableIrGenerator.kt:394)
+	at org.jetbrains.kotlinx.serialization.compiler.extensions.SerializerClassLowering.lower(SerializationLoweringExtension.kt:159)
+	... 56 more
+
+

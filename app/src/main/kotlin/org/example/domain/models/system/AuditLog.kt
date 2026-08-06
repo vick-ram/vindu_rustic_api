@@ -26,14 +26,11 @@ data class AuditLog(
     @SerialName(value = "entity_id")
     val entityId: String,
 
-    @Contextual
-    val changes: Map<String, Any>? = null, // old and new
+    val changes: Map<String, @Contextual Any>? = null, // old and new
 
-    @Contextual
-    val metadata: Map<String, Any>? = null,
+    val metadata: Map<String, @Contextual Any>? = null,
 
-    @Serializable(with = InetAddressSerializer::class)
-    val ipAddress: InetAddress? = null,
+    @Contextual val ipAddress: InetAddress? = null,
     val userAgent: String? = null,
 
     @Contextual

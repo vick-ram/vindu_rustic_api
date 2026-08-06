@@ -6,14 +6,15 @@ import org.example.data.mappers.CouponMapper
 import org.example.data.repo.CacheConfig
 import org.example.data.repo.CouponRepository
 import org.example.data.repo.CrudCache
+import org.example.di.Component
+import org.example.di.Inject
 import org.example.domain.models.marketing.Coupon
 import org.example.domain.models.marketing.CouponUsage
-import org.koin.core.annotation.Singleton
 import java.math.BigDecimal
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-@Singleton
-class CouponCache(
+@Component
+class CouponCache @Inject constructor(
     redis: RedisCoroutinesCommands<String, String>,
     private val couponRepository: CouponRepository,
     couponMapper: CouponMapper

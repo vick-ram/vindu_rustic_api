@@ -19,14 +19,12 @@ data class OutboxEvent(
     @SerialName("event_type")
     val eventType: String,
 
-    @Contextual
-    val payload: Map<String, Any>,
+    val payload: Map<String, @Contextual Any>,
 
     val processed: Boolean = false,
 
-    @Contextual
     @SerialName("processed_at")
-    val processedAt: OffsetDateTime? = null,
+    @Contextual val processedAt: OffsetDateTime? = null,
 
     val attempts: Int = 0,
 

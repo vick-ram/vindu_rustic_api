@@ -17,8 +17,8 @@ import org.example.domain.models.payments.PaymentTransaction
 import org.example.domain.models.payments.Refund
 import org.example.domain.models.sales.Order
 import org.example.domain.models.sales.OrderStatusHistory
-import org.example.plugins.DuplicateTransactionException
-import org.example.plugins.NotFoundException
+import org.example.exceptions.DuplicateTransactionException
+import org.example.exceptions.NotFoundException
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 import java.util.*

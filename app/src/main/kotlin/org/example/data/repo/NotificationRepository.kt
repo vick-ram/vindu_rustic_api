@@ -1,6 +1,5 @@
 package org.example.data.repo
 
-import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -10,7 +9,6 @@ import org.example.data.mappers.NotificationMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.system.Notification
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component

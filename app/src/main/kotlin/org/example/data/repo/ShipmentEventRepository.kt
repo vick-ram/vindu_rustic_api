@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.Serializable
 import org.example.data.mappers.ShipmentEventMapper
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.domain.models.shipping.ShipmentEvent
-import org.koin.core.annotation.Single
 import java.time.OffsetDateTime
 
 @Component
@@ -28,10 +28,24 @@ class ShipmentEventRepository @Inject constructor(
         val sql = """
             SELECT * FROM $tableName 
             WHERE shipment_id = :shipmentId 
-            ORDER BY occurred_at DESC, created_at DESC
+            ORDER BY occurred_at ASC
         """.trimIndent()
 
         return executeQuery(sql, mapOf("shipmentId" to shipmentId))
+    }
+
+
+    suspend fun latestForShipment(shipmentId: String): ShipmentEvent? {
+        val sql = """
+            SELECT * FROM $tableName
+            WHERE shipment_id = :shipmentId
+            ORDER BY occurred_at DESC
+            LIMIT 1
+        """.trimIndent()
+        return connectionFactory.useConnection {
+            createNamedStatement(sql, mapOf("shipmentId" to shipmentId))
+                .execute().awaitSingle().map(rowMapper).awaitFirstOrNull()
+        }
     }
 
     // Get events by type
@@ -174,6 +188,7 @@ class ShipmentEventRepository @Inject constructor(
     }
 }
 
+@Serializable
 data class ShipmentTimelineEvent(
     val event: ShipmentEvent,
     val previousStatus: String?,

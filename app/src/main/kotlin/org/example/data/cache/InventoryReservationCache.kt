@@ -19,12 +19,11 @@ import org.slf4j.LoggerFactory
 class InventoryReservationCache @Inject constructor(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val repository: InventoryReservationRepository,
-    serializer: KSerializer<InventoryReservation>
 ) : CrudCache<InventoryReservation, String>(
     redis = redis,
     delegate = repository,
     getId = { it.id },
-    serializer = serializer,
+    serializer = InventoryReservation.serializer(),
     config = object : CacheConfig {
         override val cacheName = "inventory_reservations"
         override val ttl = 900L // Short 15-minute TTL matching default reservation lengths

@@ -1,12 +1,13 @@
 package org.example.services
 
 import org.example.data.cache.CategoryCache
+import org.example.di.Inject
 import org.example.di.Injectable
 import org.example.di.Qualifier
 import org.example.domain.models.catalog.Category
 
 @Injectable
-class CategoryService(
+class CategoryService @Inject constructor(
     private val categoryCache: CategoryCache
 ) {
 

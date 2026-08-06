@@ -34,9 +34,6 @@ class RoutingModule(private val factory: DynamicRouteFactory) : ApplicationPlugi
         }
 
         application.routing {
-            get("/") {
-                call.respondText("Hello from vindu rustic server")
-            }
             backendRoutes(factory, config.security.issuer, config.security.audience, config.security.secret)
             /*Frontend routing*/
             frontendRoutes()

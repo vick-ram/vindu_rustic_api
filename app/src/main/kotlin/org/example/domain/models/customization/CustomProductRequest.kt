@@ -21,8 +21,7 @@ data class CustomProductRequest(
     val title: String,
     val description: String,
 
-    @Contextual
-    val specifications: Map<String, Any>? = null,
+    val specifications: Map<String, @Contextual Any>? = null,
 
     @Contextual
     @SerialName(value = "estimated_budget_min")

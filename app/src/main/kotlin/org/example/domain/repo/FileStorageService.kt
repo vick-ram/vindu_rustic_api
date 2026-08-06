@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import org.example.config.AppConfig
 import org.example.di.Inject
 import org.example.di.Injectable
-import org.example.plugins.FileStorageException
+import org.example.exceptions.FileStorageException
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -72,7 +72,7 @@ class FileStorageService @Inject constructor(
         }
     }
 
-    suspend fun fileExists(fileUrl: String): Boolean {
+    fun fileExists(fileUrl: String): Boolean {
         val fileName = fileUrl.substringAfterLast("/")
         val filePath = Paths.get(storageConfig.uploadDir, fileName)
         return Files.exists(filePath)
@@ -87,7 +87,7 @@ class FileStorageService @Inject constructor(
             else -> {
                 // Try to get extension from original filename
                 val extension = fileName.substringAfterLast(".", "")
-                if (extension.isNotEmpty()) extension else "bin"
+                extension.ifEmpty { "bin" }
             }
         }
     }

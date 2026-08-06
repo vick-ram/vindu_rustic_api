@@ -37,11 +37,9 @@ data class ProductVariant(
     @SerialName(value = "weight_grams")
     val weightGrams: Int? = null,
 
-    @Contextual
-    val dimensions: Map<String, Any> = emptyMap(),
+    val dimensions: Map<String, @Contextual Any> = emptyMap(),
 
-    @Contextual
-    val attributes: Map<String, Any> = emptyMap(),
+    val attributes: Map<String, @Contextual Any> = emptyMap(),
 
     @SerialName(value = "is_active")
     val isActive: Boolean = true,

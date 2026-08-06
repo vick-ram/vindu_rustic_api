@@ -1,14 +1,17 @@
 package org.example.services
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.data.cache.UserCache
 import org.example.data.repo.CrudCache
+import org.example.di.Component
 import org.example.di.Inject
 import org.example.di.Injectable
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
 import java.net.InetAddress
 
-@Injectable
+@Component
 class UserService @Inject constructor(private val userCache: UserCache, private val authService: AuthService) {
 
     suspend fun createUser(user: User): User {
@@ -18,10 +21,12 @@ class UserService @Inject constructor(private val userCache: UserCache, private 
     suspend fun login(
         email: String,
         password: String,
-        ipAddress: InetAddress? = null,
+        ipAddress: String? = null,
         deviceInfo: String? = null,
     ): TokenResponse {
-        return authService.login(email, password, ipAddress, deviceInfo)
+        return authService.login(email, password, withContext(Dispatchers.IO) {
+            InetAddress.getByName(ipAddress)
+        }, deviceInfo)
     }
 
     suspend fun updateUser(id: String, user: User): User? {

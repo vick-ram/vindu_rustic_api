@@ -9,8 +9,8 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
-import org.example.plugins.RouteConflictException
-import org.example.plugins.RouteValidationException
+import org.example.exceptions.RouteConflictException
+import org.example.exceptions.RouteValidationException
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList

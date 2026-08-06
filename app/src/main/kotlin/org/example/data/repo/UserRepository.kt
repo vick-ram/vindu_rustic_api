@@ -2,6 +2,7 @@ package org.example.data.repo
 
 import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitSingle
 import org.example.config.security.PasswordHasher
 import org.example.data.mappers.UserMapper
@@ -21,7 +22,7 @@ class UserRepository @Inject constructor(
         super.create(model.copy(password = PasswordHasher.hash(model.password)), connection)
 
     suspend fun searchUsers(query: String, offset: Int, limit: Int): List<User> =
-        search(query = query, limit = limit, offset = offset)
+        search(query = query, limit = limit, offset = offset).toList()
 
     suspend fun findByEmail(email: String): User? =
         executeQuery(sql = "SELECT * FROM users WHERE email = :email", params = mapOf("email" to email), mapper =  rowMapper)

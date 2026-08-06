@@ -2,6 +2,7 @@ package org.example.reflection
 
 import org.example.di.Inject
 import org.example.di.Qualifier
+import java.lang.reflect.Constructor
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import java.util.function.Supplier
@@ -15,10 +16,10 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.isAccessible
 
 
-data class ConstructorParam(val type: KClass<*>, val qualifier: String?)
+data class ConstructorParam(val type: Class<*>, val qualifier: String?)
 
 data class InjectableConstructor(
-    val constructor: KFunction<Any>,
+    val constructor: Constructor<*>,
     val parameters: List<ConstructorParam>
 )
 
@@ -39,31 +40,33 @@ object Reflect {
 
     // Cached, per-class: which constructor to use + each parameter's type/qualifier.
     // Computed once via kotlin-reflect, reused on every subsequent instantiation.
-    private val constructorCache = object : ClassValue<InjectableConstructor>() {
-        override fun computeValue(type: Class<*>): InjectableConstructor {
-            val kClass = type.kotlin
-            val constructors = kClass.constructors
+    private val constructorCache = object : ClassValue<Pair<Constructor<*>, Array<ConstructorParam>>>() {
+        override fun computeValue(type: Class<*>): Pair<Constructor<*>, Array<ConstructorParam>> {
+            // Find constructor annotated with @Inject, or fall back to primary/first constructor
+            val constructor = type.constructors.find { c ->
+                c.annotations.any { it.annotationClass.simpleName == "Inject" }
+            } ?: type.constructors.firstOrNull()
+            ?: throw IllegalStateException("No public constructor for ${type.name}")
 
-            val selected = constructors.find { it.hasAnnotation<Inject>() }
-                ?: kClass.primaryConstructor
-                ?: constructors.firstOrNull()
-                ?: throw IllegalStateException("No usable constructor for ${kClass.qualifiedName}")
+            constructor.isAccessible = true
 
-            selected.isAccessible = true
+            val params = constructor.parameters.map { p ->
+                val qualifier = p.annotations
+                    .find { it.annotationClass.simpleName == "Qualifier" }
+                    ?.let { ann ->
+                        // Extract qualifier name dynamically
+                        ann.javaClass.getMethod("name").invoke(ann) as? String
+                    }
+                ConstructorParam(p.type, qualifier)
+            }.toTypedArray()
 
-            val params = selected.parameters.map { p ->
-                val classifier = checkNotNull(p.type.classifier as KClass<*>) {
-                    "Cannot resolve concrete parameter type for ${kClass.qualifiedName}, parameter '${p.name}'"
-                }
-                ConstructorParam(classifier, p.findAnnotation<Qualifier>()?.name)
-            }
-
-            return InjectableConstructor(selected, params)
+            return constructor to params
         }
     }
-
-    fun getInjectableConstructor(clazz: KClass<*>): InjectableConstructor =
-        constructorCache.get(clazz.java)
+    fun getInjectableConstructor(clazz: KClass<*>): InjectableConstructor {
+        val (javaConstructor, params) = constructorCache.get(clazz.java)
+        return InjectableConstructor(javaConstructor, params.toList())
+    }
 
     /**
      * Creates an instance of [clazz] using its cached injectable constructor.
@@ -71,9 +74,11 @@ object Reflect {
      * and must return the value to pass in.
      */
     fun createInstance(clazz: KClass<*>, resolveParam: (KClass<*>, String?) -> Any): Any {
-        val cached = getInjectableConstructor(clazz)
-        val args = cached.parameters.map { resolveParam(it.type, it.qualifier) }
-        return cached.constructor.call(*args.toTypedArray())
+        val (javaConstructor, params) = constructorCache.get(clazz.java)
+        val args = params.map { resolveParam(it.type.kotlin, it.qualifier) }.toTypedArray()
+
+        // Using Java standard reflection avoids Kotlin KFunction's internal ClassLoader cast verification
+        return javaConstructor.newInstance(*args)
     }
 
     /**
