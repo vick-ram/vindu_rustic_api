@@ -1,95 +1,45 @@
-<footer class="footer" xmlns:th="http://www.w3.org/1999/xhtml">
-    <div class="footer-container">
-        <div class="footer-column">
-            <h3>Shop Categories</h3>
-            <ul class="footer-links">
-                <li><a href="#">Living Room</a></li>
-                <li><a href="#">Bedroom</a></li>
-                <li><a href="#">Dining Room</a></li>
-                <li><a href="#">Kitchen</a></li>
-                <li><a href="#">Bathroom</a></li>
-            </ul>
-        </div>
-
-        <div class="footer-column">
-            <h3>Customer Service</h3>
-            <ul class="footer-links">
-                <li><a href="#">Contact Us</a></li>
-                <li><a href="#">Shipping Info</a></li>
-                <li><a href="#">Returns & Exchanges</a></li>
-                <li><a href="#">Care Instructions</a></li>
-                <li><a href="#">FAQ</a></li>
-            </ul>
-        </div>
-
-        <div class="footer-column">
-            <h3>About Us</h3>
-            <ul class="footer-links">
-                <li><a href="#">Our Story</a></li>
-                <li><a href="#">Artisans</a></li>
-                <li><a href="#">Sustainability</a></li>
-                <li><a href="#">Press</a></li>
-                <li><a href="#">Careers</a></li>
-            </ul>
-        </div>
-
-        <div class="footer-column">
-            <h3>Stay Connected</h3>
-            <p>Subscribe to our newsletter for exclusive offers and design inspiration.</p>
-            <form class="newsletter-form">
-                <input aria-label="message" type="email" placeholder="Your email address">
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Subscribe</button>
-            </form>
-            <div class="social-icons">
-                <a href="#"><img th:src="@{/resources/icons/facebook.svg}" alt="facebook social"></a>
-                <a href="#"><img th:src="@{/resources/icons/x.svg}" alt="x social"></a>
-                <a href="#"><img th:src="@{/resources/icons/instagram.svg}" alt="instagram social"></a>
-                <a href="#"><img th:src="@{/resources/icons/linkedin.svg}" alt="linkedin social"></a>
+<footer th:fragment="footer" class="bg-body text-muted pt-16">
+    <div class="max-w-6xl mx-auto px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-10 pb-12">
+        <div class="md:col-span-2">
+            <div class="font-serif text-xl font-semibold mb-3 text-background">Vindu Rustic</div>
+            <p class="text-xs max-w-xs leading-relaxed">Solid wood furniture, hand-built in Nairobi. Custom orders welcome, tracked from log to living room.</p>
+            <div class="flex gap-3 mt-4">
+                <span class="font-mono w-8 size-8 border border-border rounded-full flex items-center justify-center text-xs cursor-pointer duration-150 hover:bg-background hover:text-text hover:border-background">IG</span>
+                <span class="font-mono w-8 size-8 border border-border rounded-full flex items-center justify-center text-xs cursor-pointer duration-150 hover:bg-background hover:text-text hover:border-background">FB</span>
+                <span class="font-mono w-8 size-8 border border-border rounded-full flex items-center justify-center text-xs cursor-pointer duration-150 hover:bg-background hover:text-text hover:border-background">PIN</span>
             </div>
         </div>
+
+        <div>
+            <h4 class="font-mono text-background text-xs uppercase tracking-wider mb-4">Shop</h4>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Dining</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Living Room</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Bedroom</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Outdoor</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Custom Orders</a>
+        </div>
+
+        <div>
+            <h4 class="font-mono text-background text-xs uppercase tracking-wider mb-4">Help</h4>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Shipping &amp; Delivery</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Returns</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Wood &amp; Care Guide</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Track My Order</a>
+        </div>
+
+        <div>
+            <h4 class="font-mono text-background text-xs uppercase tracking-wider mb-4">Workshop</h4>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Our Story</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Wood Sourcing</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">Contact Us</a>
+            <a href="#" class="block text-sm mb-2.5 text-muted no-underline transition-colors duration-150 hover:text-background">+254 700 000 000</a>
+        </div>
     </div>
 
-    <div class="copyright">
-        <p>&copy; 2023 Heritage Furnishings. Preserving tradition, one piece at a time.</p>
+    <div class="border-t border-border py-5.5">
+        <div class="max-w-6xl mx-auto px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-center sm:text-left">
+            <span class="font-mono">&copy; 2026 Vindu Rustic, NAIROBI</span>
+            <span class="font-mono">M-PESA &middot; VISA &middot; MASTERCARD</span>
+        </div>
     </div>
-    <!--    <div class="footer-container">-->
-    <!--        <div class="footer-column">-->
-    <!--            <h3>Vindu Rustic</h3>-->
-    <!--            <p>We offer reliable, innovative solutions for modern businesses.</p>-->
-    <!--        </div>-->
-
-    <!--        <div class="footer-column">-->
-    <!--            <h3>Quick Links</h3>-->
-    <!--            <ul class="footer-links">-->
-    <!--                <li><a href="#">Home</a></li>-->
-    <!--                <li><a href="#">About Us</a></li>-->
-    <!--                <li><a href="#">Services</a></li>-->
-    <!--                <li><a href="#">Contact</a></li>-->
-    <!--            </ul>-->
-    <!--        </div>-->
-
-    <!--        <div class="footer-column">-->
-    <!--            <h3>Contact</h3>-->
-    <!--            <p>Email: support@example.com</p>-->
-    <!--            <p>Phone: +254 700 123 456</p>-->
-    <!--            <div class="social-icons">-->
-    <!--                <a href="#"><img th:src="@{/resources/icons/facebook.svg}" alt="facebook social" class="facebook"></a>-->
-    <!--                <a href="#"><img th:src="@{/resources/icons/x.svg}" alt="x social" class="x"></a>-->
-    <!--                <a href="#"><img th:src="@{/resources/icons/instagram.svg}" alt="instagram social" class="instagram"></a>-->
-    <!--                <a href="#"><img th:src="@{/resources/icons/linkedin.svg}" alt="linkedin social" class="linkedin"></a>-->
-    <!--            </div>-->
-    <!--        </div>-->
-
-    <!--        <div class="footer-column">-->
-    <!--            <h3>Subscribe</h3>-->
-    <!--            <p>Stay updated with our latest news and offers.</p>-->
-    <!--            <form style="margin-top: 1rem;">-->
-    <!--                <input aria-label="Send newsletter" type="email" placeholder="Your email address" style="padding: 0.7rem; width: 100%; border: none; border-radius: 4px; margin-bottom: 0.5rem;">-->
-    <!--                <button type="submit" class="footer-btn w-full">Subscribe</button>-->
-    <!--            </form>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--    <div class="copyright">-->
-    <!--        &copy; 2025 Vindu Rustic. All rights reserved.-->
-    <!--    </div>-->
 </footer>

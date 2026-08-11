@@ -3,6 +3,73 @@ package org.example.config
 object FormPages {
     private val formPages = listOf(
         FormPage(
+            templates = setOf("ecommerce/pages/index.html"),
+            paths = setOf("/"),
+        ),
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/products/index",
+                "ecommerce/pages/products/detail"
+            ),
+            paths = setOf(
+                "/products",
+                "/products/{id}"
+            )
+        ),
+
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/categories/index",
+                "ecommerce/pages/categories/detail"
+            ),
+            paths = setOf(
+                "/categories",
+                "/categories/{id}"
+            )
+        ),
+
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/index"
+            ),
+            paths = setOf(
+                "/cart"
+            )
+        ),
+
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/checkout/index",
+                "ecommerce/pages/checkout/success"
+            ),
+            paths = setOf(
+                "/checkout",
+                "/checkout/success"
+            )
+        ),
+
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/orders/index",
+                "ecommerce/pages/orders/detail"
+            ),
+            paths = setOf(
+                "/orders",
+                "/orders/{id}"
+            )
+        ),
+
+        FormPage(
+            templates = setOf(
+                "ecommerce/pages/account/profile",
+                "ecommerce/pages/account/settings"
+            ),
+            paths = setOf(
+                "/account",
+                "/account/settings"
+            )
+        ),
+        FormPage(
             templates = setOf("admin/pages/dashboard"),
             paths = setOf("/admin/dashboard")
         ),
@@ -39,12 +106,8 @@ object FormPages {
             paths = setOf("/admin/profile")
         ),
         FormPage(
-            templates = setOf("auth/signin.html", "auth/signup.html", "auth/forgot-password.html"),
-            paths = setOf("/signin", "/signup", "/forgot-password")
-        ),
-        FormPage(
-            templates = setOf("pages/index"), // Home page
-            paths = setOf("/")
+            templates = setOf("auth/signin.html", "auth/signup.html", "auth/forgot-password.html", "auth/verify"),
+            paths = setOf("/signin", "/signup", "/forgot-password", "/verify")
         )
     )
 

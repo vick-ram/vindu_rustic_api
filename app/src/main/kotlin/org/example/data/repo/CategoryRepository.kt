@@ -44,7 +44,7 @@ class CategoryRepository @Inject constructor(
 
     suspend fun findActive(): List<Category> {
         return connectionFactory.useConnection {
-            createStatement("SELECT * FROM categories WHERE isActive = $1")
+            createStatement("SELECT * FROM categories WHERE is_active = $1")
                 .bind("$1", true)
                 .execute()
                 .awaitSingle()

@@ -1,29 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Vindu Rustic</title>
+
+    <!-- Prevent FOUC (Flash of Unstyled Content) on theme switch -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') ||
+                (window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.classList.add('preload');
+
+            window.addEventListener('DOMContentLoaded', () => {
+                document.documentElement.classList.remove('preload');
+            });
+        })();
+    </script>
+
     <link rel="stylesheet" th:href="@{/webjars/tabler-icons/iconfont/tabler-icons.min.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/resources/styles/global/index.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/global/menu.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/global/dialog.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/ecommerce/index.css}">
-    <link rel="stylesheet" th:href="@{/resources/styles/ecommerce/chatbot.css}">
+    <link rel="stylesheet" th:href="@{/resources/styles/global/main.css}">
 </head>
 <body>
     <div layout:fragment="content"></div>
 
-
     <script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
-    <script th:src="@{/resources/js/ecommerce/chatbot.js}"></script>
-    <script th:src="@{/resources/js/global/toggleMenu.js}"></script>
-    <script th:src="@{/resources/js/ecommerce/index.js}"></script>
-    <script th:src="@{/resources/js/admin/form.js}"></script>
 
-<script>
-    feather.replace();
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+        });
+    </script>
+    <script th:src="@{/resources/js/global/darkmode.js}"></script>
 </body>
 </html>

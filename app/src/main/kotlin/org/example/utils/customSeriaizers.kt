@@ -48,53 +48,6 @@ object BigDecimalSerializer : KSerializer<BigDecimal> {
     }
 }
 
-object MapStringAnySerializer : KSerializer<Map<String, Any>> {
-    private val delegateSerializer = MapSerializer(String.serializer(), JsonElement.serializer())
-
-    override val descriptor: SerialDescriptor
-        get() = delegateSerializer.descriptor
-
-    override fun serialize(
-        encoder: Encoder,
-        value: Map<String, Any>
-    ) {
-        val jsonMap = value.mapValues { (_, item) -> item.toJsonElement()  }
-        encoder.encodeSerializableValue(delegateSerializer, jsonMap)
-    }
-
-    override fun deserialize(decoder: Decoder): Map<String, Any> {
-        // Decode into Map<String, JsonElement> and convert back to Map<String, Any>
-        val jsonMap = decoder.decodeSerializableValue(delegateSerializer)
-        return jsonMap.mapValues { (_, jsonElement) -> jsonElement.toNativeAny() as Any }
-    }
-
-    // Helper: Recursively convert native types to JsonElements
-    private fun Any?.toJsonElement(): JsonElement = when (this) {
-        null -> JsonNull
-        is JsonElement -> this
-        is Boolean -> JsonPrimitive(this)
-        is Number -> JsonPrimitive(this)
-        is String -> JsonPrimitive(this)
-        is Map<*, *> -> JsonObject(this.entries.associate { it.key.toString() to it.value.toJsonElement() })
-        is List<*> -> JsonArray(this.map { it.toJsonElement() })
-        else -> JsonPrimitive(this.toString()) // Fallback for unhandled types
-    }
-
-    // Helper: Recursively convert JsonElements back to primitive Kotlin types
-    private fun JsonElement.toNativeAny(): Any? = when (this) {
-        is JsonNull -> null
-        is JsonPrimitive -> {
-            if (this.isString) {
-                this.content
-            } else {
-                this.booleanOrNull ?: this.longOrNull ?: this.doubleOrNull ?: this.content
-            }
-        }
-        is JsonObject -> this.mapValues { it.value.toNativeAny() }
-        is JsonArray -> this.map { it.toNativeAny() }
-    }
-}
-
 object AnySerializer : KSerializer<Any> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Any", PrimitiveKind.STRING) // Or delegating to JsonElement.serializer().descriptor

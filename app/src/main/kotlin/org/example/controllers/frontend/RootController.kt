@@ -15,26 +15,35 @@ import org.example.services.UserService
 @Component
 class RootController @Inject constructor(private val userService: UserService, private val roleService: RoleService) {
     fun Route.routes() {
-        get("/") {
+        get("/dashboard-redirect") {
             val session = call.sessions.get<AuthSession>()
 
             if (session == null) {
-                call.respondRedirect("/ecommerce")
+                call.respondRedirect("/signin")
                 return@get
             }
 
-//            val user = userService.getUser(session.userId)
-//            val roleId = user?.roleId
-//            val role = roleId?.let { roleService.getRole(it) }?.name
-//
-//            when (role) {
-//                "admin" -> call.respondRedirect("/admin/dashboard")
-//                "customer" -> call.respondRedirect("/ecommerce/home")
-//                else -> {
-//                    call.sessions.clear<AuthSession>()
-//                    call.respondRedirect("/ecommerce")
-//                }
-//            }
+            val user = userService.getUser(session.userId)
+            if (user == null) {
+                call.sessions.clear<AuthSession>()
+                call.respondRedirect("/signin")
+                return@get
+            }
+
+            val assignedRoleNames = roleService.getRolesForUser(user.id).map { it.name }
+
+            when {
+                "admin" in assignedRoleNames -> {
+                    call.respondRedirect("/admin/dashboard")
+                }
+                "customer" in assignedRoleNames -> {
+                    call.respondRedirect("/home")
+                }
+                else -> {
+                    call.sessions.clear<AuthSession>()
+                    call.respondRedirect("/signin")
+                }
+            }
         }
     }
 }

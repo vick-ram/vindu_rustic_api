@@ -17,7 +17,7 @@ val databaseModule = module {
                 .connectionFactory(
                     ConnectionFactories.get(
                         ConnectionFactoryOptions.builder()
-                            .option(ConnectionFactoryOptions.DRIVER, "postgresql")
+                            .option(ConnectionFactoryOptions.DRIVER, config.database.driver)
                             .option(ConnectionFactoryOptions.HOST, config.database.dbHost)
                             .option(ConnectionFactoryOptions.PORT, config.database.dbPort)
                             .option(ConnectionFactoryOptions.DATABASE, config.database.dbName)

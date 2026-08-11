@@ -56,37 +56,35 @@ class NavigationManager {
         }
     }
 
+
     matchesRoute(currentPath, routePattern) {
-        // Exact
         if (currentPath === routePattern) return true;
 
-        // Pattern match for routes with parameters
         if (routePattern.includes('{')) {
-            const patternRegex = new RegExp('^' + routePattern.replace(/\{.*?\}/g, '[^/]+') + '$');
-            return patternRegex.test(currentPath);
-        }
+            // Escape special regex chars except the parameterized placeholders
+            const regexString = routePattern
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                .replace(/\\\{.*?\\\}/g, '[^/]+');
 
-        // Prefix match for nested routes
-        if (currentPath.startsWith(routePattern + '/')) {
-            return true;
+            return new RegExp('^' + regexString + '$').test(currentPath);
         }
 
         return false;
     }
 
     setupNavigationEvents() {
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', async (e) => {
             const link = e.target.closest('[data-nav]');
             if (link) {
                 e.preventDefault();
                 const routeName = link.getAttribute('data-nav');
                 const params = this.getDataParams(link);
-                this.navigateTo(routeName, params);
+                await this.navigateTo(routeName, params);
             }
         });
 
-        window.addEventListener('popstate',  (e) => {
-            this.handlePopState(e);
+        window.addEventListener('popstate', async (e) => {
+            await this.handlePopState(e);
         });
     }
 
@@ -96,7 +94,8 @@ class NavigationManager {
 
         for (const [key, value] of Object.entries(dataAttributes)) {
             if (key.startsWith('param')) {
-                const paramName = key.replace('param', '').toLowerCase();
+                const rawParam = key.replace(/^param/, '');
+                const paramName = rawParam.charAt(0).toLowerCase() + rawParam.slice(1);
                 console.log('Param:', paramName, value);
                 params[paramName] = value;
             }
@@ -123,25 +122,10 @@ class NavigationManager {
         if (!routePath) return false;
 
         const currentPath = window.location.pathname;
-        
-        // Exact match
-        if (currentPath === routePath) return true;
-        
-        // Pattern match for parameterized routes
-        if (routePath.includes('{')) {
-            const patternRegex = new RegExp('^' + routePath.replace(/\{.*?\}/g, '[^/]+') + '$');
-            return patternRegex.test(currentPath);
-        }
-        
-        // For admin routes, check if we're in admin section
-//        if (routePath.startsWith('/admin') && currentPath.startsWith('/admin')) {
-//            return true;
-//        }
-        
-        return false;
+        return this.matchesRoute(currentPath, routePath);
     }
 
-    navigateTo(routeName, data = {}) {
+   async navigateTo(routeName, data = {}) {
         if (!this.routes[routeName]) {
             console.error(`Route "${routeName}" not found.`);
             return false;
@@ -158,25 +142,25 @@ class NavigationManager {
 
     buildUrl(routeName, data = {}) {
         let url = this.routes[routeName];
-        
+        const paramCopy = {...data}
         // Replace route parameters
-        if (url.includes('{') && data) {
-            for (const [key, value] of Object.entries(data)) {
+        if (url.includes('{')) {
+            for (const [key, value] of Object.entries(paramCopy)) {
                 const paramPattern = `{${key}}`;
                 if (url.includes(paramPattern)) {
-                    url = url.replace(paramPattern, value);
+                    url = url.replace(paramPattern, encodeURIComponent(value));
                     // Remove used parameter from data to avoid duplicate query params
-                    delete data[key];
+                    delete paramCopy[key];
                 }
             }
         }
-        
+
         // Add query parameters
-        if (Object.keys(data).length > 0) {
-            const params = new URLSearchParams(data).toString();
-            url += (url.includes('?') ? '&' : '?') + params;
+        if (Object.keys(paramCopy).length > 0) {
+            const queryString = new URLSearchParams(paramCopy).toString();
+            url += (url.includes('?') ? '&' : '?') + queryString;
         }
-        
+
         return url;
     }
 
@@ -186,37 +170,42 @@ class NavigationManager {
         return spaPrefixes.some(prefix => routeName.startsWith(prefix));
     }
 
-    clientSideNavigation(url, routeName, data) {
-        fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'text/html',
-                'X-Navigation': 'client-side'
-            }
-        }).then(response => {
-            if (response.ok) {
-                return response.text();
-            }
-            throw new Error('Network response was not ok.');
-        }).then(html => {
-            this.updatePageContent(html, routeName);
+    async clientSideNavigation(url, routeName, data, pushState = true) {
+        document.body.classList.add('loading');
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                    'X-Navigation': 'client-side'
+                }
+            });
 
-            window.history.pushState({
-                route: routeName,
-                data: data,
-                timestamp: Date.now()
-            }, '', url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const html = await response.text();
+            this.updatePageContent(html);
+
+            if (pushState) {
+                window.history.pushState({
+                    route: routeName,
+                    data: data,
+                    timestamp: Date.now()
+                }, '', url);
+            }
 
             this.previousPage = this.currentPage;
             this.currentPage = routeName;
             this.setupActiveState();
             this.onRouteChange(routeName, data);
             return true;
-        }).catch(error => {
+        } catch (error) {
             console.error('Navigation error:', error);
-            this.serverSideNavigate(url); // Fallback to server navigation
+            if (pushState) this.serverSideNavigate(url);
             return false;
-        }).finally(() => document.body.classList.remove('loading'));
+        } finally {
+            document.body.classList.remove('loading');
+        }
     }
 
     serverSideNavigate(url) {
@@ -224,7 +213,7 @@ class NavigationManager {
         return true;
     }
 
-    updatePageContent(html, routeName) {
+    updatePageContent(html) {
         const parser = new DOMParser();
         const newDoc = parser.parseFromString(html, 'text/html');
 
@@ -260,23 +249,25 @@ class NavigationManager {
 
 
     reinitializeDynamicContent() {
-        this.setupNavigationEvents();
-
         window.dispatchEvent(new CustomEvent('pageContentUpdated', {
-            detail: { route: this.currentPage, previousRoute: this.previousPage }
+            detail: {route: this.currentPage, previousRoute: this.previousPage}
         }));
     }
 
-    handlePopState(event) {
-        if (event.state && event.state.route) {
-            this.previousPage = this.currentPage;
-            this.currentPage = event.state.route;
-            this.setupActiveState();
-            this.onRouteChange(this.currentPage, event.state.data || {});
-        } else {
+    async handlePopState(event) {
+        const currentUrl = window.location.pathname + window.location.search;
+        let routeName = event.state?.route;
+
+        if (!routeName) {
             this.detectCurrentPage();
-            this.setupActiveState();
-            this.onRouteChange(this.currentPage, {});
+            routeName = this.currentPage;
+        }
+
+        // Refetch/render DOM content on back/forward
+        if (this.shouldUseClientSideNavigation(routeName)) {
+            await this.clientSideNavigation(currentUrl, routeName, event.state?.data || {}, false);
+        } else {
+            this.serverSideNavigate(currentUrl);
         }
     }
 
@@ -284,26 +275,19 @@ class NavigationManager {
         console.log(`Navigated to: ${routeName}`, data);
 
         window.dispatchEvent(new CustomEvent('routeChanged', {
-            detail: { route: routeName, data: data, previousRoute: this.previousPage, isAdminRoute: routeName.startsWith('admin') }
+            detail: {
+                route: routeName,
+                data: data,
+                previousRoute: this.previousPage,
+                isAdminRoute: routeName.startsWith('admin')
+            }
         }));
 
         this.previousPage = routeName;
     }
 
-    redirectTo(routeName, data = {}) {
-        return this.navigateTo(routeName, data);
-    }
-
-    reload() {
-        window.location.reload();
-    }
-
-    goBack() {
-        window.history.back();
-    }
-
-    goForward() {
-        window.history.forward();
+    async redirectTo(routeName, data = {}) {
+        return await this.navigateTo(routeName, data);
     }
 
     getCurrentRoute() {
@@ -317,13 +301,7 @@ class NavigationManager {
     }
 
     getUrlParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const params = {};
-
-        for (const [key, value] of urlParams) {
-            params[key] = value;
-        }
-        return params;
+        return Object.fromEntries(new URLSearchParams(window.location.search));
     }
 }
 

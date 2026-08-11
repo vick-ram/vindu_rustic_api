@@ -46,7 +46,8 @@ data class Page<T>(
 }
 
 object NamedParamSql {
-    private val PARAM_REGEX = Regex(":(\\w+)(?!:)")
+//    private val PARAM_REGEX = Regex(":(\\w+)(?!:)")
+private val PARAM_REGEX = Regex("(?<!:):(\\w+)(?!:)")
 
     data class Converted(val sql: String, val order: List<String>)
 
@@ -55,7 +56,7 @@ object NamedParamSql {
         val rewritten = PARAM_REGEX.replace(sql) { m ->
             val name = m.groupValues[1]
             order += name
-            "$$${order.size}" // Explicit sequential indexing: $1, $2, $3...
+            "\$${order.size}" // Explicit sequential indexing: $1, $2, $3...
         }
         return Converted(rewritten, order)
     }
@@ -67,13 +68,16 @@ data class TypedNull<T : Any>(val type: KClass<T>)
 inline fun <reified T : Any> nullValue() = TypedNull(T::class)
 
 fun Statement.bindNamedParams(order: List<String>, params: Map<String, Any?>): Statement {
+    if (order.isEmpty()) return this
+
     order.forEachIndexed { i, name ->
         // Handle null tracking safely via containsKey or fallback
         if (!params.containsKey(name)) error("Missing binding for :$name")
+        val placeholder = "$${i + 1}"
         when (val value = params[name]) {
-            is TypedNull<*> -> this.bindNull(i, value.type.java)
-            null -> this.bindNull(i, String::class.java)
-            else -> this.bind(i, value)
+            is TypedNull<*> -> this.bindNull(placeholder, value.type.java)
+            null -> this.bindNull(placeholder, String::class.java)
+            else -> this.bind(placeholder, value)
         }
     }
     return this

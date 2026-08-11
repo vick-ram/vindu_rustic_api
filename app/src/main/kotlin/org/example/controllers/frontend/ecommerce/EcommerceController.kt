@@ -1,4 +1,4 @@
-package org.example.controllers.frontend
+package org.example.controllers.frontend.ecommerce
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -7,11 +7,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import org.example.di.Component
 import org.example.di.Inject
 import org.example.plugins.AuthSession
+import org.example.routes.requireAuth
 import org.example.services.CartItemService
 import org.example.services.CategoryService
 import org.example.services.ProductService
@@ -28,7 +30,7 @@ class EcommerceController @Inject constructor(
     private val cartItemService: CartItemService
 ) {
     fun Route.ecommerceRoutes() {
-        route("/ecommerce") {
+        route("/") {
             get {
                 val user = call.sessions.get<AuthSession>()?.let { userService.getUser(it.userId) }
                 val featuredProducts = productService.getFeaturedProducts()
@@ -39,7 +41,7 @@ class EcommerceController @Inject constructor(
                     mapData = mutableMapOf(
                         "currentPage" to "home",
                         "isLoggedIn" to (user != null),
-                        "user" to user!!,
+//                        "user" to user!!,
                         "featuredProducts" to featuredProducts,
                         "latestProducts" to latestProducts,
                         "categories" to categoryService.getActiveCategories()

@@ -1,33 +1,39 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<body>
-<div th:fragment="header" class="appbar">
-    <div class="appbar-container">
-        <a href="#" class="logo">
-            <i class="ti ti-basket"></i>
-            <span>VinduRustic</span>
-        </a>
-        <ul class="nav-links">
-            <li><a href="#" data-page="home">Home</a></li>
-            <li><a href="#" data-page="furniture">Furniture</a></li>
-            <li><a href="#" data-page="lighting">Lighting</a></li>
-            <li><a href="#" data-page="decor">Decor</a></li>
-            <li><a href="#" data-page="kitchen-bath">Kitchen & Bath</a></li>
-            <li><a href="#" data-page="sale">Sale</a></li>
-        </ul>
-
-        <div class="nav-icons">
-            <i data-feather="search"></i>
-            <i data-feather="user"></i>
-            <div class="cart-icon">
-                <i data-feather="shopping-cart"></i>
-                <span class="cart-count">3</span>
-            </div>
-            <button class="mobile-menu-btn">
-                <i data-feather="menu"></i>
-            </button>
+<div th:fragment="announcement">
+    <div class="text-center text-xs py-3 tracking-wide" style="background: var(--color-text); color: var(--color-background);)">
+        <div class="max-w-6xl mx-auto px-8">
+            <span>FREE DELIVERY WITHIN NAIROBI ON ORDERS OVER KES 50,000</span>
+            <span class="mx-2 opacity-50">&middot;</span>
+            <span>CUSTOM BUILDS TAKE 3–5 WEEKS</span>
         </div>
     </div>
 </div>
-</body>
-</html>
+
+<header th:fragment="header" class="sticky top-0 bg-background border-b border-border z-20 backdrop-blur">
+    <nav class="flex items-center justify-between pt-3 mx-auto" style="padding: 18px 32px; max-width: 1140px;">
+        <a href="/" class="brand display">Vindu Rustic</a>
+
+        <div class="hidden md:flex gap-6 text-sm">
+            <a href="#shop" class="no-underline text-muted border-b border-transparent pb-0.5 transition-colors hover:text-text hover:border-primary">Dining</a>
+            <a href="#living" class="no-underline text-muted border-b border-transparent pb-0.5 transition-colors hover:text-text hover:border-primary">Living</a>
+            <a href="#bedroom" class="no-underline text-muted border-b border-transparent pb-0.5 transition-colors hover:text-text hover:border-primary">Bedroom</a>
+            <a href="#outdoor" class="no-underline text-muted border-b border-transparent pb-0.5 transition-colors hover:text-text hover:border-primary">Outdoor</a>
+            <a href="#custom" class="no-underline text-muted border-b border-transparent pb-0.5 transition-colors hover:text-text hover:border-primary">Custom Orders</a>
+        </div>
+
+        <div class="flex gap-3 items-center font-mono tracking-wide">
+            <button class="p-1.5 text-muted flex items-center relative transition-colors hover:text-text cursor-pointer bg-transparent border-0" aria-label="Search">
+                <i data-feather="search" class="w-4.5 h-4.5"></i>
+            </button>
+            <button class="p-1.5 text-muted flex items-center relative transition-colors hover:text-text cursor-pointer bg-transparent border-0" aria-label="Account">
+                <i data-feather="user" class="w-4.5 h-4.5"></i>
+            </button>
+            <button class="p-1.5 text-muted flex items-center relative transition-colors hover:text-text cursor-pointer bg-transparent border-0" aria-label="Cart">
+                <i data-feather="shopping-cart" class="w-4.5 h-4.5"></i>
+                <span class="absolute top-0 right-0 bg-primary text-white size-4 flex items-center justify-center rounded-full" style="font-size: 10px;">0</span>
+            </button>
+            <button id="themeToggle" class="p-1.5 text-muted flex items-center relative transition-colors hover:text-text cursor-pointer bg-transparent border-0" aria-label="Toggle theme">
+                <i data-feather="sun" class="w-4.5 h-4.5"></i>
+            </button>
+        </div>
+    </nav>
+</header>

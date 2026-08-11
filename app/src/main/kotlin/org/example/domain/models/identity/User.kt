@@ -13,7 +13,6 @@ import org.example.domain.validations.Phone
 import org.example.utils.Ulid
 import java.time.OffsetDateTime
 
-
 data class TokenResponse(
     val type: String,
     val accessToken: String,

@@ -1,6 +1,6 @@
 package org.example.plugins
 
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.json.Json
@@ -10,7 +10,6 @@ import org.example.config.ApplicationPlugin
 import org.example.utils.AnySerializer
 import org.example.utils.BigDecimalSerializer
 import org.example.utils.InetAddressSerializer
-import org.example.utils.MapStringAnySerializer
 import org.example.utils.OffsetDateTimeSerializer
 
 object SerializationModule : ApplicationPlugin {
@@ -23,7 +22,6 @@ object SerializationModule : ApplicationPlugin {
                 serializersModule = SerializersModule {
                     contextual(OffsetDateTimeSerializer)
                     contextual(InetAddressSerializer)
-                    contextual(MapStringAnySerializer)
                     contextual(Any::class, AnySerializer)
                     contextual(BigDecimalSerializer)
                 }

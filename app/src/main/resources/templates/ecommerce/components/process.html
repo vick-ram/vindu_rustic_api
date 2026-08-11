@@ -1,0 +1,35 @@
+<section th:fragment="process" class="py-20 border-b border-border">
+    <style>
+        .step-image {
+            aspect-ratio: 5/4;
+            background: linear-gradient(150deg, #9C6B3B, #6B4526);
+        }
+    </style>
+    <div class="max-w-6xl mx-auto px-8">
+        <span class="font-mono text-xs tracking-wide-plus uppercase text-primary">From Log to Living Room</span>
+        <h2 class="font-serif text-3xl mt-2 text-body">How Every Piece Is Made</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+            <div class="flex flex-col">
+                <span class="font-mono text-xs text-primary mb-3">01 — MILLED</span>
+                <div class="step-image rounded-lg mb-4"></div>
+                <h3 class="font-serif text-xl mb-1.5 text-text">Sourced and Sawn</h3>
+                <p class="text-sm text-text-secondary leading-relaxed">We buy whole logs from certified Kenyan foresters and mill them ourselves.</p>
+            </div>
+
+            <div class="flex flex-col">
+                <span class="font-mono text-xs text-primary mb-3">02 — JOINED</span>
+                <div class="step-image rounded-lg mb-4"></div>
+                <h3 class="font-serif text-xl mb-1.5 text-text">Joined by Hand</h3>
+                <p class="text-sm text-text-secondary leading-relaxed">Mortise, tenon, and dovetail — no screws holding the structure together.</p>
+            </div>
+
+            <div class="flex flex-col">
+                <span class="font-mono text-xs text-primary mb-3">03 — FINISHED</span>
+                <div class="step-image rounded-lg mb-4"></div>
+                <h3 class="font-serif text-xl mb-1.5 text-text">Oiled and Cured</h3>
+                <p class="text-sm text-text-secondary leading-relaxed">Hardwax oil finish that deepens with age instead of wearing thin.</p>
+            </div>
+        </div>
+    </div>
+</section>

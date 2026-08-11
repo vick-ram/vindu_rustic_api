@@ -2,7 +2,7 @@ package org.example.routes
 
 import io.ktor.server.routing.*
 import org.example.controllers.frontend.ecommerce.AuthController
-import org.example.controllers.frontend.EcommerceController
+import org.example.controllers.frontend.ecommerce.EcommerceController
 import org.example.controllers.frontend.RootController
 import org.example.controllers.frontend.admin.AdminCustomerOperationsController
 import org.example.controllers.frontend.admin.AdminFulfillmentController

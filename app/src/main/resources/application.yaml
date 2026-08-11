@@ -48,16 +48,8 @@ database:
   user: $DB_USER
   password: $DB_PASSWORD
   poolSize: 10
-  connectionTimeout: 30000
-  idleTimeout: 600000
-  maxLifetime: 1800000
-  minimumIdle: 5
-  leakDetectionThreshold: 60000
-  cachePrepStmts: true
-  prepStmtCacheSize: 250
-  prepStmtCacheSqlLimit: 2048
-  useServerPrepStmts: false
   runMigrations: false
+
 storage:
   dir: /uploads
 
@@ -68,6 +60,7 @@ pesapal:
   ipnUrl: $PESAPAL_IPN_URL
   callbackUrl: $PESAPAL_CALLBACK_URL
   cancellationUrl: $PESAPAL_CANCELLATION_URL
+
 oauth:
   google:
     clientId: $GOOGLE_CLIENT_ID
@@ -78,6 +71,7 @@ oauth:
   apple:
     clientId: $APPLE_CLIENT_ID
     clientSecret: $APPLE_CLIENT_SECRET
+
 email:
   fromEmail: $SMTP_FROM_EMAIL
   host: $SMTP_HOST
@@ -89,6 +83,7 @@ email:
     connection: 5000
     read: 5000
     write: 5000
+
 fcm:
   credentialPath: $FCM_CREDENTIAL_PATH
   projectId: $FCM_PROJECT_ID

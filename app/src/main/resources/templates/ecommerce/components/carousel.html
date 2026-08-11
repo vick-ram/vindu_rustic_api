@@ -1,9 +1,277 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<body>
-    <div th:fragment="carousel(slides)">
-        <div class="carousel">
+<div th:fragment="carousel">
+    <section class="hero-carousel" aria-label="Featured products carousel">
+        <!-- Slide 1 -->
+        <div class="hero-slide active" data-slide="0">
+            <div class="slide-content">
+                <span class="eyebrow">Solid Wood, Made to Order</span>
+                <h1 class="display slide-title">Furniture cut from real timber.</h1>
+                <p class="slide-description">Every piece is sawn, joined, and finished by hand in our Nairobi workshop — not stamped from a catalog.</p>
+                <a href="#shop" class="btn-primary-lg">Browse the Shop</a>
+            </div>
+            <div class="slide-visual slide-1">
+                <div class="grain-overlay"></div>
+            </div>
         </div>
-    </div>
-</body>
-</html>
+
+        <!-- Slide 2 -->
+        <div class="hero-slide" data-slide="1">
+            <div class="slide-content">
+                <span class="eyebrow">Built Around You</span>
+                <h1 class="display slide-title">Tell us the wood, the size, the story.</h1>
+                <p class="slide-description">Can't find the right fit off the shelf? Every custom build is quoted, tracked, and photographed as it's made.</p>
+                <a href="#custom" class="btn-primary-lg">Start a Custom Order</a>
+            </div>
+            <div class="slide-visual slide-2">
+                <div class="grain-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="hero-slide" data-slide="2">
+            <div class="slide-content">
+                <span class="eyebrow">Just Landed</span>
+                <h1 class="display slide-title">The reclaimed pine collection.</h1>
+                <p class="slide-description">Salvaged timber from old Kenyan barns, re-milled into benches, shelving, and side tables.</p>
+                <a href="#shop" class="btn-primary-lg">Shop New Arrivals</a>
+            </div>
+            <div class="slide-visual slide-3">
+                <div class="grain-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="hero-arrow prev" aria-label="Previous slide">
+            <i data-feather="chevron-left"></i>
+        </button>
+        <button class="hero-arrow next" aria-label="Next slide">
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <!-- Dots -->
+        <div class="hero-dots">
+            <button class="hero-dot active" data-index="0" aria-label="Slide 1"></button>
+            <button class="hero-dot" data-index="1" aria-label="Slide 2"></button>
+            <button class="hero-dot" data-index="2" aria-label="Slide 3"></button>
+        </div>
+    </section>
+
+    <style>
+        .hero-carousel {
+            position: relative;
+            overflow: hidden;
+            height: 560px;
+            background: var(--color-background);
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .slide-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 60px;
+            background: var(--color-background);
+        }
+
+        .slide-title {
+            font-size: 48px;
+            line-height: 1.08;
+            margin: 14px 0 18px;
+            max-width: 440px;
+            color: var(--color-text);
+        }
+
+        .slide-description {
+            max-width: 400px;
+            color: var(--color-text-secondary);
+            font-size: 16px;
+            margin-bottom: 26px;
+            line-height: 1.6;
+        }
+
+        .slide-visual {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-1 { background: linear-gradient(155deg, #A9773E, #6B4526); }
+        .slide-2 { background: linear-gradient(155deg, #8B5E34, #3B2A1C); }
+        .slide-3 { background: linear-gradient(155deg, #C9A46A, #7A5230); }
+
+        .grain-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                    94deg,
+                    rgba(0,0,0,0.07) 0px,
+                    rgba(0,0,0,0.07) 2px,
+                    transparent 2px,
+                    transparent 16px
+            );
+        }
+
+        .btn-primary-lg {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--color-primary);
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            width: fit-content;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-fast);
+        }
+
+        .btn-primary-lg:hover {
+            background: var(--color-accent);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--color-container);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-arrow:hover {
+            background: var(--color-primary);
+            color: #FFFFFF;
+            border-color: var(--color-primary);
+        }
+
+        .hero-arrow i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .hero-arrow.prev { left: 18px; }
+        .hero-arrow.next { right: 18px; }
+
+        .hero-dots {
+            position: absolute;
+            bottom: 28px;
+            left: 60px;
+            display: flex;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .hero-dot {
+            width: 26px;
+            height: 3px;
+            background: rgba(43, 29, 20, 0.25);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all var(--transition-fast);
+        }
+
+        [data-theme="dark"] .hero-dot {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .hero-dot.active {
+            background: var(--color-primary);
+        }
+
+        @media (max-width: 768px) {
+            .hero-carousel {
+                height: auto;
+                min-height: 500px;
+            }
+
+            .hero-slide {
+                grid-template-columns: 1fr;
+            }
+
+            .slide-content {
+                padding: 40px 24px;
+            }
+
+            .slide-title {
+                font-size: 32px;
+            }
+
+            .slide-visual {
+                display: none;
+            }
+
+            .hero-dots {
+                left: 24px;
+                bottom: 20px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.hero-dot');
+            const prevBtn = document.querySelector('.hero-arrow.prev');
+            const nextBtn = document.querySelector('.hero-arrow.next');
+            let currentSlide = 0;
+            let autoplayTimer;
+
+            function renderSlide() {
+                slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+                dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+            }
+
+            function goToSlide(index) {
+                currentSlide = index;
+                renderSlide();
+                resetAutoplay();
+            }
+
+            function moveSlide(direction) {
+                currentSlide = (currentSlide + direction + slides.length) % slides.length;
+                renderSlide();
+                resetAutoplay();
+            }
+
+            function resetAutoplay() {
+                clearInterval(autoplayTimer);
+                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    autoplayTimer = setInterval(() => moveSlide(1), 6000);
+                }
+            }
+
+            prevBtn.addEventListener('click', () => moveSlide(-1));
+            nextBtn.addEventListener('click', () => moveSlide(1));
+            dots.forEach(dot => {
+                dot.addEventListener('click', () => goToSlide(parseInt(dot.dataset.index)));
+            });
+
+            resetAutoplay();
+        });
+    </script>
+</div>

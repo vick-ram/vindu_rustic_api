@@ -1,0 +1,1 @@
+ALTER TABLE user_roles ADD COLUMN created_at TIMESTAMPTZ DEFAULT NOW();

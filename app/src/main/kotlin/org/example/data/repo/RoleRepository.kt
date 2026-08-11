@@ -12,6 +12,7 @@ import org.example.data.mappers.RoleMapper
 import org.example.data.mappers.UserRoleMapper
 import org.example.di.Component
 import org.example.di.Inject
+import org.example.di.Injectable
 import org.example.domain.models.identity.Role
 import org.example.domain.models.identity.UserRole
 
@@ -112,7 +113,8 @@ class RoleRepository @Inject constructor(
     }
 }
 
-class UserRoleRepository(
+@Injectable
+class UserRoleRepository @Inject constructor(
     connectionFactory: ConnectionFactory,
     userRoleMapper: UserRoleMapper
 ) : CrudRepository<UserRole, String>(

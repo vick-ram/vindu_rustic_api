@@ -9,6 +9,7 @@ import org.example.di.Inject
 import org.example.di.Injectable
 import org.example.domain.models.identity.TokenResponse
 import org.example.domain.models.identity.User
+import org.example.exceptions.NotFoundException
 import java.net.InetAddress
 
 @Component
@@ -37,8 +38,8 @@ class UserService @Inject constructor(private val userCache: UserCache, private 
         return userCache.readAll(offset, limit, queryParams)
     }
 
-    suspend fun getUser(id: String): User? {
-        return userCache.read(id)
+    suspend fun getUser(id: String): User {
+        return userCache.read(id) ?: throw NotFoundException("User with id $id not found")
     }
 
     suspend fun getUserByEmail(email: String): User? {

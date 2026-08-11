@@ -24,7 +24,7 @@ class ExceptionMapper {
         is AlreadyExistsException, is ConflictException, is DuplicateTransactionException ->
             Triple(HttpStatusCode.Conflict, exception.message ?: "Conflict", null)
 
-        is BadRequestException, is IllegalArgumentException ->
+        is BadRequestException, is IllegalArgumentException, is IndexOutOfBoundsException ->
             Triple(HttpStatusCode.BadRequest, exception.message ?: "Bad Request", null)
 
         is ValidationException -> {

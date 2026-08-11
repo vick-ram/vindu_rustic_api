@@ -9,25 +9,16 @@ import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.hsts.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
-import io.lettuce.core.ExperimentalLettuceCoroutinesApi
-import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.Serializable
 import org.example.config.AppConfig
 import org.example.config.ApplicationPlugin
 import org.example.config.security.JwtConfig
-import org.example.utils.RedisSessionStorage
 import org.koin.ktor.ext.inject
 
 object SecurityModule : ApplicationPlugin {
-    @OptIn(ExperimentalLettuceCoroutinesApi::class)
     override fun install(application: Application) {
         val jwtConfig by application.inject<JwtConfig>()
-        val redisCommands by application.inject<RedisCoroutinesCommands<String, String>>()
-        val sessionStorage = RedisSessionStorage(redisCommands)
         val config = AppConfig.load(application)
-        val redirects = mutableMapOf<String, String>()
-        val secretSignKey = config.security.secretSignKey.hexToByteArray()
-        val secretEncryptionKey = config.security.secretEncryptionKey.hexToByteArray()
 
         application.install(XForwardedHeaders)
 
