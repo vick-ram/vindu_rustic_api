@@ -203,31 +203,65 @@
             background: var(--color-primary);
         }
 
+        /* --- Mobile Overlap Adjustments --- */
         @media (max-width: 768px) {
             .hero-carousel {
-                height: auto;
-                min-height: 500px;
+                height: 520px;
             }
 
             .hero-slide {
-                grid-template-columns: 1fr;
+                display: block;
             }
 
+            /* Make visual fill the slide area as a background */
+            .slide-visual {
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+            }
+
+            /* Gradient scrim for contrast behind mobile text */
+            .slide-visual::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.65) 100%);
+            }
+
+            /* Place text content above the background layer */
             .slide-content {
-                padding: 40px 24px;
+                position: relative;
+                z-index: 2;
+                height: 100%;
+                background: transparent;
+                padding: 40px 24px 60px;
+            }
+
+            /* Text contrast adjustments for dark overlay */
+            .eyebrow {
+                color: rgba(255, 255, 255, 0.85);
             }
 
             .slide-title {
                 font-size: 32px;
+                color: #FFFFFF;
             }
 
-            .slide-visual {
-                display: none;
+            .slide-description {
+                color: rgba(255, 255, 255, 0.9);
             }
 
             .hero-dots {
                 left: 24px;
                 bottom: 20px;
+            }
+
+            .hero-dot {
+                background: rgba(255, 255, 255, 0.35);
+            }
+
+            .hero-dot.active {
+                background: #FFFFFF;
             }
         }
     </style>
