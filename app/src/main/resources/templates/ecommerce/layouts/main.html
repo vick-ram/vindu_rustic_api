@@ -12,27 +12,38 @@
             const theme = localStorage.getItem('theme') ||
                 (window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', theme);
-            document.documentElement.classList.add('preload');
-
-            window.addEventListener('DOMContentLoaded', () => {
-                document.documentElement.classList.remove('preload');
-            });
         })();
     </script>
 
-    <link rel="stylesheet" th:href="@{/webjars/tabler-icons/iconfont/tabler-icons.min.css}" />
-    <link rel="stylesheet" th:href="@{/resources/styles/global/main.css}">
-</head>
-<body>
-    <div layout:fragment="content"></div>
-
-    <script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
+    <style>
+        /* Prevent scrollbars while loader is active */
+        html.is-loading, html.is-loading body {
+            overflow: hidden !important;
+        }
+    </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            feather.replace();
-        });
+        document.documentElement.classList.add('is-loading');
     </script>
-    <script th:src="@{/resources/js/global/darkmode.js}"></script>
+
+    <link rel="stylesheet" th:href="@{/webjars/tabler-icons/iconfont/tabler-icons.min.css}"/>
+    <link rel="stylesheet" th:href="@{/resources/styles/global/main.css}">
+
+    <script th:src="@{/resources/js/global/tailwind.js}"></script>
+</head>
+<body>
+<div th:replace="~{ecommerce/components/page-loader :: loader}"></div>
+<div layout:fragment="content"></div>
+
+<script th:src="@{/webjars/feather-icons/dist/feather.min.js}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        feather.replace();
+    });
+</script>
+<script th:src="@{/resources/js/global/loader.js}"></script>
+<script th:src="@{/resources/js/global/darkmode.js}"></script>
+<script th:src="@{/resources/js/global/navigation.js}"></script>
 </body>
 </html>

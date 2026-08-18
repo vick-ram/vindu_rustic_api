@@ -1,53 +1,45 @@
-@import 'spacing.css';
-@import 'flex-grid.css';
-@import 'typography.css';
-@import 'sizing.css';
-@import 'colors.css';
-@import 'borders.css';
-@import 'layout.css';
-@import 'effects.css';
-@import 'animations.css';
-@import 'responsive.css';
-
 :root {
     /* ========== LIGHT THEME ========== */
-    --color-light-primary: #8B4513;
-    --color-light-secondary: #D2B48C;
-    --color-light-accent: #CD853F;
-    --color-light-background: #FAF0E6;
-    --color-light-surface: #FFF8DC;
-    --color-light-text: #5D4037;
-    --color-light-text-secondary: #8D6E63;
-    --color-light-text-muted: #A1887F;
-    --color-light-border: #A1887F;
-    --color-light-success: #689F38;
-    --color-light-warning: #FFA000;
-    --color-light-error: #D32F2F;
-    --color-light-info: #1976D2;
-    --color-light-blue-primary: rgb(59, 130, 246);
+    --color-light-primary: #6F370F;          /* Slightly deeper brown for better button text contrast */
+    --color-light-secondary: #C49A6C;        /* Richer tan */
+    --color-light-accent: #B85B14;           /* Darker rust/amber for accessible CTAs */
+    --color-light-background: #F9F6F0;       /* Neutral, clean warm-tinted ivory */
+    --color-light-surface: #FFFFFF;          /* Pure white surfaces let product images pop */
+    --color-light-surface-alt: #F0EAE1;      /* Subtle muted warm card background */
+    --color-light-text: #3D2B1F;             /* Deep rich espresso for optimal legibility */
+    --color-light-text-secondary: #6D5446;   /* Accessible secondary text */
+    --color-light-text-muted: #7A6254;       /* WCAG AA compliant muted text */
+    --color-light-border: #D7C9B8;           /* Softer, cleaner border tone */
+
+    --color-light-success: #557A32;          /* Forest green */
+    --color-light-warning: #C67D00;          /* Warm amber */
+    --color-light-error: #C62828;            /* Deep red */
+    --color-light-info: #4A6B6C;             /* Muted slate blue (fits rustic theme) */
     --color-light-container: #FFFFFF;
-    --color-light-hover: rgba(139, 69, 19, 0.05);
-    --color-light-overlay: rgba(0, 0, 0, 0.5);
+    --color-light-hover: rgba(111, 55, 15, 0.06);
+    --color-light-overlay: rgba(30, 20, 15, 0.6);
+    --color-light-blue-primary: rgb(59, 130, 246);
 
     /* ========== DARK THEME ========== */
-    --color-dark-primary: #B5651D;
-    --color-dark-secondary: #5D4037;
-    --color-dark-accent: #8D6E63;
-    --color-dark-background: #1E1E1E;
-    --color-dark-surface: #2D2D2D;
-    --color-dark-surface-alt: #353535;
-    --color-dark-text: #E0D6D0;
-    --color-dark-text-secondary: #BCAAA4;
-    --color-dark-text-muted: #8D6E63;
-    --color-dark-border: #4E342E;
-    --color-dark-success: #7CB342;
-    --color-dark-warning: #FFB300;
-    --color-dark-error: #F44336;
-    --color-dark-info: #42A5F5;
+    --color-dark-primary: #D98236;           /* Warm terracotta/amber for dark mode CTAs */
+    --color-dark-secondary: #8C6247;
+    --color-dark-accent: #E09A5D;
+    --color-dark-background: #17120E;        /* Deep char-wood grey-brown instead of flat dark grey */
+    --color-dark-surface: #241D18;           /* Slightly lighter dark wood surface */
+    --color-dark-surface-alt: #302620;
+    --color-dark-text: #F3ECE7;              /* Crisp off-white */
+    --color-dark-text-secondary: #CBBBB0;
+    --color-dark-text-muted: #A39083;
+    --color-dark-border: #44352C;
+
+    --color-dark-success: #82B35B;
+    --color-dark-warning: #FFA000;
+    --color-dark-error: #EF5350;
+    --color-dark-info: #6B9092;
+    --color-dark-container: #241D18;
+    --color-dark-hover: rgba(217, 130, 54, 0.12);
+    --color-dark-overlay: rgba(0, 0, 0, 0.75);
     --color-dark-blue-primary: rgb(29, 78, 216);
-    --color-dark-container: #2D3748;
-    --color-dark-hover: rgba(181, 101, 29, 0.1);
-    --color-dark-overlay: rgba(0, 0, 0, 0.7);
 
     /* ========== SHADOWS ========== */
     --shadow-xs: 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -417,32 +409,6 @@ blockquote {
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
 }
 
-/* Code */
-code {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-    padding: 0.2em 0.4em;
-    background-color: var(--color-surface);
-    border-radius: var(--border-radius-sm);
-    color: var(--color-primary);
-}
-
-pre {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-4);
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    overflow-x: auto;
-    margin: var(--spacing-4) 0;
-}
-
-pre code {
-    padding: 0;
-    background: none;
-    color: inherit;
-}
 
 /* Selection */
 ::selection {
@@ -508,6 +474,7 @@ pre code {
 .bg-surface { background-color: var(--color-surface); }
 .bg-container { background-color: var(--color-container); }
 .bg-hover { background-color: var(--color-hover); }
+.bg-border { background-color: var(--color-border); }
 
 /* Border Colors */
 .border-primary { border-color: var(--color-primary); }

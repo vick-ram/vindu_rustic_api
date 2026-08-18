@@ -1,85 +1,94 @@
-// static/js/loader.js
 class PageLoader {
     constructor() {
-        this.loader = null;
-        this.progressBar = null;
+        this.loader = document.getElementById('page-loader');
+        this.progressBar = document.getElementById('page-progress-bar');
+        this.progressBarInner = document.getElementById('page-progress-inner');
+        this.titleEl = document.getElementById('loader-title-text');
+        this.statusDot = document.querySelector('.loader-status-dot');
+
         this.isLoading = false;
         this.progress = 0;
         this.progressInterval = null;
+        this.loadingMessages = [
+            'Loading',
+            'Preparing your experience',
+            'Almost there',
+            'Finishing touches'
+        ];
+        this.messageIndex = 0;
+        this.messageInterval = null;
+
         this.init();
     }
 
     init() {
-        this.createLoader();
-        this.setupEventListeners();
-    }
+        if (!this.loader) return;
 
-    createLoader() {
-        // Create main loader
-        this.loader = document.createElement('div');
-        this.loader.className = 'app-loader';
-        this.loader.innerHTML = `
-            <div class="loader-content">
-                <div class="loader-spinner"></div>
-                <div class="loader-text">Loading...</div>
-                <div class="loader-subtext">Please wait</div>
-            </div>
-        `;
+        this.show();
 
-        // Create progress bar loader
-        this.progressBar = document.createElement('div');
-        this.progressBar.className = 'progress-loader';
-        this.progressBar.innerHTML = '<div class="progress-bar"></div>';
-
-        document.body.appendChild(this.progressBar);
-        document.body.appendChild(this.loader);
-    }
-
-    setupEventListeners() {
-        // Listen for navigation events
-        window.addEventListener('routeChanged', (event) => {
-            this.showWithTheme(event.detail.isAdminRoute ? 'admin' : 'ecommerce');
-        });
-
-        // Listen for page content updates
-        window.addEventListener('pageContentUpdated', () => {
-            this.simulateProgress();
-        });
-
-        // Listen for beforeunload to show loader on page refresh
-        window.addEventListener('beforeunload', () => {
-            this.show();
-        });
-
-        // Listen for when all resources are loaded
-        window.addEventListener('load', () => {
+        if (document.readyState === 'complete') {
             this.hide();
-        });
+        } else {
+            window.addEventListener('load', () => {
+                setTimeout(() => this.hide(), 600);
+            });
+        }
+
+        document.addEventListener('page:loading', () => this.show('loading'));
+        document.addEventListener('page:loaded', () => this.hide());
     }
 
-    show(theme = 'default') {
-        if (this.isLoading) return;
+    show(text = 'Loading') {
+        if (!this.loader) return;
 
         this.isLoading = true;
-        this.loader.className = `app-loader ${theme}-loader`;
-        this.progressBar.className = `progress-loader ${theme}-progress`;
-        this.loader.classList.remove('hidden');
-        this.progressBar.style.display = 'block';
+        this.loader.style.display = 'flex';
+
+        void this.loader.offsetHeight;
+
+        document.documentElement.classList.add('is-loading');
+
+        if (this.titleEl && text) {
+            this.titleEl.textContent = text;
+        } else {
+            this.startMessageRotation();
+        }
+
+        requestAnimationFrame(() => {
+            this.loader.style.opacity = '1';
+            this.loader.style.visibility = 'visible';
+        });
+
+        if (this.progressBar) {
+            this.progressBar.style.opacity = '1';
+        }
+
+        this.activateStatusDot();
 
         this.simulateProgress();
     }
 
     hide() {
+        if (!this.loader || !this.isLoading) return;
+
         this.isLoading = false;
-
-        // Complete progress
         this.updateProgress(100);
+        this.stopMessageRotation();
 
-        // Hide with delay for smooth transition
+        this.completeStatusDot();
+
+        this.loader.style.opacity = '0';
+        this.loader.style.visibility = 'hidden';
+
+        if (this.progressBar) {
+            this.progressBar.style.opacity = '0';
+        }
+
         setTimeout(() => {
-            this.loader.classList.add('hidden');
-            this.progressBar.style.display = 'none';
-            this.progress = 0;
+            document.documentElement.classList.remove('is-loading');
+            this.loader.style.display = 'none';
+            this.updateProgress(0);
+            this.resetStatusDot();
 
             if (this.progressInterval) {
                 clearInterval(this.progressInterval);
@@ -88,138 +97,120 @@ class PageLoader {
         }, 500);
     }
 
-    showWithTheme(isAdmin = false) {
-        const theme = isAdmin ? 'admin' : 'ecommerce';
-        this.show(theme);
-    }
-
     simulateProgress() {
-        this.progress = 0;
         this.updateProgress(0);
-
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-        }
+        if (this.progressInterval) clearInterval(this.progressInterval);
 
         this.progressInterval = setInterval(() => {
-            if (this.progress < 90) {
-                this.progress += Math.random() * 15;
-                this.updateProgress(this.progress);
+            if (this.progress < 75) {
+                this.updateProgress(this.progress + Math.random() * 20);
+            } else if (this.progress < 90) {
+                this.updateProgress(this.progress + Math.random() * 5);
+            } else if (this.progress < 97) {
+                this.updateProgress(this.progress +  0.5);
             }
         }, 200);
     }
 
     updateProgress(percent) {
         this.progress = Math.min(100, Math.max(0, percent));
-        const progressElement = this.progressBar.querySelector('.progress-bar');
-        if (progressElement) {
-            progressElement.style.width = `${this.progress}%`;
-        }
-    }
+        if (this.progressBarInner) {
+            this.progressBarInner.style.width = `${this.progress}%`;
 
-    setText(text, subtext = '') {
-        const textElement = this.loader.querySelector('.loader-text');
-        const subtextElement = this.loader.querySelector('.loader-subtext');
-
-        if (textElement) textElement.textContent = text;
-        if (subtextElement) subtextElement.textContent = subtext;
-    }
-
-    // Skeleton loading for specific content areas
-    showSkeletonLoading(container) {
-        if (!container) return;
-
-        container.classList.add('skeleton-loading');
-
-        // Create skeleton elements if they don't exist
-        if (!container.querySelector('.skeleton-card')) {
-            const skeletonHtml = `
-                <div class="skeleton-card">
-                    <div class="skeleton-line" style="height: 20px; margin-bottom: 1rem;"></div>
-                    <div class="skeleton-line short"></div>
-                    <div class="skeleton-line medium"></div>
-                    <div class="skeleton-line" style="width: 40%;"></div>
-                </div>
-            `;
-            container.innerHTML = skeletonHtml + container.innerHTML;
-        }
-    }
-
-    hideSkeletonLoading(container) {
-        if (!container) return;
-
-        container.classList.remove('skeleton-loading');
-        const skeletonCard = container.querySelector('.skeleton-card');
-        if (skeletonCard) {
-            skeletonCard.remove();
-        }
-    }
-
-    // For AJAX operations
-    startLoading(theme = 'default') {
-        this.show(theme);
-    }
-
-    stopLoading() {
-        this.hide();
-    }
-
-    // For form submissions
-    bindToForms(selector = 'form') {
-        document.addEventListener('submit', (e) => {
-            const form = e.target.closest(selector);
-            if (form) {
-                this.showWithTheme(form.classList.contains('admin-form') ? 'admin' : 'ecommerce');
-                this.setText('Processing...', 'Please wait while we handle your request');
-            }
-        });
-    }
-
-    // For image loading
-    waitForImages(container = document) {
-        const images = container.querySelectorAll('img');
-        let loadedCount = 0;
-        const totalCount = images.length;
-
-        if (totalCount === 0) {
-            this.hide();
-            return;
-        }
-
-        images.forEach(img => {
-            if (img.complete) {
-                loadedCount++;
+            if (this.progress > 90) {
+                this.progressBarInner.style.boxShadow = '0 0 10px var(--color-primary)';
             } else {
-                img.addEventListener('load', () => {
-                    loadedCount++;
-                    this.updateProgress(10 + (loadedCount / totalCount) * 80);
-
-                    if (loadedCount === totalCount) {
-                        setTimeout(() => this.hide(), 300);
-                    }
-                });
-
-                img.addEventListener('error', () => {
-                    loadedCount++;
-                    if (loadedCount === totalCount) {
-                        setTimeout(() => this.hide(), 300);
-                    }
-                });
+                this.progressBarInner.style.boxShadow = 'none';
             }
-        });
-
-        // If all images are already loaded
-        if (loadedCount === totalCount) {
-            setTimeout(() => this.hide(), 300);
         }
+    }
+
+    startMessageRotation() {
+        this.messageIndex = 0;
+
+        if (this.titleEl) {
+            this.titleEl.textContent = this.loadingMessages[0];
+            this.titleEl.style.opacity = '1';
+            this.titleEl.style.transform = 'translateY(0)';
+        }
+
+        this.stopMessageRotation();
+
+        this.messageInterval = setInterval(() => {
+            this.messageIndex = (this.messageIndex + 1) % this.loadingMessages.length;
+
+            if (this.titleEl) {
+                this.titleEl.style.opacity = '0';
+                this.titleEl.style.transform = 'translateY(5px)';
+
+                setTimeout(() => {
+                    if (this.titleEl && this.isLoading) {
+                        this.titleEl.textContent = this.loadingMessages[this.messageIndex];
+                        // Fade in new message
+                        this.titleEl.style.opacity = '1';
+                        this.titleEl.style.transform = 'translateY(0)';
+                    }
+                }, 200);
+            }
+        }, 2000);
+    }
+
+    stopMessageRotation() {
+        if (this.messageInterval) {
+            clearInterval(this.messageInterval);
+            this.messageInterval = null;
+        }
+    }
+
+    activateStatusDot() {
+        if (!this.statusDot) return;
+
+        this.statusDot.style.animation = 'loader-status-blink 1.5s ease-in-out infinite';
+        this.statusDot.style.background = 'var(--color-primary, #D98236)';
+        this.statusDot.style.boxShadow = '0 0 8px var(--color-primary, #D98236)';
+    }
+
+    completeStatusDot() {
+        if (!this.statusDot) return;
+
+        // Flash green on completion
+        this.statusDot.style.animation = 'none';
+        this.statusDot.style.background = 'var(--color-success, #557A32)';
+        this.statusDot.style.boxShadow = '0 0 12px var(--color-success, #557A32)';
+
+        // Quick scale pulse
+        this.statusDot.style.transform = 'scale(1.5)';
+        setTimeout(() => {
+            if (this.statusDot) {
+                this.statusDot.style.transform = 'scale(1)';
+            }
+        }, 200);
+    }
+
+    resetStatusDot() {
+        if (!this.statusDot) return;
+
+        // Reset to default state
+        this.statusDot.style.animation = '';
+        this.statusDot.style.background = '';
+        this.statusDot.style.boxShadow = '';
+        this.statusDot.style.transform = '';
     }
 }
 
-// Initialize page loader
-if (typeof window !== 'undefined') {
+document.addEventListener('DOMContentLoaded', () => {
     window.pageLoader = new PageLoader();
+});
 
-    // Also add to App namespace for consistency
-    if (!window.App) window.App = {};
-    window.App.Loader = window.pageLoader;
-}
+const style = document.createElement('style');
+style.textContent = `
+    #loader-title-text {
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+    }
+    
+    .loader-status-dot {
+        transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    }
+`;
+document.head.appendChild(style);

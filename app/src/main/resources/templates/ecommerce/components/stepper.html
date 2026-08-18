@@ -1,17 +1,77 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
-<div th:fragment="stepper-nav(steps, currentStep)" class="stepper">
-    <div th:each="step, iter : ${steps}"
-         th:classappend="${iter.index < currentStep} ? 'completed' : ''"
-         th:classappend="${iter.index == currentStep} 'active' : ''"
-         class="step"
-         th:attr="data-step=${iter.index}">
-        <div class="step-circle">
-            <span th:if="${iter.index >= currentStep}" th:text="${iter.index + 1}">1</span>
+<div th:fragment="stepper(steps, currentStep, orientation)"
+     class="stepper w-full bg-transparent text-body transition-colors duration-300"
+     th:classappend="${orientation == 'vertical'} ? 'flex flex-col lg:flex-row gap-8' : 'flex flex-col gap-8'"
+>
+    <!-- STEPPER NAVIGATION -->
+    <nav aria-label="Progress" class="stepper-header w-full"
+        th:classappend="${orientation == 'vertical'} ? 'lg:w-1/3 lg:border-r lg:border-border lg:pr-8' : 'w-full'"
+    >
+        <ol class="list-none p-0 m-0 flex"
+            th:classappend="${orientation == 'vertical'}
+            ? 'flex-col gap-6'
+            : 'flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 relative'"
+        >
+            <li th:each="step, iterStat : ${steps}"
+                th:data-step="${iterStat.index}"
+                tabindex="0"
+                role="tab"
+                th:aria-selected="${iterStat.index == currentStep}"
+                th:aria-current="${iterStat.index == currentStep ? 'step' : null}"
+                class="step group flex-1 flex items-center cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] rounded-lg p-2 transition-all duration-200"
+                th:classappend="${iterStat.index == currentStep ? 'active' : (iterStat.index < currentStep ? 'completed' : '')}">
+
+                <div class="flex items-center w-full relative"
+                    th:classappend="${orientation == 'vertical'} ? 'flex-row gap-4' : 'flex-row md:flex-col lg:flex-row gap-4 text-left md:text-center lg:text-left'">
+
+                    <!-- STEP CIRCLE -->
+                    <div class="step-circle w-10 h-10 rounded-full  flex items-center justify-center font-semibold text-sm border-2 transition-all duration-300 z-10 shrink-0"
+                         th:classappend="${iterStat.index == currentStep}
+                        ? 'bg-primary border-primary text-primary ring-4 ring-primary/20'
+                        : (${iterStat.index < currentStep}
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-transparent border-border text-muted group-hover:border-primary/50')">
+
+                        <!-- Icon or Number -->
+                        <i th:if="${iterStat.index < currentStep}" class="ti ti-check text-lg font-bold"></i>
+                        <span th:if="${iterStat.index >= currentStep}" th:text="${iterStat.index + 1}">1</span>
+                    </div>
+
+                    <!-- STEP LABEL & SUBTITLE -->
+                    <div class="flex flex-col min-w-0">
+                        <span class="step-title text-sm font-medium uppercase tracking-wide transition-colors duration-200"
+                            th:classappend="${iterStat.index == currentStep}
+                                ? 'text-primary font-bold'
+                                : (${iterStat.index < currentStep}
+                                    ? 'text-body' : 'text-muted')"
+                            th:text="${step.title}">Step Title</span>
+                        <span th:if="${step.subtitle != null}"
+                            class="step-subtitle text-xs text-muted truncate"
+                            th:text="${step.subtitle}">Step description goes here</span>
+                    </div>
+
+                    <!-- CONNECTING LINE (Horizontal Mode) -->
+                    <div th:if="${orientation != 'vertical' and !iterStat.last}"
+                         class="hidden md:block absolute top-5 left-[calc(50%+1.5rem)] right-[calc(-50%+1.5rem)] h-[2px] -translate-y-1/2 -z-0 transition-colors duration-300"
+                         th:classappend="${iterStat.index < currentStep} ? 'bg-primary': 'bg-border'">
+                    </div>
+
+                    <!-- CONNECTING LINE (Vertical Mode) -->
+                    <div th:if="${orientation == 'vertical' and !iterStat.last}"
+                         class="absolute top-10 left-[1.7rem] w-[2px] h-[calc(100%+0.5rem)] -translate-x-1/2 -z-0 transition-colors duration-300"
+                         th:classappend="${iterStat.index < currentStep} ? 'bg-primary' : 'bg-border'">
+                    </div>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- STEP CONTENT CONTAINER -->
+    <div class="stepper-content-container flex-1 min-w-0">
+        <div th:each="step, iterStat : ${steps}"
+             class="step-content"
+             th:classappend="${iterStat.index == currentStep} ? 'block active': 'hidden'">
+
+            <div th:replace="~{${step.contentFragment}}"></div>
         </div>
-        <div class="step-label" th:text="${step.label}">Step Label</div>
     </div>
 </div>
-</body>
-</html>

@@ -128,28 +128,53 @@ class EcommerceController @Inject constructor(
             }
 
             get("checkout") {
-                val user = call.sessions.get<AuthSession>()?.let { userService.getUser(it.userId) }
-                    ?: return@get call.respondHtml<Unit>(
-                        template = "ecommerce/pages/checkout",
-                        status = HttpStatusCode.Unauthorized,
-                        errors = listOf("Sign in before checking out")
-                    )
+                //                val user = call.sessions.get<AuthSession>()?.let { userService.getUser(it.userId) }
+//                    ?: return@get call.respondHtml<Unit>(
+//                        template = "ecommerce/pages/checkout",
+//                        status = HttpStatusCode.Unauthorized,
+//                        errors = listOf("Sign in before checking out")
+//                    )
+                data class CheckoutStep(
+                    val title: String,
+                    val subtitle: String? = null,
+                    val contentFragment: String
+                )
 
-                val steps = listOf(
-                    mapOf(
-                        "label" to "Shipping",
-                        "template" to "ecommerce/components/shipping :: shipping",
-                        "formId" to "shippingForm"
+                val checkoutSteps = listOf(
+                    CheckoutStep(
+                        title = "Cart",
+                        subtitle = "Your cart information",
+                        contentFragment = "ecommerce/pages/checkout/cart"
+                    ),
+                    CheckoutStep(
+                        title = "Address",
+                        subtitle = "Your shipping address",
+                        contentFragment = "ecommerce/pages/checkout/address"
+                    ),
+                    CheckoutStep(
+                        title = "Payment",
+                        subtitle = "Choose payment method",
+                        contentFragment = "ecommerce/pages/checkout/payment"
+                    ),
+                    CheckoutStep(
+                        title = "Review",
+                        subtitle = "Confirm order",
+                        contentFragment = "ecommerce/pages/checkout/review"
                     )
                 )
-                call.respondHtml(
-                    template = "ecommerce/pages/checkout",
-                    data = user,
+
+                val currentStep = call.request.queryParameters["step"]
+                    ?.toIntOrNull()
+                    ?.coerceIn(0, checkoutSteps.lastIndex)
+                    ?: 0
+
+                call.respondHtml<Unit>(
+                    template = "ecommerce/pages/checkout/index",
                     mapData = mutableMapOf(
                         "currentPage" to "checkout",
-                        "currentStep" to 0,
-                        "steps" to steps,
-                        "user" to user,
+                        "currentStep" to currentStep,
+                        "steps" to checkoutSteps,
+//                        "user" to user,
                         "session" to emptyMap<String, Any>()
                     )
                 )

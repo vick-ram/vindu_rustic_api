@@ -1,10 +1,424 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ecommerce/layouts/main.html}">
+<body layout:fragment="content">
 
+<main class="max-w-4xl mx-auto">
+    <header class="mb-8 text-center md:text-left">
+        <h1 class="text-3xl font-bold text-body tracking-tight">Checkout Process</h1>
+        <p class="text-secondary mt-1">Complete your details to place the order</p>
+    </header>
+
+    <!-- STEPPER COMPONENT EMBEDDED -->
+    <div th:replace="~{ecommerce/components/stepper :: stepper(steps=${steps}, currentStep=${currentStep}, orientation='horizontal')}">
+    </div>
+    <!-- NAVIGATION ACTIONS FOOTER -->
+    <div class="flex items-center justify-between pt-6 border-t border-border mt-8">
+        <button type="button" onclick="stepperPrevious()"
+                class="px-5 py-2.5 rounded-lg border border-border text-body bg-surface hover:bg-[var(--color-hover)] font-medium text-sm transition-all shadow-sm">
+            Previous
+        </button>
+
+        <button type="button" onclick="stepperNext()"
+                class="px-6 py-2.5 rounded-lg bg-primary text-white hover:opacity-90 font-medium text-sm shadow-md transition-all">
+            Next Step
+        </button>
+    </div>
+</main>
+
+
+<div class="stepper flex items-center justify-center gap-0 pt-9 pb-2">
+    <div class="step done flex items-center" id="s-cart" style="gap: 10px;">
+        <div class="circle size-7 rounded-full border border-default flex items-center justify-center font-mono text-xs text-secondary bg-success text-background border-success">
+            ✓
+        </div>
+        <div class="label text-xs font-mono uppercase tracking-wider text-body">Cart</div>
+    </div>
+    <div class="connector w-16 h-px bg-border mx-2"></div>
+    <div class="step active flex items-center" id="s-address" style="gap: 10px;">
+        <div class="circle size-7 rounded-full border border-default flex items-center justify-center font-mono text-xs bg-error text-background border-error">
+            2
+        </div>
+        <div class="label text-xs font-mono uppercase tracking-wider text-body">Address</div>
+    </div>
+    <div class="connector w-16 h-px bg-border mx-2"></div>
+    <div class="step flex items-center gap-3" id="s-payment">
+        <div class="circle size-7 rounded-full border border-default flex items-center justify-center font-mono text-xs text-secondary">
+            3
+        </div>
+        <div class="label text-xs font-mono uppercase tracking-wider text-secondary">Payment</div>
+    </div>
+    <div class="connector w-16 h-px bg-border mx-2"></div>
+    <div class="step flex items-center gap-3" id="s-review">
+        <div class="circle size-7 rounded-full border border-default flex items-center justify-center font-mono text-xs text-secondary">
+            4
+        </div>
+        <div class="label text-xs font-mono uppercase tracking-wider text-secondary">Review</div>
+    </div>
+</div>
+
+<main class="pt-11 pb-18">
+    <!-- CART SCREEN -->
+    <section class="screen hidden" id="cart">
+        <div class="max-w-5xl mx-auto px-8 grid gap-14 items-start" style="grid-template-columns: 1fr 360px;">
+            <div>
+                <h1 class="pagehead text-3xl mb-7.5 font-serif font-medium">Your cart</h1>
+                <div class="hold-notice flex items-center gap-2 bg-surface-alt border border-default p-[12px_16px] mb-[28px] text-[13px] text-secondary">
+                    <span class="dot size-2 rounded-full bg-warning shrink-0"></span>
+                    Items are held for <strong>14:32</strong> while stock is reserved for you
+                </div>
+
+                <div class="cartitem grid grid-cols-[90px_1fr_auto] gap-[20px] py-[22px] border-b border-default items-center">
+                    <div class="thumb w-[90px] h-[90px] gradient-primary"></div>
+                    <div>
+                        <div class="name font-serif text-[17px] mb-[4px]">Ashcombe dining table</div>
+                        <div class="meta text-[13px] text-secondary mb-[10px]">Finish: Oak &middot; SKU OAK-ASH-72</div>
+                        <div class="qty inline-flex items-center border border-default">
+                            <button class="w-[30px] h-[30px] bg-none border-none cursor-pointer text-[15px] text-body"
+                                    onclick="return false;">–
+                            </button>
+                            <span class="w-[32px] text-center font-mono text-[13px]">1</span>
+                            <button class="w-[30px] h-[30px] bg-none border-none cursor-pointer text-[15px] text-body"
+                                    onclick="return false;">+
+                            </button>
+                        </div>
+                    </div>
+                    <div class="right text-right">
+                        <div class="price font-mono text-[16px] mb-[8px]">KES 84,000</div>
+                        <span class="remove text-xs text-error underline cursor-pointer ml-[16px] font-mono">Remove</span>
+                    </div>
+                </div>
+
+                <div class="cartitem grid grid-cols-[90px_1fr_auto] gap-[20px] py-[22px] border-b border-default items-center">
+                    <div class="thumb w-[90px] h-[90px] gradient-primary"></div>
+                    <div>
+                        <div class="name font-serif text-[17px] mb-[4px]">Coppice armchair</div>
+                        <div class="meta text-[13px] text-secondary mb-[10px]">Finish: Walnut &middot; SKU WAL-COP-01
+                        </div>
+                        <div class="qty inline-flex items-center border border-default">
+                            <button class="w-[30px] h-[30px] bg-none border-none cursor-pointer text-[15px] text-body"
+                                    onclick="return false;">–
+                            </button>
+                            <span class="w-[32px] text-center font-mono text-[13px]">2</span>
+                            <button class="w-[30px] h-[30px] bg-none border-none cursor-pointer text-[15px] text-body"
+                                    onclick="return false;">+
+                            </button>
+                        </div>
+                    </div>
+                    <div class="right text-right">
+                        <div class="price font-mono text-[16px] mb-[8px]">KES 76,000</div>
+                        <span class="remove text-xs text-error underline cursor-pointer ml-[16px] font-mono">Remove</span>
+                    </div>
+                </div>
+
+                <a href="#"
+                   class="cta block w-full max-w-[220px] text-center p-[15px] bg-none border border-default text-body text-[14px] font-medium cursor-pointer mt-[24px]">←
+                    Continue shopping</a>
+            </div>
+
+            <div class="summary bg-surface-alt border border-default p-[26px] sticky top-[24px]">
+                <h3 class="font-serif text-[18px] mb-[18px]">Order summary</h3>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary">
+                    <span>Subtotal</span><span class="font-mono">KES 160,000</span>
+                </div>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary">
+                    <span>Estimated shipping</span><span class="font-mono">from KES 3,500</span>
+                </div>
+                <div class="promo flex gap-[8px] my-[18px]">
+                    <input type="text" placeholder="Discount code"
+                           class="flex-1 p-[10px_12px] border border-default bg-background text-[13px] font-sans">
+                    <button class="p-[10px_14px] bg-none border border-default text-xs cursor-pointer font-mono">Apply
+                    </button>
+                </div>
+                <div class="sumrow total flex justify-between text-[17px] text-body font-medium font-mono border-t border-default pt-[14px] mt-[6px]">
+                    <span>Total</span><span>KES 163,500</span>
+                </div>
+                <button class="cta block w-full text-center p-[15px] bg-error text-background text-[14px] font-medium border-none cursor-pointer mt-[8px]"
+                        onclick="goTo('address')">Proceed to address →
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ADDRESS SCREEN -->
+    <section class="screen block" id="address">
+        <div class="max-w-5xl mx-auto px-[32px] grid grid-cols-[1fr_360px] gap-[56px] items-start">
+            <div>
+                <h1 class="pagehead text-[30px] mb-[28px] font-serif font-medium">Delivery address</h1>
+
+                <div class="addr-list grid gap-[14px] mb-[28px]">
+                    <div class="addr-card selected border border-error bg-surface-alt p-[18px_20px] flex gap-[14px] items-start cursor-pointer">
+                        <input type="radio" name="addr" checked class="mt-[4px]">
+                        <div>
+                            <div class="label font-serif text-[15px] mb-[3px]">Home <span
+                                    class="tag inline-block ml-[8px] text-[10px] bg-warning text-body p-[2px_6px] font-mono">DEFAULT</span>
+                            </div>
+                            <div class="lines text-[13px] text-secondary leading-[1.5]">Wanjiru Kamau &middot; 0722 000
+                                000<br>14 Riverside Drive, Lavington, Nairobi
+                            </div>
+                        </div>
+                    </div>
+                    <div class="addr-card border border-default p-[18px_20px] flex gap-[14px] items-start cursor-pointer">
+                        <input type="radio" name="addr" class="mt-[4px]">
+                        <div>
+                            <div class="label font-serif text-[15px] mb-[3px]">Office</div>
+                            <div class="lines text-[13px] text-secondary leading-[1.5]">Wanjiru Kamau &middot; 0722 000
+                                000<br>Delta Corner, Chiromo Road, Westlands, Nairobi
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="addnew border border-dashed border-primary p-[16px_20px] text-[14px] text-secondary cursor-pointer">
+                    + Add a new address
+                </div>
+
+                <div class="formgrid hidden grid-cols-2 gap-[16px] mt-[20px]">
+                    <div><label class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">Recipient
+                        name</label><input type="text"
+                                           class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                    </div>
+                    <div><label class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">Phone</label><input
+                            type="text"
+                            class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                    </div>
+                    <div class="col-span-full"><label
+                            class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">Address
+                        line 1</label><input type="text"
+                                             class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                    </div>
+                    <div><label class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">City</label><input
+                            type="text"
+                            class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                    </div>
+                    <div><label class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">County</label><input
+                            type="text"
+                            class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                    </div>
+                </div>
+
+                <div class="eyebrow font-mono text-xs tracking-[0.08em] uppercase text-error mt-[36px]">Shipping
+                    method
+                </div>
+                <div class="shipmethods grid gap-[12px] mt-[32px]">
+                    <div class="ship-opt selected flex justify-between items-center border border-error bg-surface-alt p-[16px_18px] cursor-pointer">
+                        <div class="left flex gap-[12px] items-center"><input type="radio" name="ship" checked>
+                            <div>
+                                <div class="name font-serif text-[15px]">Standard</div>
+                                <div class="eta text-xs text-secondary">5–7 business days</div>
+                            </div>
+                        </div>
+                        <div class="cost font-mono text-[14px]">KES 3,500</div>
+                    </div>
+                    <div class="ship-opt flex justify-between items-center border border-default p-[16px_18px] cursor-pointer">
+                        <div class="left flex gap-[12px] items-center"><input type="radio" name="ship">
+                            <div>
+                                <div class="name font-serif text-[15px]">Express</div>
+                                <div class="eta text-xs text-secondary">2–3 business days</div>
+                            </div>
+                        </div>
+                        <div class="cost font-mono text-[14px]">KES 6,000</div>
+                    </div>
+                    <div class="ship-opt flex justify-between items-center border border-default p-[16px_18px] cursor-pointer">
+                        <div class="left flex gap-[12px] items-center"><input type="radio" name="ship">
+                            <div>
+                                <div class="name font-serif text-[15px]">Next day</div>
+                                <div class="eta text-xs text-secondary">Nairobi metro only</div>
+                            </div>
+                        </div>
+                        <div class="cost font-mono text-[14px]">KES 9,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary bg-surface-alt border border-default p-[26px] sticky top-[24px]">
+                <h3 class="font-serif text-[18px] mb-[18px]">Order summary</h3>
+                <div class="miniitems mt-[20px] pt-[18px] border-t border-default">
+                    <div class="miniitem flex gap-[12px] text-[13px] mb-[12px] items-center">
+                        <div class="mthumb w-[42px] h-[42px] gradient-primary shrink-0"></div>
+                        <div class="mname font-serif">Ashcombe table ×1</div>
+                        <div class="mprice ml-auto font-mono text-xs text-secondary">84,000</div>
+                    </div>
+                    <div class="miniitem flex gap-[12px] text-[13px] mb-[12px] items-center">
+                        <div class="mthumb w-[42px] h-[42px] gradient-primary shrink-0"></div>
+                        <div class="mname font-serif">Coppice armchair ×2</div>
+                        <div class="mprice ml-auto font-mono text-xs text-secondary">76,000</div>
+                    </div>
+                </div>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary mt-[16px]">
+                    <span>Subtotal</span><span class="font-mono">KES 160,000</span></div>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary"><span>Shipping</span><span
+                        class="font-mono">KES 3,500</span></div>
+                <div class="sumrow total flex justify-between text-[17px] text-body font-medium font-mono border-t border-default pt-[14px] mt-[6px]">
+                    <span>Total</span><span>KES 163,500</span></div>
+                <button class="cta block w-full text-center p-[15px] bg-error text-background text-[14px] font-medium border-none cursor-pointer mt-[8px]"
+                        onclick="goTo('payment')">Continue to payment →
+                </button>
+                <button class="cta ghost block w-full text-center p-[15px] bg-none border border-default text-body text-[14px] font-medium cursor-pointer mt-[10px]"
+                        onclick="goTo('cart')">← Back to cart
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAYMENT SCREEN -->
+    <section class="screen hidden" id="payment">
+        <div class="max-w-[1080px] mx-auto px-[32px] grid grid-cols-[1fr_360px] gap-[56px] items-start">
+            <div>
+                <h1 class="pagehead text-[30px] mb-[28px] font-serif font-medium">Payment</h1>
+
+                <div class="paymethods grid gap-[12px] mb-[28px]">
+                    <div class="pay-opt selected border border-error bg-surface-alt p-[18px_20px] cursor-pointer">
+                        <div class="head flex items-center gap-[12px]"><input type="radio" name="pay" checked><span
+                                class="name font-serif text-[16px]">M-Pesa</span><span
+                                class="badge ml-auto text-[10px] bg-success text-background p-[3px_8px] font-mono">MOST USED</span>
+                        </div>
+                        <div class="mpesa-box mt-[16px] pt-[16px] border-t border-default">
+                            <p class="text-[13px] text-secondary mb-[12px]">Enter the phone number to receive the STK
+                                push prompt.</p>
+                            <label class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">M-Pesa
+                                phone number</label>
+                            <input type="text" placeholder="07XX XXX XXX"
+                                   class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                        </div>
+                    </div>
+                    <div class="pay-opt border border-default p-[18px_20px] cursor-pointer">
+                        <div class="head flex items-center gap-[12px]"><input type="radio" name="pay"><span
+                                class="name font-serif text-[16px]">Debit / credit card</span></div>
+                        <div class="card-fields mt-[16px] pt-[16px] border-t border-default grid grid-cols-2 gap-[14px]">
+                            <div class="col-span-full"><label
+                                    class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">Card
+                                number</label><input type="text" placeholder="•••• •••• •••• ••••"
+                                                     class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                            </div>
+                            <div><label
+                                    class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">Expiry</label><input
+                                    type="text" placeholder="MM/YY"
+                                    class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                            </div>
+                            <div><label
+                                    class="block text-[11px] uppercase tracking-[0.05em] text-secondary mb-[6px] font-mono">CVC</label><input
+                                    type="text" placeholder="•••"
+                                    class="w-full p-[11px_13px] bg-surface-alt border border-default text-[14px] text-body">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pay-opt border border-default p-[18px_20px] cursor-pointer">
+                        <div class="head flex items-center gap-[12px]"><input type="radio" name="pay"><span
+                                class="name font-serif text-[16px]">Pay on delivery</span></div>
+                    </div>
+                </div>
+
+                <div class="checkrow flex items-center gap-[10px] text-[13px] text-secondary my-[22px]"><input
+                        type="checkbox" checked><span>Billing address same as delivery address</span></div>
+            </div>
+
+            <div class="summary bg-surface-alt border border-default p-[26px] sticky top-[24px]">
+                <h3 class="font-serif text-[18px] mb-[18px]">Order summary</h3>
+                <div class="miniitems mt-[20px] pt-[18px] border-t border-default">
+                    <div class="miniitem flex gap-[12px] text-[13px] mb-[12px] items-center">
+                        <div class="mthumb w-[42px] h-[42px] gradient-primary shrink-0"></div>
+                        <div class="mname font-serif">Ashcombe table ×1</div>
+                        <div class="mprice ml-auto font-mono text-xs text-secondary">84,000</div>
+                    </div>
+                    <div class="miniitem flex gap-[12px] text-[13px] mb-[12px] items-center">
+                        <div class="mthumb w-[42px] h-[42px] gradient-primary shrink-0"></div>
+                        <div class="mname font-serif">Coppice armchair ×2</div>
+                        <div class="mprice ml-auto font-mono text-xs text-secondary">76,000</div>
+                    </div>
+                </div>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary mt-[16px]">
+                    <span>Subtotal</span><span class="font-mono">KES 160,000</span></div>
+                <div class="sumrow flex justify-between text-[14px] mb-[12px] text-secondary">
+                    <span>Shipping (Standard)</span><span class="font-mono">KES 3,500</span></div>
+                <div class="sumrow total flex justify-between text-[17px] text-body font-medium font-mono border-t border-default pt-[14px] mt-[6px]">
+                    <span>Total</span><span>KES 163,500</span></div>
+                <button class="cta block w-full text-center p-[15px] bg-error text-background text-[14px] font-medium border-none cursor-pointer mt-[8px]">
+                    Place order →
+                </button>
+                <button class="cta ghost block w-full text-center p-[15px] bg-none border border-default text-body text-[14px] font-medium cursor-pointer mt-[10px]"
+                        onclick="goTo('address')">← Back to address
+                </button>
+                <div class="lockline flex items-center gap-[8px] text-xs text-secondary justify-center mt-[16px]">🔒
+                    Payments are encrypted and processed securely
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    function goTo(id) {
+        document.querySelectorAll('.screen').forEach(s => {
+            if (s.id === id) {
+                s.classList.remove('hidden');
+                s.classList.add('block');
+            } else {
+                s.classList.remove('block');
+                s.classList.add('hidden');
+            }
+        });
+
+        document.querySelectorAll('.stepper .step').forEach(s => {
+            s.classList.remove('active', 'done');
+            const circle = s.querySelector('.circle');
+            const label = s.querySelector('.label');
+
+            circle.className = 'circle w-[28px] h-[28px] rounded-custom-full border border-default flex items-center justify-center font-mono text-xs text-secondary';
+            label.className = 'label text-[13px] font-mono uppercase tracking-[0.04em] text-secondary';
+        });
+
+        const order = ['cart', 'address', 'payment', 'review'];
+        const idx = order.indexOf(id);
+
+        order.forEach((name, i) => {
+            const el = document.getElementById('s-' + name);
+            if (!el) return;
+            const circle = el.querySelector('.circle');
+            const label = el.querySelector('.label');
+
+            if (i < idx) {
+                el.classList.add('done');
+                circle.className = 'circle w-[28px] h-[28px] rounded-full border flex items-center justify-center font-mono text-xs bg-success text-background border-success';
+                label.className = 'label text-[13px] font-mono uppercase tracking-[0.04em] text-body';
+            }
+            if (i === idx) {
+                el.classList.add('active');
+                circle.className = 'circle w-[28px] h-[28px] rounded-custom-full border flex items-center justify-center font-mono text-xs bg-error text-background border-error';
+                label.className = 'label text-[13px] font-mono uppercase tracking-[0.04em] text-body';
+            }
+        });
+
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function setupSelection(selector) {
+        document.querySelectorAll(selector).forEach(c => {
+            c.addEventListener('click', () => {
+                document.querySelectorAll(selector).forEach(x => {
+                    x.classList.remove('selected', 'border-error', 'bg-surface-alt');
+                    x.classList.add('border-default');
+                });
+                c.classList.add('selected', 'border-error', 'bg-surface-alt');
+                c.classList.remove('border-default');
+                const radio = c.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+            });
+        });
+    }
+
+    setupSelection('.addr-card');
+    setupSelection('.ship-opt');
+    setupSelection('.pay-opt');
+</script>
+
+<script th:src="@{/resources/js/ecommerce/stepper.js}"></script>
+<script th:inline="javascript">
+    window.stepperConfig = {
+        currentStep: /*[[${currentStep}]]*/ 0,
+        totalSteps: /*[[${steps.size()}]]*/ 4
+    };
+</script>
 </body>
 </html>
